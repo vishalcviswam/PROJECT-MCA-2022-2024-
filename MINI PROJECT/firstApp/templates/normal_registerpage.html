@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+{% load static%}
+
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <title>EduSphere Fusion</title>
+    <link rel="icon" href="{% static 'images/fav.png'%}" type="image/png" sizes="16x16"> 
+    
+    <link rel="stylesheet" href="{% static 'css/main.min.css'%}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/color.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+
+	<style>
+		
+	</style>
+
+	
+
+</head>
+<body>
+<div class="theme-layout">
+    <div class="container-fluid pdng0">
+        <div class="row merged">
+            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                <div class="land-featurearea">
+                    <div class="land-meta">
+                        <h1>EduSphere Fusion</h1>
+                        <p>Your Path to Success Begins Here..</p>
+                        <div class="friend-logo">
+                            <span><img src="{% static 'images/wink.png'%}" alt=""></span>
+                        </div>
+                        <a href="https://www.linkedin.com/in/edusphere-fusion-505077294/" title="" class="folow-me">Follow Us on</a>
+                    </div>    
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                <div class="login-reg-bg">
+                    <div class="log-reg-area sign">
+                    
+                        <h2 class="log-title">User Registration</h2>
+                        
+                        <form method="post" action="#" onsubmit="return validateForm();">
+                            {% csrf_token %}
+                            <div class="form-group">   
+                                <input type="text" id="name" required="required" name="fname" onblur="validateName()">
+                                <label class="control-label" for="name">First Name</label>
+                                <i class="mtrl-select"></i>
+                                <p id="name-error" class="error-message"></p>
+                            </div>
+							<div class="form-group">   
+                                <input type="text" id="name" required="required" name="lname" onblur="validateName()">
+                                <label class="control-label" for="name">Last Name</label>
+                                <i class="mtrl-select"></i>
+                                <p id="name-error" class="error-message"></p>
+                            </div>
+                            <div class="form-group">
+								<input type="text" required="required" name="uname" id="uname" >
+								<label class="control-label" for="uname">User Name</label>
+								<i class="mtrl-select"></i>
+								<p id="uname-error" class="error-message"></p>
+								{% if error_message %}
+								<p class="error-message">{{ error_message }}</p>
+								{% endif %}
+							</div>							
+                            <div class="form-group">   
+                                <input type="email" required="required" name="email" onblur="validateEmail()">
+                                <label class="control-label" for="email">Email</label>
+                                <i class="mtrl-select"></i>
+                                <p id="email-error" class="error-message"></p>
+                            </div>
+                            <div class="form-group">   
+                                <input type="text" required="required" name="phone" onblur="validateMobileNumber()">
+                                <label class="control-label" for="phone">Phone Number</label>
+                                <i class="mtrl-select"></i>
+                                <p id="phone-error" class="error-message"></p>
+                            </div>
+                
+                            <div class="form-group">   
+                                <input type="password" required="required" name="password" onblur="validatePassword()">
+                                <label class="control-label" for="password">Password</label>
+                                <i class="mtrl-select"></i>
+                                <p id="password-error" class="error-message"></p>
+                            </div>
+                            <div class="form-group">   
+                                <input type="password" required="required" name="cpassword" onblur="validateConfirmPassword()">
+                                <label class="control-label" for="cpassword">Confirm Password</label>
+                                <i class="mtrl-select"></i>
+                                <p id="cpassword-error" class="error-message"></p>
+                            </div>
+                            <a href="{% url 'loginnew' %}" >Already have an account</a>
+							{% load socialaccount %}
+							<a href="{% provider_login_url 'google' %}?next=/" class="forgot-pwd">Login with Google</a>
+                            <div class="submit-btns">
+                                <button class="mtr-btn" type="submit" name="btn1"><span>Register</span></button>
+                            </div>
+							
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    
+<script>
+    // Validation functions (include all validation functions here)
+</script>
+<script data-cfasync="false" src="../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<script src="{%static 'js/main.min.js' %}"></script>
+<script src="{% static 'js/script.js' %}"></script>
+<!-- Add this JavaScript code within a <script> tag at the end of your HTML body -->
+	<script>
+		document.getElementById("uname").addEventListener("blur", validateUsername);
+		// Validation function for the name field (no numbers allowed)
+		function validateName() {
+			var name = document.getElementById("name");
+			var nameError = document.getElementById("name-error");
+	
+			if (!/^[A-Za-z\s]+$/.test(name.value)) {
+				nameError.textContent = "Name should not contain numbers";
+				name.focus();
+				return false;
+			}
+			nameError.textContent = "";
+			return true;
+		}
+	
+		// Validation function for the username field (no special characters or whitespace)
+		function validateUsername() {
+			var uname = document.getElementsByName("uname")[0];
+			var unameError = document.getElementById("uname-error");
+	
+			if (!/^[a-zA-Z0-9]+$/.test(uname.value)) {
+				unameError.textContent = "Username should only contain alphanumeric characters";
+				uname.focus();
+				return false;
+			}
+			unameError.textContent = "";
+			return true;
+		}
+	
+		// Validation function for the email field (correct format and no uppercase letters)
+		function validateEmail() {
+			var email = document.getElementsByName("email")[0];
+			var emailError = document.getElementById("email-error");
+			var emailPattern = /^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,4}$/;
+	
+			if (!emailPattern.test(email.value) || /[A-Z]/.test(email.value)) {
+				emailError.textContent = "Please enter a valid lowercase email address";
+				email.focus();
+				return false;
+			}
+			emailError.textContent = "";
+			return true;
+		}
+	
+		// Validation function for the password field (8 characters, uppercase, lowercase, digit, special character)
+		function validatePassword() {
+			var password = document.getElementsByName("password")[0];
+			var passwordError = document.getElementById("password-error");
+			var passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+	
+			if (!passwordPattern.test(password.value)) {
+				passwordError.textContent = "Password should have at least 8 characters, including one uppercase letter, one lowercase letter, one digit, and one special character.";
+				password.focus();
+				return false;
+			}
+			passwordError.textContent = "";
+			return true;
+		}
+	
+		function validateConfirmPassword() {
+			var password = document.getElementsByName("password")[0];
+			var cpassword = document.getElementsByName("cpassword")[0];
+			var cpasswordError = document.getElementById("cpassword-error");
+	
+			if (password.value !== cpassword.value) {
+				cpasswordError.textContent = "Passwords do not match";
+				cpassword.focus();
+				return false;
+			}
+			cpasswordError.textContent = "";
+			return true;
+		}
+	
+		// Validation function for the mobile number field
+		function validateMobileNumber() {
+			var phone = document.getElementsByName("phone")[0];
+			var phoneError = document.getElementById("phone-error");
+			var phonePattern = /^[0-9]{10}$/;
+	
+			if (!phonePattern.test(phone.value)) {
+				phoneError.textContent = "Please enter a valid 10-digit phone number";
+				phone.focus();
+				return false;
+			}
+			phoneError.textContent = "";
+			return true;
+		}
+	
+		// Function to validate the entire form when submitted
+		function validateForm() {
+			return (
+				validateName() &&
+				validateUsername() &&
+				validateEmail() &&
+				validatePassword() &&
+				validateConfirmPassword() &&
+				validateMobileNumber()
+			);
+		}
+	</script>
+	
+
+</body>    
+</html>

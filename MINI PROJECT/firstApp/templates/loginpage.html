@@ -31,7 +31,7 @@
 						<div class="friend-logo">
 							<span><img src="{% static 'images/wink.png'%}" alt=""></span>
 						</div>
-						<a href="{% static '#' %}" title="" class="folow-me">Follow Us on</a>
+						<a href="https://www.linkedin.com/in/edusphere-fusion-505077294/" title="" class="folow-me">Follow Us on</a>
 					</div>	
 				</div>
 			</div>
@@ -52,16 +52,17 @@
 							{% if error_message %}
 								<p class="error-message">{{ error_message }}</p>
 							{% endif %}
-							<a href="#" title="" class="forgot-pwd">Forgot Password?</a>
-							{% load socialaccount %}
-							<a href="http://127.0.0.1:8000/accounts/login/">Login with Google</a>
+							<a href="{% url 'password_reset' %}" title="" class="forgot-pwd">Forgot Password?</a>
+							{% load socialaccount %}							
+							<a href="{% url 'register_normal_user' %}" >Register as a user</a>
+							<div>
+							<a href="{% url 'register_college_user' %}">Register as a college</a>
+							<a href="{% provider_login_url 'google' %}?next=home" class="forgot-pwd">Login with Google</a>
+							</div>
+							
 							<div class="submit-btns">
 								<button class="mtr-btn" type="submit"><span>Login</span></button>
-								<button class="mtr-btn" type="button" name="btn1">
-									<a href="{% url 'registernew' %}">
-										<span>Register</span>
-									</a>
-								</button>
+								
 							</div>
 						</form>
 						

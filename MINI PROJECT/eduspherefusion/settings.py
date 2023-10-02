@@ -147,3 +147,13 @@ SOCIALACCOUNT_QUERY_EMAIL = True
 LOGIN_REDIRECT_URL="home"
 
 SOCIALACCOUNT_LOGIN_ON_GET= True
+
+LOGIN_REDIRECT_URL="loginnew"
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'kdoxigen@gmail.com'
+EMAIL_HOST_PASSWORD = 'rrvnojnzayzkywix'
+#DEFAULT_FROM_EMAIL = 'your-email@example.com'
