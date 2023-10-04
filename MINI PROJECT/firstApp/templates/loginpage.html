@@ -52,11 +52,11 @@
 							{% if error_message %}
 								<p class="error-message">{{ error_message }}</p>
 							{% endif %}
-							<a href="{% url 'password_reset' %}" title="" class="forgot-pwd">Forgot Password?</a>
-							{% load socialaccount %}							
+							<a href="{% url 'password_reset' %}" title="" class="forgot-pwd">Forgot Password?</a>								
 							<a href="{% url 'register_normal_user' %}" >Register as a user</a>
 							<div>
 							<a href="{% url 'register_college_user' %}">Register as a college</a>
+							{% load socialaccount %}
 							<a href="{% provider_login_url 'google' %}?next=home" class="forgot-pwd">Login with Google</a>
 							</div>
 							

@@ -1,25 +1,30 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+
+class User(AbstractUser):
+    is_normal_user = models.BooleanField(default=False)
+    is_college_user = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return self.username
 
 class NormalUser(models.Model):
-    first_name = models.CharField(max_length=255,null=True)
-    last_name = models.CharField(max_length=255,null=True)
-    username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128)
-    phone_number = models.CharField(max_length=15)  # Add phone_number field
-    country = models.CharField(max_length=100)
-    gender = models.CharField(max_length=10)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    first_name = models.CharField(max_length=30,null=True)
+    last_name = models.CharField(max_length=30,null=True)
+    phone_number = models.CharField(max_length=15, null=True)
+    country = models.CharField(max_length=100, null=True)
+    gender = models.CharField(max_length=10, null=True)
     profile_photo = models.ImageField(blank=True, null=True, upload_to='profile_photos/')
     cover_photo = models.ImageField(blank=True, null=True, upload_to='cover_photos/')
-    registration_date = models.DateTimeField(auto_now_add=True)
     about_me = models.TextField(blank=True, null=True)
+    registration_date = models.DateTimeField(auto_now_add=True)
 
-    # Add fields specific to normal users
-
+    def __str__(self):
+        return self.user.username
+    
 class CollegeUser(models.Model):
-    username = models.CharField(max_length=150, unique=True)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=128)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
     COLLEGE_TYPE_CHOICES = [
         (1, 'Community colleges'),
         (2, 'Technical colleges'),
@@ -37,9 +42,14 @@ class CollegeUser(models.Model):
     website = models.URLField()
     contact_email = models.EmailField(max_length=254)
     contact_phone_number = models.CharField(max_length=15)
-    college_type = models.IntegerField(choices=COLLEGE_TYPE_CHOICES,null=True)
+    college_type = models.IntegerField(choices=COLLEGE_TYPE_CHOICES, null=True)
     profile_photo = models.ImageField(blank=True, null=True, upload_to='college_profile_photos/')
     cover_photo = models.ImageField(blank=True, null=True, upload_to='college_cover_photos/')
     verification = models.CharField(max_length=20, default='Pending')
     admin_notes = models.TextField(blank=True, null=True)
     pdf_copy = models.FileField(blank=True, null=True, upload_to='college_pdf_copies/')
+
+    def __str__(self):
+        return self.user.username
+
+

@@ -1,14 +1,14 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
+from .models import User, NormalUser, CollegeUser
 
-from .models import NormalUser, CollegeUser
+# Customize the UserAdmin to display your custom fields
+class CustomUserAdmin(UserAdmin):
+    list_display = ('username', 'email', 'is_normal_user', 'is_college_user', 'is_staff')
 
-class NormalUserAdmin(admin.ModelAdmin):
-    # Customize the NormalUser admin if needed
-    pass
+# Register the User model with the custom admin class
+admin.site.register(User, CustomUserAdmin)
 
-class CollegeUserAdmin(admin.ModelAdmin):
-    # Customize the CollegeUser admin if needed
-    pass
-
-admin.site.register(NormalUser, NormalUserAdmin)
-admin.site.register(CollegeUser, CollegeUserAdmin)
+# Register the NormalUser and CollegeUser models
+admin.site.register(NormalUser)
+admin.site.register(CollegeUser)
