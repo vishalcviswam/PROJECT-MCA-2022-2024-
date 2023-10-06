@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -153,4 +154,4 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'kdoxigen@gmail.com'
-EMAIL_HOST_PASSWORD = 'rrvnojnzayzkywix'
+EMAIL_HOST_PASSWORD = 'nvmmyvyldsorsymn'

@@ -53,8 +53,8 @@
                                 <p id="name-error" class="error-message"></p>
                             </div>
 							<div class="form-group">   
-                                <input type="text" id="name" required="required" name="lname" onblur="validateName()">
-                                <label class="control-label" for="name">Last Name</label>
+                                <input type="text" id="lname" required="required" name="lname" onblur="validatenewName()">
+                                <label class="control-label" for="lname">Last Name</label>
                                 <i class="mtrl-select"></i>
                                 <p id="name-error" class="error-message"></p>
                             </div>
@@ -124,6 +124,19 @@
 			if (!/^[A-Za-z\s]+$/.test(name.value)) {
 				nameError.textContent = "Name should not contain numbers";
 				name.focus();
+				return false;
+			}
+			nameError.textContent = "";
+			return true;
+		}
+
+		function validatenewName() {
+			var lname = document.getElementById("lname");
+			var lnameError = document.getElementById("lname-error");
+	
+			if (!/^[A-Za-z\s]+$/.test(lname.value)) {
+				lnameError.textContent = "Name should not contain numbers";
+				lname.focus();
 				return false;
 			}
 			nameError.textContent = "";

@@ -11,6 +11,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Include your custom CSS -->
     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Pacifico&display=swap">
+    <link rel="stylesheet" href="styles.css">
+
     
 
     <link rel="stylesheet" href="styles.css">
@@ -42,10 +44,172 @@
                 background-position: 100% 0;
             }
         }
+
+        
+
+
+        /* Custom styles for the modal */
+        
+        .modal-content {
+            border-radius: 20px; /* Rounded edges for the modal content */
+        }
+        .modal-footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 5px; /* Add padding for spacing */
+            background-color: rgba(255, 255, 255, 0.8); /* Add background color with opacity */
+            border-radius: 0 0 20px 20px; /* Rounded bottom corners */
+            display: flex;
+            justify-content: space-between; /* Align buttons to the left and right */
+        }
+        .close-modal {
+            cursor: pointer;
+        }
+        .profile-form {
+            padding: 20px;
+            padding-bottom: 60px; /* Adjust for larger modal size */
+        }
+        /* Use Bootstrap grid system for partitioning */
+        .modal-body {
+            display: flex;
+        }
+        .modal-body .left-side {
+            flex: 1;
+            text-align: center;
+            border-right: 1px solid #ccc; /* Add a border to separate the sides */
+            position: relative; /* Required for absolute positioning */
+        }
+        .modal-body .right-side {
+            flex: 1;
+            padding: 20px;
+        }
+        /* Style the image in the left side */
+        .modal-body .left-side img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 10px; /* Rounded edges for the image */
+        }
+        /* Style for the profile picture within the cover photo */
+        .cover-photo-preview {
+            width: 100%;/* 4:3 aspect ratio container */
+            overflow: hidden;
+            position: relative;
+            border-radius: 10px; /* Rounded edges for the cover photo */
+        }
+        .profile-picture-preview {
+            position: absolute;
+            bottom: 10px; /* Adjust the position as needed */
+            left: 10px; /* Adjust the position as needed */
+            width: 80px; /* Adjust the size as needed */
+            height: 80px; /* Adjust the size as needed */
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .placeholder-image {
+            width: 100%;
+            padding-top: 75%; /* 4:3 aspect ratio container */
+            background-color: #f5f5f5; /* Background color for placeholder */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .placeholder-text {
+            font-size: 16px;
+            color: #777;
+        }
+
+        .success-message {
+            color: green; /* Set your desired text color */
+            font-weight: bold; /* Make it bold if needed */
+            margin-top: 10px; /* Add spacing to separate it from other elements */
+        }
+
     </style>
     </style>
 </head>
 <body>
+
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+
+    
+        <!-- Modal -->
+        <div class="modal custom-modal" id="myModal" data-backdrop="static" data-keyboard="false">
+            <div class="modal-dialog modal-xl"> <!-- 3/4 screen size -->
+                <div class="modal-content">
+                    <!-- Modal Header -->
+                    <div class="modal-header">
+                        <h4 class="modal-title">Edit Profile</h4>
+                        {% if user.is_authenticated %}
+                        <h5 class="modal-title">Welcome {{ user.username }}</h5>
+                        {% endif %}
+                        
+                    </div>
+
+                    <!-- Modal body -->
+                    <div class="modal-body">
+                        <div class="left-side">
+                            <!-- Cover Photo preview -->
+                            <div class="cover-photo-preview">
+                                <img id="cover-photo-preview" src="{% static 'images/img1.jpg'%}" alt="Cover Photo Preview" style="object-fit: cover; width: 100%; height: 100%;">
+                                <!-- Profile Picture within the cover photo -->
+                                <img id="profile-picture-preview" src="{% static 'images/img2.jpg'%}" alt="Profile Picture Preview" class="profile-picture-preview">
+                            </div>
+                            
+                        </div>
+                        <div class="right-side">
+                            <!-- Rest of the content -->
+                            <!-- Profile Picture -->
+                            <div class="form-group">
+                                <label for="profile-picture">Upload Profile Picture</label>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="profile-picture" onchange="previewImage(this)">
+                                    <label class="custom-file-label" for="profile-picture">Browse</label>
+                                </div>
+                            </div>
+
+                            <!-- Cover Photo -->
+                            <div class="form-group">
+                                <label for="cover-photo">Upload Cover Photo</label>
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="cover-photo" onchange="previewCoverPhoto(this)">
+                                    <label class="custom-file-label" for="cover-photo">Browse</label>
+                                </div>
+                            </div>
+
+                            <!-- About Section -->
+                            <div class="form-group">
+                                <label for="about">About</label>
+                                <textarea class="form-control" id="about" rows="6"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Modal footer -->
+                    <div class="modal-footer">
+                        <span class="text-muted close-modal">I'll do this later</span>
+                        <button type="button" class="btn btn-primary">Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow" >
         <a class="navbar-brand" href="#">EduSphere Fusion</a>
@@ -82,9 +246,7 @@
             </form>
             <!-- User profile dropdown -->
             <li class="nav-item dropdown">
-                <!--{% if user.is_authenticated %}
-                  <h3 class="font-weight-bold">Welcome {{ user.username }}</h3>
-                  {% endif %}-->
+                
                 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <img src="user-avatar.jpg" alt="User Avatar" class="profile-image">
                 </a>
@@ -188,6 +350,50 @@
 
     <!-- Include Bootstrap and Font Awesome JavaScript -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+        // Check if the modal has already been closed using localStorage
+        //if (!localStorage.getItem('modalClosed')) {
+            $(document).ready(function(){
+                // Open the modal on page load
+                $('#myModal').modal('show');
+
+                // Close the modal when the string is clicked
+                $('.close-modal').click(function(){
+                    $('#myModal').modal('hide');
+                    // Set a flag in localStorage to indicate that the modal has been closed
+                    localStorage.setItem('modalClosed', 'true');
+                });
+            });
+       // }
+        
+        // JavaScript to display image preview for the profile picture
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    $('#profile-picture-preview').attr('src', e.target.result);
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // JavaScript to display image preview for the cover photo
+        function previewCoverPhoto(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+                    $('#cover-photo-preview').attr('src', e.target.result);
+                }
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>

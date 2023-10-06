@@ -59,8 +59,7 @@ def register_college_user(request):
         user.set_password(password)
         user.save()
 
-        college_user = CollegeUser(user=user, colleg
-                                   e_name=cname, address=address, contact_email=email, contact_phone_number=phone)
+        college_user = CollegeUser(user=user, college_name=cname, address=address, contact_email=email, contact_phone_number=phone)
         college_user.save()
 
         return redirect('loginnew')
@@ -77,8 +76,10 @@ def loginnew(request):
         if user is not None:
             login(request, user)
             if user.is_normal_user:
+                messages.success(request, 'You successfully signed in as a normal user.')
                 return redirect('home')
             elif user.is_college_user:
+                messages.success(request, 'You successfully signed in as a college user.')
                 return redirect('home')
         else:
             return render(request, 'loginpage.html', {'error_message': 'Username or password is incorrect'})
@@ -96,3 +97,4 @@ def college_user_home(request):
 def logoutnew(request):
     logout(request)
     return redirect('loginnew')
+    
