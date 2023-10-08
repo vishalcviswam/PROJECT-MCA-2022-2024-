@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Updated Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        img {
+            max-width: 100px;
+            max-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>View Updated Profile</h1>
+    <table class="table">
+        <tr>
+            <th>Field</th>
+            <th>Value</th>
+        </tr>
+        <tr>
+            <td>First Name</td>
+            <td>{{ normal_user.first_name }}</td>
+        </tr>
+        <tr>
+            <td>Last Name</td>
+            <td>{{ normal_user.last_name }}</td>
+        </tr>
+        <tr>
+            <td>Phone Number</td>
+            <td>{{ normal_user.phone_number }}</td>
+        </tr>
+        <tr>
+            <td>Country</td>
+            <td>{{ normal_user.country }}</td>
+        </tr>
+        <tr>
+            <td>Gender</td>
+            <td>{{ normal_user.gender }}</td>
+        </tr>
+        <tr>
+            <td>About Me</td>
+            <td>{{ normal_user.about_me }}</td>
+        </tr>
+        <tr>
+            <td>Profile Photo</td>
+            {% if normal_user.profile_photo %}
+            <td><img src="{{ normal_user.profile_photo.url }}" alt="Profile Photo"></td>
+            {% endif %}
+        </tr>
+        <tr>
+            <td>Cover Photo</td>
+            {% if normal_user.cover_photo%}
+            <td><img src="{{ normal_user.cover_photo.url }}" alt="Cover Photo"></td>
+            {% endif %}
+        </tr>
+        <!-- You can add more fields here as needed -->
+    </table>
+</body>
+</html>

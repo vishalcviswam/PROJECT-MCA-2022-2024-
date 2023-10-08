@@ -97,4 +97,86 @@ def college_user_home(request):
 def logoutnew(request):
     logout(request)
     return redirect('loginnew')
+
+
+@login_required(login_url='loginnew')
+def update_profile(request):
+    if request.method == 'POST':
+        user = request.user
+
+        if user.is_authenticated and hasattr(user, 'normaluser'):
+            normal_user = NormalUser
+
+            # Get the uploaded files and text data
+            profile_picture = request.FILES.get('profile_picture')
+            cover_photo = request.FILES.get('cover_photo')
+            about = request.POST.get('about')
+
+            # Update the user's profile
+            if profile_picture:
+                normal_user.profile_photo = profile_picture
+            if cover_photo:
+                normal_user.cover_photo = cover_photo
+            if about:
+                normal_user.about_me = about
+            normal_user.save()
+
+            return redirect('home')  # Replace 'profile_success' with your desired URL or template for success
+        else:
+            return redirect('home')  # Redirect the user to login if not authenticated
+
+    return redirect('home')
     
+
+
+@login_required(login_url='loginnew')
+def update_profile(request):
+    if request.method == 'POST':
+        # Get the currently logged-in user
+        user = request.user
+
+        # Ensure that the user is authenticated and has a related NormalUser instance
+        if user.is_authenticated and hasattr(user, 'normaluser'):
+            normal_user = user.normaluser  # Get the NormalUser instance associated with the user
+
+            # Update the user's profile based on form data
+            normal_user.first_name = request.POST.get('first_name')
+            normal_user.last_name = request.POST.get('last_name')
+            normal_user.phone_number = request.POST.get('phone_number')
+            normal_user.country = request.POST.get('country')
+            normal_user.gender = request.POST.get('gender')
+
+            # Handle profile photo and cover photo uploads
+            profile_photo = request.FILES.get('profile_photo')
+            if profile_photo:
+                normal_user.profile_photo = profile_photo
+
+            cover_photo = request.FILES.get('cover_photo')
+            if cover_photo:
+                normal_user.cover_photo = cover_photo
+
+            normal_user.about_me = request.POST.get('about_me')
+            
+            # Save the updated profile
+            normal_user.save()
+
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('home')  # Redirect to the home page or any desired URL after updating the profile
+        else:
+            messages.error(request, 'User is not authenticated or does not have a related NormalUser instance.')
+            return redirect('loginnew')  # Redirect to the login page or any other appropriate page
+
+    return render(request, 'update_profile.html')  # Replace 'update_profile.html' with the actual template name
+
+
+
+@login_required(login_url='loginnew')
+def view_profile(request):
+    # Assuming you have a NormalUser instance associated with the logged-in user
+    normal_user = request.user.normaluser
+
+    context = {
+        'normal_user': normal_user,
+    }
+
+    return render(request, 'viewprofile.html', context)

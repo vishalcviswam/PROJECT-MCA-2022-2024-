@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Profile</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        input[type="text"],
+        input[type="file"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Update Profile</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="container mt-5">
+            <h2 class="mb-4">Update Your Profile</h2>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <table class="table">
+                    <tr>
+                        <td><label for="first_name">First Name</label></td>
+                        <td><input type="text" class="form-control" id="first_name" name="first_name"></td>
+                    </tr>
+                    <tr>
+                        <td><label for="last_name">Last Name</label></td>
+                        <td><input type="text" class="form-control" id="last_name" name="last_name"></td>
+                    </tr>
+                    <tr>
+                        <td><label for="phone_number">Phone Number</label></td>
+                        <td><input type="text" class="form-control" id="phone_number" name="phone_number"></td>
+                    </tr>
+                    <tr>
+                        <td><label for="country">Country</label></td>
+                        <td><input type="text" class="form-control" id="country" name="country"></td>
+                    </tr>
+                    <tr>
+                        <td><label for="gender">Gender</label></td>
+                        <td>
+                            <select class="form-control" id="gender" name="gender">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><label for="profile_photo">Profile Photo</label></td>
+                        <td><input type="file" class="form-control-file" id="profile_photo" name="profile_photo"></td>
+                    </tr>
+                    <tr>
+                        <td><label for="cover_photo">Cover Photo</label></td>
+                        <td><input type="file" class="form-control-file" id="cover_photo" name="cover_photo"></td>
+                    </tr>
+                    <tr>
+                        <td><label for="about_me">About Me</label></td>
+                        <td><textarea class="form-control" id="about_me" name="about_me" rows="5"></textarea></td>
+                    </tr>
+                </table>
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+    </form>
+</body>
+</html>
