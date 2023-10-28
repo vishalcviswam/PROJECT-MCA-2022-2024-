@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+
 class User(AbstractUser):
     is_normal_user = models.BooleanField(default=False)
     is_college_user = models.BooleanField(default=False)
@@ -52,4 +53,56 @@ class CollegeUser(models.Model):
     def __str__(self):
         return self.user.username
 
+class Department(models.Model):
+    college = models.ForeignKey(CollegeUser, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    undergrad_offered = models.BooleanField(default=False)
+    postgrad_offered = models.BooleanField(default=False)
+    head_of_department = models.CharField(max_length=255)
+    department_start_year = models.DateField()
+
+    def __str__(self):
+        return self.name
+
+class Instructor(models.Model):
+    college = models.ForeignKey(CollegeUser, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    instructor_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.instructor_name
+
+
+
+class Course(models.Model):
+    college = models.ForeignKey(CollegeUser, on_delete=models.CASCADE)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    course_id = models.AutoField(primary_key=True)
+    course_name = models.CharField(max_length=255)
+    instructors = models.ManyToManyField(Instructor)
+    course_duration = models.PositiveIntegerField()  # Duration in days
+    course_fee = models.DecimalField(max_digits=10, decimal_places=2)
+    course_description = models.TextField()
+    LANGUAGES_AVAILABLE = [
+        ('English', 'English'),
+        ('Hindi', 'Hindi'),
+        ('Spanish', 'Spanish'),
+        ('French', 'French'),
+        ('Chinese', 'Chinese'),
+    ]
+    languages = models.CharField(max_length=10, choices=LANGUAGES_AVAILABLE)
+    COURSE_LEVEL_CHOICES = [
+        ('beginner', 'Beginner'),
+        ('intermediate', 'Intermediate'),
+        ('expert', 'Expert'),
+    ]
+    course_level = models.CharField(max_length=20, choices=COURSE_LEVEL_CHOICES)
+    certificate_available = models.BooleanField(default=False)
+    exam = models.BooleanField(default=False)
+    assignment = models.BooleanField(default=False)
+    course_type = models.CharField(max_length=100)
+    
+
+    def __str__(self):
+        return self.course_name
 

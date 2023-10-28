@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add College Department</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- You can add your custom CSS here -->
+  <style>
+    /* Center the form on the page */
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Style the form header */
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Add spacing between form elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    /* Style the submit button */
+    .btn-primary {
+      background-color: #007BFF;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Add College Department</h1>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="user_id" value="{{ user_id }}">
+      <div class="form-group">
+        <label for="department_name">Department Name:</label>
+        <input type="text" class="form-control" id="department_name" name="department_name" required>
+      </div>
+      <div class="form-group">
+        <label for="offered_programs">Offered Programs:</label>
+        <select class="form-control" id="offered_programs" name="offered_programs" required>
+          <option value="undergrad">Undergraduate</option>
+          <option value="postgrad">Postgraduate</option>
+          <option value="both">Both</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="head_of_department">Head of Department:</label>
+        <input type="text" class="form-control" id="head_of_department" name="head_of_department" required>
+      </div>
+      <div class="form-group">
+        <label for="department_start_year">Department Started Year:</label>
+        <input type="date" class="form-control" id="department_start_year" name="department_start_year" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Add Department</button>
+    </form>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

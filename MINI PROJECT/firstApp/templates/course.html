@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Course</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        /* Navbar styles */
+        .navbar-brand {
+            font-family: 'Tangerine', cursive;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 4px 4px 4px #aaa;
+        }
+
+        .navbar {
+            background: url('{% static 'images/newnav.jpg'%}') repeat-x;
+            animation: moveBackground 10s linear infinite;
+        }
+
+        @keyframes moveBackground {
+            0% {
+                background-position: 0 0;
+            }
+            100% {
+                background-position: 100% 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
+        <a class="navbar-brand" href="#">EduSphere Fusion</a>
+        <!-- Navbar toggler button -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <!-- Navbar links -->
+        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i> Courses</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-envelope"></i> Query</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i> Notifications</a>
+                </li>
+            </ul>
+        </div>
+        <!-- User profile and search bar -->
+        <div class="navbar-nav ml-auto">
+            <form class="form-inline">
+                <div class="input-group">
+                    <input type="text" class="form-control rounded-pill" placeholder="Search">
+                    <div class="input-group-append">
+                        <button class="btn btn-outline-light rounded-pill" type="button"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+            </form>
+            <!-- User profile dropdown -->
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <img src="user-avatar.jpg" alt="User Avatar" class="profile-image">
+                </a>
+                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+                    <a class="dropdown-item" href="{% url 'viewprofile' %}"><i class="fas fa-user"></i> View Profile</a>
+                    <a class="dropdown-item" href="{% url 'update_profile' %}"><i class="fas fa-edit"></i> Edit Profile</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="{% url 'logoutp' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
+                </div>
+            </li>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Add Course</h1>
+        <div class="card">
+            <div class="card-body">
+                <form method="post" action="{% url 'add_course' %}">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="course_name">Course Name:</label>
+                        <input type="text" class="form-control" id="course_name" name="course_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="course_duration">Course Duration (in hours):</label>
+                        <input type="number" class="form-control" id="course_duration" name="course_duration" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="course_fee">Course Fee:</label>
+                        <input type="text" step="0.01" class="form-control" id="course_fee" name="course_fee" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="course_description">Course Description:</label>
+                        <textarea class="form-control" id="course_description" name="course_description" placeholder="Course description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Department:</label>
+                        <select class="form-control" id="department" name="department">
+                            {% for department in departments %}
+                                <option value="{{ department.id }}">{{ department.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="languages">Languages Available:</label>
+                        <select class="form-control" id="languages" name="languages">
+                            <option value="English">English</option>
+                            <option value="Hindi">Hindi</option>
+                            <option value="Spanish">Spanish</option>
+                            <option value="French">French</option>
+                            <option value="Chinese">Chinese</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="course_level">Course Level:</label>
+                        <select class="form-control" id="course_level" name="course_level">
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="expert">Expert</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="certificate_available" name="certificate_available">
+                            <label class="form-check-label" for="certificate_available">Certificate Available</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="exam" name="exam">
+                            <label class="form-check-label" for="exam">Exam</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="assignment" name="assignment">
+                            <label class="form-check-label" for="assignment">Assignment</label>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="course_type">Course Type:</label>
+                        <input type="text" class="form-control" id="course_type" name="course_type" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="instructors">Instructors:</label>
+                        <select class="form-control" multiple id="instructors" name="instructors">
+                            {% for instructor in instructors %}
+                                <option value="{{ instructor.id }}">{{ instructor.instructor_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Course</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
