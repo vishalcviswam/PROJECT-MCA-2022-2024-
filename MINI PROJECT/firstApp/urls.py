@@ -27,17 +27,19 @@ urlpatterns = [
     path('department',views.add_department,name='department'),
     path('add_course',views.add_course,name='add_course'),
 
-
-
     path('update_profile/', views.update_profile, name='update_profile'),
     path('model_update_profile/', views.model_update_profile, name='model_update_profile'),
 
-    # New URL for viewing the updated profile
     path('viewprofile/', views.view_profile, name='viewprofile'),
     path('activate/<uidb64>/<token>',views.ActivateAccountView.as_view(),name='activate'),
 
     path('college_details/<int:pk>/', views.college_details, name='college_details'),
     path('delete_department/<int:department_id>/', views.delete_department, name='delete_department'),
+    path('add_instructor/', views.add_instructor, name='add_instructor'),
+    path('get_instructors_for_department/<int:department_id>/', views.get_instructors_for_department, name='get_instructors_for_department'),
+    path('view_instructors',views.view_instructors,name='view_instructors'),
+
+    
 
 
 

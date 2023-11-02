@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from .models import User, NormalUser, CollegeUser
+from .models import User, NormalUser, CollegeUser ,Department ,Course
 
 # Define a custom UserAdmin class that inherits from the base UserAdmin
 class CustomUserAdmin(BaseUserAdmin):
@@ -16,3 +16,5 @@ admin.site.register(User, CustomUserAdmin)
 # Register the NormalUser and CollegeUser models
 admin.site.register(NormalUser)
 admin.site.register(CollegeUser)
+admin.site.register(Department)
+admin.site.register(Course)

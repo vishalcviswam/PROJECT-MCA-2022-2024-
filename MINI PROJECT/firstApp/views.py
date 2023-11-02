@@ -3,11 +3,12 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from .models import User, NormalUser, CollegeUser , Department , Course, Instructor
+from .models import User, NormalUser, CollegeUser , Department , Course, Instructor 
 
 from datetime import date
 from django.db import IntegrityError
 from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
 
 from django.views.generic import View
 from .utils import *
@@ -340,63 +341,111 @@ def delete_department(request, department_id):
     return redirect('college_details', pk=request.user.pk)
 
 
+@login_required
 def add_course(request):
     if request.method == 'POST':
-        # Retrieve form data
         course_name = request.POST['course_name']
         course_duration = request.POST['course_duration']
         course_fee = request.POST['course_fee']
         course_description = request.POST['course_description']
-        languages = request.POST['languages']
+        selected_languages = request.POST.getlist('languages')
+        selected_exam_types = request.POST.getlist('exam_types')
+        selected_course_tags = request.POST.getlist('course_tags')
         course_level = request.POST['course_level']
         certificate_available = 'certificate_available' in request.POST
+        certificate_criteria = request.POST.get('certificate_criteria', '')
         exam = 'exam' in request.POST
         assignment = 'assignment' in request.POST
-        course_type = request.POST['course_type']
+        total_assignments_str = request.POST.get('total_assignments', '0')
+        total_assignments = int(total_assignments_str) if total_assignments_str.isdigit() else 0
         instructors = request.POST.getlist('instructors')
         department_id = request.POST['department']
+        cover_photo = request.FILES.get('cover_photo')
 
-        # Retrieve the current logged-in user
+        # Handling the relation with logged in user and department
         user = request.user
-
-        # Retrieve the CollegeUser instance associated with the user
         college_user = CollegeUser.objects.get(user=user)
+        department = Department.objects.get(pk=department_id)
 
-        # Retrieve the department based on the department_id
-        try:
-            department = Department.objects.get(pk=department_id)
-        except Department.DoesNotExist:
-            # Handle the case where the department does not exist
-            pass
-
-        # Create a new course
+        # Handling the creation of the course
         course = Course(
-            college=college_user,  # Assign the CollegeUser instance to the course
-            department=department,  # Assign the Department instance to the course
+            college=college_user,
+            department=department,
             course_name=course_name,
             course_duration=course_duration,
             course_fee=course_fee,
             course_description=course_description,
-            languages=languages,
+            languages=",".join(selected_languages),
+            exam_types=",".join(selected_exam_types),
+            course_tags=",".join(selected_course_tags),
             course_level=course_level,
             certificate_available=certificate_available,
+            certificate_criteria=certificate_criteria if certificate_available else '',
             exam=exam,
             assignment=assignment,
-            course_type=course_type,
+            total_assignments=total_assignments if assignment else 0,
+            cover_photo=cover_photo,
         )
         course.save()
 
-        # Add selected instructors to the course
-        for instructor_id in instructors:
-            instructor = Instructor.objects.get(pk=instructor_id)
-            course.instructors.add(instructor)
+        # Handle many-to-many field for instructors
+        course.instructors.set(instructors)
 
-        return redirect('home2')  # Redirect to a page showing all courses
-
+        return redirect('home2')
     else:
         instructors = Instructor.objects.all()
-        departments = Department.objects.all()  # Add this line to fetch all departments
-        return render(request, 'course.html', {'instructors': instructors, 'departments': departments})
+        departments = Department.objects.all()
+        
+        context = {
+            'instructors': instructors,
+            'departments': departments,
+        }
+        
+        return render(request, 'course.html', context)
+    
+
+def add_instructor(request):
+    if not request.user.is_authenticated or not request.user.is_college_user:
+        return redirect('login') # Or another appropriate response
+
+    if request.method == 'POST':
+        college = CollegeUser.objects.get(user=request.user)
+        department = Department.objects.get(pk=request.POST['department'])
+        instructor_name = request.POST['instructor_name']
+
+        instructor = Instructor(college=college, department=department, instructor_name=instructor_name)
+        instructor.save()
+
+        return redirect('view_instructors')  
+    departments = Department.objects.filter(college__user=request.user)
+
+    context = {
+        'departments': departments
+    }
+
+    return render(request, 'instructors_add.html', context)
 
 
 
+def get_instructors_for_department(request, department_id):
+    instructors = Instructor.objects.filter(department_id=department_id).values('id', 'instructor_name')
+    return JsonResponse(list(instructors), safe=False)
+
+
+
+
+def view_instructors(request):
+    departments = Department.objects.all()
+    selected_department = request.GET.get('department') # Get the department ID from the URL parameter
+
+    if selected_department:
+        instructors = Instructor.objects.filter(department__id=selected_department)
+    else:
+        instructors = Instructor.objects.all()
+
+    context = {
+        'departments': departments,
+        'instructors': instructors,
+        'selected_department': int(selected_department) if selected_department else None
+    }
+    return render(request, 'view_instructors.html', context)

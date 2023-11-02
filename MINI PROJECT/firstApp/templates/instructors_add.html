@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Instructor</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom Styling -->
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 600px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin: 5% auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -30px; right: -30px; bottom: -30px; left: -30px;
+            z-index: -1;
+            background: linear-gradient(45deg, #FFC0CB, #FFB6C1, #FF69B4);
+            border-radius: 10px;
+            
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, rgba(2,0,36,1) 0%, rgba(9,121,138,1) 100%);
+            border: none;
+            transition: all 0.5s;
+        }
+
+        .btn-primary:hover, .btn-primary:focus {
+            background: linear-gradient(90deg, rgba(9,121,138,1), rgba(2,0,36,1));
+            transform: scale(1.05);
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #444;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>ADD INSTRUCTORS</h2>
+        <form method="post">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="department">Department:</label>
+                <select class="form-control" name="department" id="department" required>
+                    <option value="">--Select Department--</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="instructor_name">Instructor Name:</label>
+                <input type="text" class="form-control" id="instructor_name" name="instructor_name" required>
+            </div>
+
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary btn-block">Add Instructor</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+
+</html>

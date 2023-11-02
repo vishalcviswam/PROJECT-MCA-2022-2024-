@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
+
 class User(AbstractUser):
     is_normal_user = models.BooleanField(default=False)
     is_college_user = models.BooleanField(default=False)
@@ -55,7 +56,7 @@ class CollegeUser(models.Model):
 
 class Department(models.Model):
     college = models.ForeignKey(CollegeUser, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255,unique=True)
     undergrad_offered = models.BooleanField(default=False)
     postgrad_offered = models.BooleanField(default=False)
     head_of_department = models.CharField(max_length=255)
@@ -83,14 +84,7 @@ class Course(models.Model):
     course_duration = models.PositiveIntegerField()  # Duration in days
     course_fee = models.DecimalField(max_digits=10, decimal_places=2)
     course_description = models.TextField()
-    LANGUAGES_AVAILABLE = [
-        ('English', 'English'),
-        ('Hindi', 'Hindi'),
-        ('Spanish', 'Spanish'),
-        ('French', 'French'),
-        ('Chinese', 'Chinese'),
-    ]
-    languages = models.CharField(max_length=10, choices=LANGUAGES_AVAILABLE)
+    languages = models.CharField(max_length=255, blank=True)
     COURSE_LEVEL_CHOICES = [
         ('beginner', 'Beginner'),
         ('intermediate', 'Intermediate'),
@@ -100,9 +94,15 @@ class Course(models.Model):
     certificate_available = models.BooleanField(default=False)
     exam = models.BooleanField(default=False)
     assignment = models.BooleanField(default=False)
-    course_type = models.CharField(max_length=100)
-    
+    exam_types = models.CharField(max_length=255, blank=True)
+    certificate_criteria = models.TextField(blank=True, null=True)
+    total_assignments = models.PositiveIntegerField(blank=True, null=True)
+    course_tags = models.CharField(max_length=255, blank=True)
+    cover_photo = models.ImageField(upload_to='course_covers/', null=True, blank=True)
+
 
     def __str__(self):
         return self.course_name
+    
+
 
