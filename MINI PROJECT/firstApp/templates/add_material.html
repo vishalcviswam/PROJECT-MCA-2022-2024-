@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Course Materials</title>
+    <!-- Ensure that the jQuery library is included -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+    <h2>Add Course Materials</h2>
+
+    <!-- The form begins here -->
+    <!-- Note the 'enctype' attribute is necessary for file uploads -->
+    <form id="materialsForm" method="post" enctype="multipart/form-data">
+        <!-- CSRF Token for Django -->
+        {% csrf_token %}
+        
+        <!-- Section to display modules and chapters -->
+        <div id="modulesContainer">
+            {% for module in modules %}
+            <div class="module">
+                <h3>{{ module.module_name }}</h3>
+                {% for chapter in module.chapters.all %}
+                <div class="chapter" data-chapter-id="{{ chapter.id }}">
+                    <h4>{{ chapter.chapter_name }}</h4>
+                    <select class="materialType" name="material_type_{{ chapter.id }}" onchange="createMaterialFields(this)">
+                        <option value="">--Select Material Type--</option>
+                        <option value="ReadingMaterial">Reading Material</option>
+                        <option value="VideoMaterial">Video Material</option>
+                        <option value="MultipleChoiceQuestion">Multiple Choice Question</option>
+                        <!-- Add other options as necessary -->
+                    </select>
+                    <div class="materialFields">
+                        <!-- Material input fields will be inserted here by JavaScript -->
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        
+        <input type="submit" value="Final Submit">
+    </form>
+
+    <script>
+        function createMaterialFields(selectElement) {
+            const materialType = selectElement.value;
+            const chapterDiv = selectElement.closest('.chapter');
+            const chapterId = chapterDiv.getAttribute('data-chapter-id');
+            const materialFieldsDiv = chapterDiv.querySelector('.materialFields');
+            materialFieldsDiv.innerHTML = ''; // Clear previous fields
+
+            // Dynamic field creation based on material type
+            if (materialType === 'ReadingMaterial') {
+                addReadingMaterialFields(materialFieldsDiv, chapterId);
+            } else if (materialType === 'VideoMaterial') {
+                addVideoMaterialFields(materialFieldsDiv, chapterId);
+            } else if (materialType === 'MultipleChoiceQuestion') {
+                addMultipleChoiceFields(materialFieldsDiv, chapterId);
+            }
+            // Additional material types can be added here
+        }
+
+        function addReadingMaterialFields(container, chapterId) {
+            container.innerHTML +=
+                `<label for="title_${chapterId}">Title:</label>` +
+                `<input type="text" id="title_${chapterId}" name="title_${chapterId}" required><br>` +
+                `<label for="textContent_${chapterId}">Text Content:</label>` +
+                `<textarea id="textContent_${chapterId}" name="text_content_${chapterId}" required></textarea><br>` +
+                `<label for="images_${chapterId}">Images:</label>` +
+                `<input type="file" id="images_${chapterId}" name="images_${chapterId}" accept="image/*" multiple><br>`;
+        }
+
+        function addVideoMaterialFields(container, chapterId) {
+            container.innerHTML +=
+                `<label for="videoTitle_${chapterId}">Video Title:</label>` +
+                `<input type="text" id="videoTitle_${chapterId}" name="videoTitle_${chapterId}" required><br>` +
+                `<label for="video_${chapterId}">Video File:</label>` +
+                `<input type="file" id="video_${chapterId}" name="video_${chapterId}" required accept="video/*"><br>` +
+                `<label for="videoTranscript_${chapterId}">Transcript:</label>` +
+                `<textarea id="videoTranscript_${chapterId}" name="videoTranscript_${chapterId}" required></textarea><br>`;
+        }
+
+        function addMultipleChoiceFields(container, chapterId) {
+            container.innerHTML +=
+                `<div class="multipleChoiceContainer">` +
+                `<label for="question_${chapterId}">Question:</label>` +
+                `<input type="text" id="question_${chapterId}" name="question_text_${chapterId}" required><br>` +
+                `<label for="choice1_${chapterId}">Choice 1:</label>` +
+                `<input type="text" id="choice1_${chapterId}" name="choice1_${chapterId}" required><br>` +
+                `<label for="choice2_${chapterId}">Choice 2:</label>` +
+                `<input type="text" id="choice2_${chapterId}" name="choice2_${chapterId}" required><br>` +
+                `<label for="choice3_${chapterId}">Choice 3:</label>` +
+                `<input type="text" id="choice3_${chapterId}" name="choice3_${chapterId}" required><br>` +
+                `<label for="correctAnswer_${chapterId}">Correct Answer:</label>` +
+                `<input type="text" id="correctAnswer_${chapterId}" name="correct_answer_${chapterId}" required><br>` +
+                `</div>`;
+        }
+    </script>
+</body>
+</html>

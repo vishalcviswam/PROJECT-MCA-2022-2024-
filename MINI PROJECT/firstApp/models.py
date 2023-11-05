@@ -104,5 +104,77 @@ class Course(models.Model):
     def __str__(self):
         return self.course_name
     
+class Module(models.Model):
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    module_id = models.AutoField(primary_key=True)
+    module_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.module_name
+    
+class Chapter(models.Model):
+    module = models.ForeignKey(Module, on_delete=models.CASCADE, related_name='chapters')
+    chapter_id = models.AutoField(primary_key=True)
+    chapter_name = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.chapter_name
 
 
+# For reading sections with text and optional images
+class ReadingMaterial(models.Model):
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='reading_materials')
+    title = models.CharField(max_length=255)
+    text_content = models.TextField()
+    images = models.ImageField(upload_to='reading_images', blank=True, null=True)
+
+    def __str__(self):
+        return self.title
+
+# For video sections with file upload and transcript
+class VideoMaterial(models.Model):
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='video_materials')
+    video = models.FileField(upload_to='videos')
+    transcript = models.TextField()
+
+    def __str__(self):
+        return f"Video for {self.chapter}"
+
+# For fill-in-the-blanks questions
+class FillInTheBlankQuestion(models.Model):
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='fill_in_the_blank_questions')
+    question_text = models.TextField()
+    correct_answers = models.JSONField()
+
+    def __str__(self):
+        return self.question_text
+
+# For matching questions
+class MatchingQuestion(models.Model):
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='matching_questions')
+    question_text = models.TextField()
+    pairs = models.JSONField()
+
+    def __str__(self):
+        return self.question_text
+
+# For image-based questions
+class ImageQuestion(models.Model):
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='image_questions')
+    image = models.ImageField(upload_to='question_images')
+    question_text = models.TextField()
+    choices = models.JSONField()
+    correct_answer = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.question_text
+
+# For multiple choice questions
+class MultipleChoiceQuestion(models.Model):
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='multiple_choice_questions')
+    question_text = models.TextField()
+    choices = models.TextField(help_text="Enter the choice options as a JSON array.")
+    correct_answer = models.CharField(max_length=200, help_text="Enter the correct answer exactly as one of the choices.")
+
+    def __str__(self):
+        return self.question_text

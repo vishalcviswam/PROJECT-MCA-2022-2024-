@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Chapters</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        body {
+            padding: 20px;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+        }
+
+        .form-container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        fieldset {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+        }
+
+        legend {
+            width: auto;
+            padding: 0 10px;
+            border: none;
+            font-size: 1.2em;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: .5rem;
+        }
+
+        .form-group input[type="number"],
+        .form-group input[type="text"] {
+            width: 100%;
+            padding: .5rem;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+        }
+
+        .form-group input[type="text"] {
+            margin-bottom: 0; /* Last text input should not have margin at the bottom */
+        }
+
+        button[type="submit"] {
+            background-color: #28a745;
+            color: white;
+            padding: .5rem 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button[type="submit"]:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h2 class="mb-4">Add Chapters to Modules for Course: {{ course.course_name }}</h2>
+            <form method="post" id="chapterForm">
+                {% csrf_token %}
+                {% for module in modules %}
+                <fieldset>
+                    <legend>Add Chapters to: {{ module.module_name }}</legend>
+                    <input type="hidden" name="module_ids[]" value="{{ module.pk }}">
+                    <div class="form-group">
+                        <label for="num_chapters_{{ module.pk }}">Number of Chapters:</label>
+                        <input type="number" class="form-control" id="num_chapters_{{ module.pk }}" name="num_chapters[]" min="1" placeholder="Number of Chapters">
+                    </div>
+                    <div id="chapters_container_{{ module.pk }}" class="form-group">
+                        <!-- Chapter name inputs will be populated here -->
+                    </div>
+                </fieldset>
+                {% endfor %}
+            
+                <button type="submit" class="btn btn-success">Submit Chapters</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.9/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.querySelectorAll('input[name="num_chapters[]"]').forEach(input => {
+            input.addEventListener('change', function() {
+                const modulePk = this.id.split('_').pop();
+                const chaptersContainer = document.getElementById(`chapters_container_${modulePk}`);
+                chaptersContainer.innerHTML = ''; // Clear previous chapter inputs
+
+                for (let i = 0; i < this.value; i++) {
+                    const chapterInput = document.createElement('input');
+                    chapterInput.type = 'text';
+                    chapterInput.className = 'form-control'; // Add Bootstrap class for styling
+                    chapterInput.name = `chapter_names_${modulePk}[]`; // Dynamic name based on module PK
+                    chapterInput.placeholder = `Chapter ${i + 1} Name`;
+                    chapterInput.required = true;
+                    chaptersContainer.appendChild(chapterInput);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

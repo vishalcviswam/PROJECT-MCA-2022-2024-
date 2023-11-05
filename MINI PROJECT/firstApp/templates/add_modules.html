@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Modules</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+
+    <style>
+        body {
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(to right, #6a11cb, #2575fc);
+        }
+        
+        .form-header {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-container {
+            background: #f7f7f7;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .module-input-group {
+            margin-bottom: 10px;
+        }
+
+        .form-container label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-container input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-bottom: 15px;
+        }
+
+        .form-container input[type="submit"] {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .form-container input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 576px) {
+            .custom-button {
+                width: 100%;
+                margin-top: 10px;
+            }
+        }
+    </style>
+
+    <script type="text/javascript">
+        // Function to create input fields for module names
+        function createModuleInputs() {
+            var numberOfModules = document.getElementById('numModules').value;
+            var container = document.getElementById('moduleContainer');
+            container.innerHTML = '';
+
+            for (var i = 0; i < numberOfModules; i++) {
+                container.innerHTML += `
+                    <div class="module-input-group">
+                        <label for="moduleName${i}">Module ${i + 1}:</label>
+                        <input type="text" class="form-control" id="moduleName${i}" name="module_names[]" required>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div class="form-header">
+            <h2>Add Modules for {{ course.course_name }}</h2>
+        </div>
+        <!-- Form to specify the number of modules -->
+        <div class="form-container">
+            <div class="row">
+                <div class="col-sm-12 col-md-6">
+                    <label for="numModules">Number of Modules:</label>
+                    <input type="number" class="form-control" id="numModules" name="num_modules" min="1" max="10" value="1">
+                </div>
+                <div class="col-sm-12 col-md-6 d-flex align-items-end">
+                    <button type="button" class="btn btn-primary custom-button" onclick="createModuleInputs()">Create Modules</button>
+                </div>
+            </div>
+            <br>
+
+            <!-- Form to submit the module names -->
+            <form method="post" action="{% url 'add_modules' course.course_id %}">
+                {% csrf_token %}
+                <div id="moduleContainer">
+                    <!-- Dynamic module input fields will be appended here -->
+                    <div class="module-input-group">
+                        <label for="moduleName0">Module 1:</label>
+                        <input type="text" class="form-control" id="moduleName0" name="module_names[]" required>
+                    </div>
+                </div>
+                <input type="submit" value="Add Modules">
+            </form>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.9/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

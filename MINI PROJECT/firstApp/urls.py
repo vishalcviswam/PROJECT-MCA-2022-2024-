@@ -13,6 +13,7 @@ urlpatterns = [
     path('', views.loginnew, name='loginnew'),
     path('normal_user_home/', views.normal_user_home, name='normal_user_home'),
     path('college_user_home/', views.college_user_home, name='college_user_home'),
+    path('admin_home/', views.admin_home, name='admin_home'),
     #path('logoutnew/', views.logoutnew, name='logoutnew'),
     path('your_view/', views.your_view, name='your_view'),
     path('logoutp/', views.logoutp, name='logoutp'),
@@ -24,6 +25,7 @@ urlpatterns = [
     path('update_profile/', views.update_profile, name='update_profile'),
     path('news',views.news,name='news'),
     path('profile/',views.profile,name='profile'),
+    path('profile2/',views.profile2,name='profile2'),
     path('department',views.add_department,name='department'),
     path('add_course',views.add_course,name='add_course'),
 
@@ -38,11 +40,12 @@ urlpatterns = [
     path('add_instructor/', views.add_instructor, name='add_instructor'),
     path('get_instructors_for_department/<int:department_id>/', views.get_instructors_for_department, name='get_instructors_for_department'),
     path('view_instructors',views.view_instructors,name='view_instructors'),
-
+    path('course/<int:course_id>/add_modules/', views.add_modules, name='add_modules'),
+    path('course/<int:course_id>/add_chapters/', views.add_chapters, name='add_chapters'),
+    path('course/<int:course_id>/add_material/', views.add_material, name='add_material'),
     
 
-
-
+    
 ]
 
 if settings.DEBUG:

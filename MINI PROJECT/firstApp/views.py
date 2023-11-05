@@ -3,15 +3,23 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import render, redirect
-from .models import User, NormalUser, CollegeUser , Department , Course, Instructor 
+from .models import User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
 
 from datetime import date
 from django.db import IntegrityError
 from django.shortcuts import render, get_object_or_404
-from django.http import JsonResponse
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.forms import modelformset_factory
+import json
+
+from django.views.decorators.http import require_http_methods
+from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from django.views.generic import View
 from .utils import *
+import logging
 
 from.utils import TokenGenerator,generate_token
 from django.contrib.sites.shortcuts import get_current_site
@@ -20,12 +28,11 @@ from django.utils.encoding import force_bytes,force_str
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.core.mail import EmailMessage
-
 import threading
 
 @login_required(login_url='loginnew')
 def home(request):
-    return render(request, 'home.html')
+    return render(request, 'userhome.html')
 
 @login_required(login_url='loginnew')
 def home2(request):
@@ -34,8 +41,25 @@ def home2(request):
 def news(request):
     return render(request,'news.html')
 
+@login_required(login_url='loginnew')
 def profile(request):
-    return render(request,'profile.html')
+    normal_user = request.user.normaluser
+
+    context = {
+        'normal_user': normal_user,
+    }
+
+    return render(request, 'newprofile.html', context)
+
+@login_required(login_url='loginnew')
+def profile2(request):
+    college_user = request.user.collegeuser
+
+    context = {
+        'college_user': college_user,
+    }
+
+    return render(request, 'collegeprofile.html', context)
 
 '''def department(request):
     return render(request,'department.html')'''
@@ -66,7 +90,7 @@ def register_normal_user(request):
             error_messages['email'] = 'Email already taken'  # Store email error
 
         if not error_messages:  # If there are no errors, proceed with registration
-            user = User(username=uname, email=email, is_normal_user=True)
+            user = User(username=uname, email=email,  is_normal_user=True)
             user.set_password(password)
             user.is_active=False  #make the user inactive
             user.save()
@@ -138,7 +162,9 @@ def loginnew(request):
                 return redirect('home')
             elif user.is_college_user:
                 messages.success(request, 'You successfully signed in as a college user.')
-                return redirect('home2')
+                return redirect('college_user_home')
+            elif user.is_superuser:
+                return redirect('admin_home')
         else:
             return render(request, 'loginpage.html', {'error_message': 'Username or password is incorrect'})
 
@@ -150,7 +176,7 @@ def normal_user_home(request):
 
 @login_required(login_url='loginnew')
 def college_user_home(request):
-    return render(request, 'college_user_home.html')
+    return render(request, 'collegehome.html')
 
 '''def logoutnew(request):
     logout(request)
@@ -185,7 +211,9 @@ def update_profile(request):
 
     return redirect('home')'''
     
-
+@login_required(login_url='loginnew')
+def admin_home(request):
+    return render(request, 'admin.html')
 
 @login_required(login_url='loginnew')
 def update_profile(request):
@@ -341,8 +369,10 @@ def delete_department(request, department_id):
     return redirect('college_details', pk=request.user.pk)
 
 
-@login_required
+@login_required(login_url='loginnew')
 def add_course(request):
+    if not request.user.is_authenticated or not request.user.is_college_user:
+        return redirect('loginnew') 
     if request.method == 'POST':
         course_name = request.POST['course_name']
         course_duration = request.POST['course_duration']
@@ -391,10 +421,10 @@ def add_course(request):
         # Handle many-to-many field for instructors
         course.instructors.set(instructors)
 
-        return redirect('home2')
+        return redirect('add_modules',course_id=course.course_id)
     else:
         instructors = Instructor.objects.all()
-        departments = Department.objects.all()
+        departments = Department.objects.filter(college__user=request.user)
         
         context = {
             'instructors': instructors,
@@ -406,7 +436,7 @@ def add_course(request):
 
 def add_instructor(request):
     if not request.user.is_authenticated or not request.user.is_college_user:
-        return redirect('login') # Or another appropriate response
+        return redirect('login') 
 
     if request.method == 'POST':
         college = CollegeUser.objects.get(user=request.user)
@@ -449,3 +479,132 @@ def view_instructors(request):
         'selected_department': int(selected_department) if selected_department else None
     }
     return render(request, 'view_instructors.html', context)
+
+
+@login_required
+def add_modules(request, course_id):
+    course = get_object_or_404(Course, course_id=course_id)
+    
+    if request.method == 'POST':
+        module_names = request.POST.getlist('module_names[]')
+        
+        for name in module_names:
+            Module.objects.create(course=course, module_name=name)
+        
+        return redirect('add_chapters',course_id=course.course_id)  
+
+    return render(request, 'add_modules.html', {'course': course})
+
+
+def add_chapters(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    modules = course.module_set.all()  
+
+    if request.method == 'POST':
+
+        module_ids = request.POST.getlist('module_ids[]')
+        num_chapters_list = request.POST.getlist('num_chapters[]')
+
+        for index, module_id in enumerate(module_ids):
+            num_chapters = int(num_chapters_list[index])
+            chapter_names = request.POST.getlist(f'chapter_names_{module_id}[]')
+
+            if num_chapters == len(chapter_names):
+                module = get_object_or_404(Module, pk=module_id)
+                
+                for name in chapter_names:
+                    Chapter.objects.create(module=module, chapter_name=name)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Chapter count mismatch.'})
+
+        return redirect('add_material', course_id=course_id)
+
+    else:
+        return render(request, 'add_chapters.html', {'course': course, 'modules': modules})
+    
+
+@require_http_methods(["POST", "GET"])
+def add_material(request, course_id):
+    if request.method == 'POST':
+        try:
+            with transaction.atomic():
+                materials_added = []
+
+                # Process each form element for POST request
+                for key, value in request.POST.items():
+                    if key.startswith('title_'):
+                        suffix = key.split('_')[1]
+                        material_type = request.POST.get(f'material_type_{suffix}')
+                        title = value
+                        content = request.POST.get(f'content_{suffix}', '')
+                        chapter_id = request.POST.get(f'chapter_id_{suffix}', '')
+
+                        # Ensure we have a valid chapter_id before proceeding
+                        if not chapter_id:
+                            continue
+
+                        chapter = Chapter.objects.get(pk=chapter_id)
+
+                        if material_type == 'ReadingMaterial':
+                            image = request.FILES.get(f'image_{suffix}')  # Adjust the field name if needed
+                            if image:
+                                material = ReadingMaterial.objects.create(
+                                    chapter=chapter,
+                                    title=title,
+                                    text_content=content,
+                                    image=image
+                                )
+                                materials_added.append(material)
+
+                        elif material_type == 'VideoMaterial':
+                            video = request.FILES.get(f'video_{suffix}')  # Adjust the field name if needed
+                            if video:
+                                material = VideoMaterial.objects.create(
+                                    chapter=chapter,
+                                    video=video,
+                                    transcript=content
+                                )
+                                materials_added.append(material)
+
+                        elif material_type == 'MultipleChoiceQuestion':
+                            question_text = title  # Assuming title is the question text
+                            choices = json.loads(request.POST.get(f'choices_{suffix}', '[]'))
+                            correct_answer = request.POST.get(f'correct_answer_{suffix}', '')
+
+                            mcq = MultipleChoiceQuestion.objects.create(
+                                chapter=chapter,
+                                question_text=question_text,
+                                choices=json.dumps(choices),
+                                correct_answer=correct_answer
+                            )
+                            materials_added.append(mcq)
+
+                if not materials_added:
+                    return HttpResponse('No materials were provided.', status=400)
+
+                return HttpResponse(f'{len(materials_added)} materials added successfully.')
+
+        except Chapter.DoesNotExist:
+            return HttpResponse('The specified chapter does not exist.', status=404)
+        except json.JSONDecodeError:
+            return HttpResponse('Invalid JSON format for choices.', status=400)
+        except Exception as e:
+            return HttpResponse(f'Unexpected error: {str(e)}', status=500)
+
+    else:  # GET request
+        # Logic to handle GET request and display the form
+        modules = Module.objects.filter(course_id=course_id).prefetch_related('chapters')
+        context = {
+            'modules': modules,
+            'course_id': course_id
+        }
+        return render(request, 'add_material.html', context)
+
+
+    
+
+
+    
+
+
+
