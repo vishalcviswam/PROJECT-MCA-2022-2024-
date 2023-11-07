@@ -2,100 +2,132 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Add Course Materials</title>
-    <!-- Ensure that the jQuery library is included -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Course Material</title>
+    <style>
+        .material-fields { display: none; }
+        .chapter-fields { display: none; }
+    </style>
 </head>
 <body>
-    <h2>Add Course Materials</h2>
 
-    <!-- The form begins here -->
-    <!-- Note the 'enctype' attribute is necessary for file uploads -->
-    <form id="materialsForm" method="post" enctype="multipart/form-data">
-        <!-- CSRF Token for Django -->
-        {% csrf_token %}
-        
-        <!-- Section to display modules and chapters -->
-        <div id="modulesContainer">
+<!-- Course Material Form -->
+<form method="post" action="" enctype="multipart/form-data">
+    {% csrf_token %}
+    <fieldset>
+        <legend>Select Module:</legend>
+        <label for="module_select">Module:</label>
+        <select name="module_id" id="module_select" required onchange="loadChapters(this)">
+            <option value="">--Select Module--</option>
             {% for module in modules %}
-            <div class="module">
-                <h3>{{ module.module_name }}</h3>
-                {% for chapter in module.chapters.all %}
-                <div class="chapter" data-chapter-id="{{ chapter.id }}">
-                    <h4>{{ chapter.chapter_name }}</h4>
-                    <select class="materialType" name="material_type_{{ chapter.id }}" onchange="createMaterialFields(this)">
-                        <option value="">--Select Material Type--</option>
-                        <option value="ReadingMaterial">Reading Material</option>
-                        <option value="VideoMaterial">Video Material</option>
-                        <option value="MultipleChoiceQuestion">Multiple Choice Question</option>
-                        <!-- Add other options as necessary -->
-                    </select>
-                    <div class="materialFields">
-                        <!-- Material input fields will be inserted here by JavaScript -->
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
+            <option value="{{ module.module_id }}">{{ module.module_name }}</option>
             {% endfor %}
-        </div>
-        
-        <input type="submit" value="Final Submit">
-    </form>
+        </select>
+    </fieldset>
 
-    <script>
-        function createMaterialFields(selectElement) {
-            const materialType = selectElement.value;
-            const chapterDiv = selectElement.closest('.chapter');
-            const chapterId = chapterDiv.getAttribute('data-chapter-id');
-            const materialFieldsDiv = chapterDiv.querySelector('.materialFields');
-            materialFieldsDiv.innerHTML = ''; // Clear previous fields
+    <fieldset id="chapters_fieldset" style="display:none;">
+        <!-- Chapters will be loaded here dynamically -->
+    </fieldset>
 
-            // Dynamic field creation based on material type
-            if (materialType === 'ReadingMaterial') {
-                addReadingMaterialFields(materialFieldsDiv, chapterId);
-            } else if (materialType === 'VideoMaterial') {
-                addVideoMaterialFields(materialFieldsDiv, chapterId);
-            } else if (materialType === 'MultipleChoiceQuestion') {
-                addMultipleChoiceFields(materialFieldsDiv, chapterId);
+    <input type="submit" value="Add Course Material">
+</form>
+
+<script>
+    function showMaterialFields(select, chapterId) {
+        // Hide all material field divs
+        var fields = document.querySelectorAll(`.chapter_${chapterId} .material-fields`);
+        fields.forEach(field => field.style.display = 'none');
+    
+        // Show the selected material field div
+        if (select.value) {
+            var selectedFields = document.querySelector(`#${select.value}_fields_${chapterId}`);
+            if (selectedFields) {
+                selectedFields.style.display = 'block';
+            } else {
+                console.error(`Fields for the selected material type ${select.value} not found.`);
             }
-            // Additional material types can be added here
         }
+    }
+    
 
-        function addReadingMaterialFields(container, chapterId) {
-            container.innerHTML +=
-                `<label for="title_${chapterId}">Title:</label>` +
-                `<input type="text" id="title_${chapterId}" name="title_${chapterId}" required><br>` +
-                `<label for="textContent_${chapterId}">Text Content:</label>` +
-                `<textarea id="textContent_${chapterId}" name="text_content_${chapterId}" required></textarea><br>` +
-                `<label for="images_${chapterId}">Images:</label>` +
-                `<input type="file" id="images_${chapterId}" name="images_${chapterId}" accept="image/*" multiple><br>`;
-        }
+    function loadChapters(select) {
+        var module_id = select.value;
+        var chaptersFieldset = document.getElementById('chapters_fieldset');
+        chaptersFieldset.style.display = module_id ? 'block' : 'none';
+        var url = `/ajax/get_chapters_for_module/${module_id}/`;  // Ensure this URL is correct
+    
+        // Clear existing chapters
+        chaptersFieldset.innerHTML = '';
+    
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(chapters => {
+            chapters.forEach(chapter => {
+                var chapterFieldset = document.createElement('fieldset');
+                chapterFieldset.classList.add(`chapter_${chapter.chapter_id}`);
+                chapterFieldset.innerHTML = `
+                    <legend>${chapter.chapter_name}</legend>
+                    <label>Select Material Type:</label>
+                    <select name="material_type_${chapter.chapter_id}" onchange="showMaterialFields(this, '${chapter.chapter_id}')">
+                        <option value="">--Select--</option>
+                        <option value="reading">Reading Material</option>
+                        <option value="video">Video Material</option>
+                        <option value="multiple_choice">Multiple Choice Questions</option>
+                        <!-- Add other material types as needed -->
+                    </select>
+                    <div id="reading_fields_${chapter.chapter_id}" class="material-fields">
+                        <!-- Include fields for Reading Material -->
+                        <label for="reading_title_${chapter.chapter_id}">Title:</label>
+                        <input type="text" id="reading_title_${chapter.chapter_id}" name="reading_title_${chapter.chapter_id}" placeholder="Title">
+                        <label for="reading_text_content_${chapter.chapter_id}">Text Content:</label>
+                        <textarea id="reading_text_content_${chapter.chapter_id}" name="reading_text_content_${chapter.chapter_id}" placeholder="Text content"></textarea>
+                        <label for="reading_images_${chapter.chapter_id}">Images:</label>
+                        <input type="file" id="reading_images_${chapter.chapter_id}" name="reading_images_${chapter.chapter_id}" accept="image/*">
+                    </div>
+                    
+                    <div id="video_fields_${chapter.chapter_id}" class="material-fields">
+                        <!-- Include fields for Video Material -->
+                        <label for="video_video_${chapter.chapter_id}">Video:</label>
+                        <input type="file" id="video_video_${chapter.chapter_id}" name="video_video_${chapter.chapter_id}" accept="video/*">
+                        <label for="video_transcript_${chapter.chapter_id}">Transcript:</label>
+                        <textarea id="video_transcript_${chapter.chapter_id}" name="video_transcript_${chapter.chapter_id}" placeholder="Video transcript"></textarea>
+                    </div>
+                    
+                    <div id="multiple_choice_fields_${chapter.chapter_id}" class="material-fields">
+                        <!-- Fields for Multiple Choice Question Material -->
+                        <label for="mc_question_text_${chapter.chapter_id}">Question Text:</label>
+                        <textarea id="mc_question_text_${chapter.chapter_id}" name="mc_question_text_${chapter.chapter_id}" placeholder="Enter the question"></textarea>
+                        
+                        <label for="mc_choice_1_${chapter.chapter_id}">Choice 1:</label>
+                        <input type="text" id="mc_choice_1_${chapter.chapter_id}" name="mc_choice_1_${chapter.chapter_id}" placeholder="Choice 1">
+                        
+                        <label for="mc_choice_2_${chapter.chapter_id}">Choice 2:</label>
+                        <input type="text" id="mc_choice_2_${chapter.chapter_id}" name="mc_choice_2_${chapter.chapter_id}" placeholder="Choice 2">
+                        
+                        <label for="mc_choice_3_${chapter.chapter_id}">Choice 3:</label>
+                        <input type="text" id="mc_choice_3_${chapter.chapter_id}" name="mc_choice_3_${chapter.chapter_id}" placeholder="Choice 3">
+                        
+                        <label for="mc_choice_4_${chapter.chapter_id}">Choice 4:</label>
+                        <input type="text" id="mc_choice_4_${chapter.chapter_id}" name="mc_choice_4_${chapter.chapter_id}" placeholder="Choice 4">
+                        
+                        <label for="mc_correct_answer_${chapter.chapter_id}">Correct Answer:</label>
+                        <input type="text" id="mc_correct_answer_${chapter.chapter_id}" name="mc_correct_answer_${chapter.chapter_id}" placeholder="Enter the correct answer exactly as one of the choices">
+                    </div>
+                    
+                    <!-- Include other material divs as needed, with chapter ID appended to the name attributes -->
+                `;
+                chaptersFieldset.appendChild(chapterFieldset);
+            });
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
+    }
+</script>
 
-        function addVideoMaterialFields(container, chapterId) {
-            container.innerHTML +=
-                `<label for="videoTitle_${chapterId}">Video Title:</label>` +
-                `<input type="text" id="videoTitle_${chapterId}" name="videoTitle_${chapterId}" required><br>` +
-                `<label for="video_${chapterId}">Video File:</label>` +
-                `<input type="file" id="video_${chapterId}" name="video_${chapterId}" required accept="video/*"><br>` +
-                `<label for="videoTranscript_${chapterId}">Transcript:</label>` +
-                `<textarea id="videoTranscript_${chapterId}" name="videoTranscript_${chapterId}" required></textarea><br>`;
-        }
-
-        function addMultipleChoiceFields(container, chapterId) {
-            container.innerHTML +=
-                `<div class="multipleChoiceContainer">` +
-                `<label for="question_${chapterId}">Question:</label>` +
-                `<input type="text" id="question_${chapterId}" name="question_text_${chapterId}" required><br>` +
-                `<label for="choice1_${chapterId}">Choice 1:</label>` +
-                `<input type="text" id="choice1_${chapterId}" name="choice1_${chapterId}" required><br>` +
-                `<label for="choice2_${chapterId}">Choice 2:</label>` +
-                `<input type="text" id="choice2_${chapterId}" name="choice2_${chapterId}" required><br>` +
-                `<label for="choice3_${chapterId}">Choice 3:</label>` +
-                `<input type="text" id="choice3_${chapterId}" name="choice3_${chapterId}" required><br>` +
-                `<label for="correctAnswer_${chapterId}">Correct Answer:</label>` +
-                `<input type="text" id="correctAnswer_${chapterId}" name="correct_answer_${chapterId}" required><br>` +
-                `</div>`;
-        }
-    </script>
 </body>
 </html>

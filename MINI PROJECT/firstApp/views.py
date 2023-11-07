@@ -2,16 +2,18 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
-from django.shortcuts import render, redirect
-from .models import User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
+from django.shortcuts import get_list_or_404, render, redirect
+from .models import FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
 
 from datetime import date
 from django.db import IntegrityError
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.forms import modelformset_factory
 import json
+from django.views.decorators.csrf import csrf_protect
+
 
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
@@ -217,6 +219,12 @@ def admin_home(request):
 
 @login_required(login_url='loginnew')
 def update_profile(request):
+
+    normal_user = request.user.normaluser
+
+    context = {
+                'normal_user': normal_user,
+            }
     if request.method == 'POST':
         # Get the currently logged-in user
         user = request.user
@@ -231,6 +239,7 @@ def update_profile(request):
             normal_user.phone_number = request.POST.get('phone_number')
             normal_user.country = request.POST.get('country')
             normal_user.gender = request.POST.get('gender')
+
 
             # Handle profile photo and cover photo uploads
             profile_photo = request.FILES.get('profile_photo')
@@ -252,7 +261,53 @@ def update_profile(request):
             messages.error(request, 'User is not authenticated or does not have a related NormalUser instance.')
             return redirect('loginnew')  
 
-    return render(request, 'update_profile.html')  
+    return render(request, 'edituserprofile.html',context)
+
+
+@login_required(login_url='loginnew')
+def update_college_profile(request):
+
+    college_user = request.user.collegeuser
+
+    context = {
+                'college_user': college_user,
+            }
+    if request.method == 'POST':
+        # Get the currently logged-in user
+        user = request.user
+
+        # Ensure that the user is authenticated and has a related NormalUser instance
+        if user.is_authenticated and hasattr(user, 'collegeuser'):
+            college_user = user.collegeuser  # Get the NormalUser instance associated with the user
+
+            # Update the user's profile based on form data
+            college_user.college_name = request.POST.get('college_name')
+            college_user.website = request.POST.get('website')
+            college_user.contact_phone_number = request.POST.get('contact_phone_number')
+            college_user.address = request.POST.get('address')
+
+
+            # Handle profile photo and cover photo uploads
+            profile_photo = request.FILES.get('profile_photo')
+            if profile_photo:
+                college_user.profile_photo = profile_photo
+
+            cover_photo = request.FILES.get('cover_photo')
+            if cover_photo:
+                college_user.cover_photo = cover_photo
+
+            
+            
+            # Save the updated profile
+            college_user.save()
+
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('profile2')    
+        else:
+            messages.error(request, 'User is not authenticated or does not have a related College User instance.')
+            return redirect('loginnew')  
+
+    return render(request, 'editcollegeprofile.html',context)
 
 
 
@@ -436,14 +491,17 @@ def add_course(request):
 
 def add_instructor(request):
     if not request.user.is_authenticated or not request.user.is_college_user:
-        return redirect('login') 
+        return redirect('loginnew') 
 
     if request.method == 'POST':
         college = CollegeUser.objects.get(user=request.user)
         department = Department.objects.get(pk=request.POST['department'])
         instructor_name = request.POST['instructor_name']
+        subject_taught = request.POST['subject_taught']
+        qualification = request.POST['qualification']
+        profile_photo = request.FILES.get('profile_photo')
 
-        instructor = Instructor(college=college, department=department, instructor_name=instructor_name)
+        instructor = Instructor(college=college, department=department, instructor_name=instructor_name,subject_taught=subject_taught,qualification=qualification,profile_photo=profile_photo)
         instructor.save()
 
         return redirect('view_instructors')  
@@ -453,7 +511,7 @@ def add_instructor(request):
         'departments': departments
     }
 
-    return render(request, 'instructors_add.html', context)
+    return render(request, 'add_instructor.html', context)
 
 
 
@@ -465,13 +523,27 @@ def get_instructors_for_department(request, department_id):
 
 
 def view_instructors(request):
-    departments = Department.objects.all()
-    selected_department = request.GET.get('department') # Get the department ID from the URL parameter
+    # Ensure the user is logged in and has a related college user
+    if not request.user.is_authenticated:
+        return redirect('loginnew')
+    try:
+        user_college = CollegeUser.objects.get(user=request.user)
+    except CollegeUser.DoesNotExist:
+        # Handle the case where the college user does not exist
+        return HttpResponse('You are not associated with any college.', status=403)
+
+    departments = Department.objects.filter(college=user_college)
+    selected_department = request.GET.get('department')
 
     if selected_department:
-        instructors = Instructor.objects.filter(department__id=selected_department)
+        instructors = Instructor.objects.filter(
+            department__id=selected_department,
+            college=user_college
+        ).select_related('department')
     else:
-        instructors = Instructor.objects.all()
+        instructors = Instructor.objects.filter(
+            college=user_college
+        ).select_related('department')
 
     context = {
         'departments': departments,
@@ -479,6 +551,7 @@ def view_instructors(request):
         'selected_department': int(selected_department) if selected_department else None
     }
     return render(request, 'view_instructors.html', context)
+
 
 
 @login_required
@@ -517,94 +590,110 @@ def add_chapters(request, course_id):
             else:
                 return JsonResponse({'status': 'error', 'message': 'Chapter count mismatch.'})
 
-        return redirect('add_material', course_id=course_id)
+        return redirect('add_course_material', course_id=course_id)
 
     else:
         return render(request, 'add_chapters.html', {'course': course, 'modules': modules})
     
 
-@require_http_methods(["POST", "GET"])
-def add_material(request, course_id):
+def add_course_material(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    modules = Module.objects.filter(course=course)
+
     if request.method == 'POST':
-        try:
-            with transaction.atomic():
-                materials_added = []
+        print(request.POST)
+        print(request.FILES)
 
-                # Process each form element for POST request
-                for key, value in request.POST.items():
-                    if key.startswith('title_'):
-                        suffix = key.split('_')[1]
-                        material_type = request.POST.get(f'material_type_{suffix}')
-                        title = value
-                        content = request.POST.get(f'content_{suffix}', '')
-                        chapter_id = request.POST.get(f'chapter_id_{suffix}', '')
+        module_id = request.POST.get('module_id')
+        module = get_object_or_404(Module, pk=module_id)
+        chapters = module.chapters.all()
 
-                        # Ensure we have a valid chapter_id before proceeding
-                        if not chapter_id:
-                            continue
+        for chapter in chapters:
+            # The expected key format in the POST data
+            material_type_key = f'material_type_{chapter.chapter_id}'
+            material_type = request.POST.get(material_type_key)
+            
+            # Debugging: check if material_type is being received
+            print(f"Chapter ID: {chapter.chapter_id}, Material Type: {material_type}")
 
-                        chapter = Chapter.objects.get(pk=chapter_id)
+            if not material_type:
+                # If material_type is not submitted, skip this chapter
+                print(f"No material type provided for chapter ID {chapter.chapter_id}")
+                continue
 
-                        if material_type == 'ReadingMaterial':
-                            image = request.FILES.get(f'image_{suffix}')  # Adjust the field name if needed
-                            if image:
-                                material = ReadingMaterial.objects.create(
-                                    chapter=chapter,
-                                    title=title,
-                                    text_content=content,
-                                    image=image
-                                )
-                                materials_added.append(material)
+            try:
+                if material_type == 'reading':
+                    title_key = f'reading_title_{chapter.chapter_id}'
+                    text_content_key = f'reading_text_content_{chapter.chapter_id}'
+                    image_key = f'reading_images_{chapter.chapter_id}'
 
-                        elif material_type == 'VideoMaterial':
-                            video = request.FILES.get(f'video_{suffix}')  # Adjust the field name if needed
-                            if video:
-                                material = VideoMaterial.objects.create(
-                                    chapter=chapter,
-                                    video=video,
-                                    transcript=content
-                                )
-                                materials_added.append(material)
+                    title = request.POST.get(title_key)
+                    text_content = request.POST.get(text_content_key)
+                    images = request.FILES.get(image_key) if image_key in request.FILES else None
 
-                        elif material_type == 'MultipleChoiceQuestion':
-                            question_text = title  # Assuming title is the question text
-                            choices = json.loads(request.POST.get(f'choices_{suffix}', '[]'))
-                            correct_answer = request.POST.get(f'correct_answer_{suffix}', '')
+                    ReadingMaterial.objects.create(
+                        chapter=chapter,
+                        title=title,
+                        text_content=text_content,
+                        images=images
+                        )
+                    print(f"Reading material created for Chapter ID: {chapter.chapter_id}")
 
-                            mcq = MultipleChoiceQuestion.objects.create(
-                                chapter=chapter,
-                                question_text=question_text,
-                                choices=json.dumps(choices),
-                                correct_answer=correct_answer
+                elif material_type == 'video':
+                        video_key = f'video_video_{chapter.chapter_id}'
+                        transcript_key = f'video_transcript_{chapter.chapter_id}'
+
+                        video = request.FILES.get(video_key)
+                        transcript = request.POST.get(transcript_key)
+
+                        VideoMaterial.objects.create(
+                            chapter=chapter,
+                            video=video,
+                            transcript=transcript
                             )
-                            materials_added.append(mcq)
+                        print(f"Video material created for Chapter ID: {chapter.chapter_id}")
 
-                if not materials_added:
-                    return HttpResponse('No materials were provided.', status=400)
+                elif material_type == 'multiple_choice':
+                            # Add logic for saving multiple choice questions
+                        mcq_data = {
+                            'question_text': request.POST.get(f'mc_question_text_{chapter.chapter_id}'),
+                            'choice_1': request.POST.get(f'mc_choice_1_{chapter.chapter_id}'),
+                            'choice_2': request.POST.get(f'mc_choice_2_{chapter.chapter_id}'),
+                            'choice_3': request.POST.get(f'mc_choice_3_{chapter.chapter_id}'),
+                            'choice_4': request.POST.get(f'mc_choice_4_{chapter.chapter_id}'),
+                            'correct_answer': request.POST.get(f'mc_correct_answer_{chapter.chapter_id}')
+                            }
 
-                return HttpResponse(f'{len(materials_added)} materials added successfully.')
+                        mcq = MultipleChoiceQuestion.objects.create(
+                            chapter=chapter,
+                            **mcq_data
+                            )
+                        mcq.clean()  # Ensure the correct answer is one of the choices
+                        mcq.save()
+                        print(f"Multiple choice question created for Chapter ID: {chapter.chapter_id}")
 
-        except Chapter.DoesNotExist:
-            return HttpResponse('The specified chapter does not exist.', status=404)
-        except json.JSONDecodeError:
-            return HttpResponse('Invalid JSON format for choices.', status=400)
-        except Exception as e:
-            return HttpResponse(f'Unexpected error: {str(e)}', status=500)
+                # ... additional elif clauses for other material types ...
 
-    else:  # GET request
-        # Logic to handle GET request and display the form
-        modules = Module.objects.filter(course_id=course_id).prefetch_related('chapters')
-        context = {
-            'modules': modules,
-            'course_id': course_id
-        }
-        return render(request, 'add_material.html', context)
+            except ValidationError as e:
+                # Handle validation error
+                print(f"Validation Error for chapter {chapter.chapter_id}: {e}")
+                return HttpResponse(f"Validation error: {e}", status=400)
+            except json.JSONDecodeError:
+                print("Invalid JSON format for answers or pairs")
+                return HttpResponse("Invalid JSON format for answers or pairs", status=400)
 
+        return HttpResponse("Material added successfully")
 
-    
+    # If the request method is GET, display the form
+    return render(request, 'add_material.html', {'course': course, 'modules': modules})
 
 
-    
-
+def get_chapters_for_module(request, module_id):
+    # Check for AJAX request header
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        chapters = list(Chapter.objects.filter(module_id=module_id).values('chapter_id', 'chapter_name'))
+        return JsonResponse(chapters, safe=False)
+    else:
+        return HttpResponseBadRequest("This endpoint only accepts AJAX requests.")
 
 

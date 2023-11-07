@@ -23,6 +23,7 @@ urlpatterns = [
     path('reset/<uidb64>/<token>/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
     path('reset/done/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('update_profile/', views.update_profile, name='update_profile'),
+    path('college_update_profile/', views.update_college_profile, name='update_college_profile'),
     path('news',views.news,name='news'),
     path('profile/',views.profile,name='profile'),
     path('profile2/',views.profile2,name='profile2'),
@@ -42,8 +43,8 @@ urlpatterns = [
     path('view_instructors',views.view_instructors,name='view_instructors'),
     path('course/<int:course_id>/add_modules/', views.add_modules, name='add_modules'),
     path('course/<int:course_id>/add_chapters/', views.add_chapters, name='add_chapters'),
-    path('course/<int:course_id>/add_material/', views.add_material, name='add_material'),
-    
+    path('course/<int:course_id>/add_material/', views.add_course_material, name='add_course_material'),
+    path('ajax/get_chapters_for_module/<int:module_id>/', views.get_chapters_for_module, name='get_chapters_for_module')    
 
     
 ]

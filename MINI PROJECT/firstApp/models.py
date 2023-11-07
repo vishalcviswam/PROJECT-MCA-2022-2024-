@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.forms import ValidationError
 
 
 
@@ -69,6 +70,9 @@ class Instructor(models.Model):
     college = models.ForeignKey(CollegeUser, on_delete=models.CASCADE)
     department = models.ForeignKey(Department, on_delete=models.CASCADE)
     instructor_name = models.CharField(max_length=255)
+    subject_taught = models.CharField(max_length=255,null=True, blank=True)
+    qualification = models.CharField(max_length=255,null=True, blank=True)
+    profile_photo = models.ImageField(blank=True, null=True, upload_to='profile_photo/')
 
     def __str__(self):
         return self.instructor_name
@@ -173,8 +177,18 @@ class ImageQuestion(models.Model):
 class MultipleChoiceQuestion(models.Model):
     chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE, related_name='multiple_choice_questions')
     question_text = models.TextField()
-    choices = models.TextField(help_text="Enter the choice options as a JSON array.")
+    choice_1 = models.CharField(max_length=200,null=True, blank=True)
+    choice_2 = models.CharField(max_length=200,null=True, blank=True)
+    choice_3 = models.CharField(max_length=200,null=True, blank=True)
+    choice_4 = models.CharField(max_length=200,null=True, blank=True)
     correct_answer = models.CharField(max_length=200, help_text="Enter the correct answer exactly as one of the choices.")
 
     def __str__(self):
         return self.question_text
+    
+    def clean(self):
+        super().clean()
+        # Ensure that the correct answer is one of the choices
+        correct_answers = (self.choice_1, self.choice_2, self.choice_3,self.choice_4)
+        if self.correct_answer not in correct_answers:
+            raise ValidationError({'correct_answer': "Correct answer must be one of the choices."})

@@ -132,19 +132,19 @@
             <table class="table table-bordered">
                 <tr>
                     <td><label for="first_name">First Name</label></td>
-                    <td><input type="text" class="form-control" id="first_name" name="first_name"></td>
+                    <td><input type="text" class="form-control" id="first_name" name="first_name" value="{{ normal_user.first_name }}"></td>
                 </tr>
                 <tr>
                     <td><label for="last_name">Last Name</label></td>
-                    <td><input type="text" class="form-control" id="last_name" name="last_name"></td>
+                    <td><input type="text" class="form-control" id="last_name" name="last_name" value="{{ normal_user.last_name }}"></td>
                 </tr>
                 <tr>
                     <td><label for="phone_number">Phone Number</label></td>
-                    <td><input type="text" class="form-control" id="phone_number" name="phone_number"></td>
+                    <td><input type="text" class="form-control" id="phone_number" name="phone_number" value="{{ normal_user.phone_number }}"></td>
                 </tr>
                 <tr>
                     <td><label for="country">Country</label></td>
-                    <td><input type="text" class="form-control" id="country" name="country"></td>
+                    <td><input type="text" class="form-control" id="country" name="country" value="{{ normal_user.country }}"></td>
                 </tr>
                 <tr>
                     <td><label for="gender">Gender</label></td>
@@ -166,7 +166,7 @@
                 </tr>
                 <tr>
                     <td><label for="about_me">About Me</label></td>
-                    <td><textarea class="form-control" id="about_me" name="about_me" rows="5"></textarea></td>
+                    <td><textarea class="form-control" id="about_me" name="about_me" rows="5" value="{{ user.normaluser.about_me }}"></textarea></td>
                 </tr>
             </table>
             <!-- Use Bootstrap button classes for styling -->

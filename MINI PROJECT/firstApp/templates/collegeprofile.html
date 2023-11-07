@@ -224,6 +224,7 @@
 
 		#searchBox {
 			max-width: 200px;
+            display: none;
 		}
 
 		.navbar.bg-light {  
@@ -332,18 +333,18 @@
     {% endif %}
     <div class="profile-layout">
         <div class="user-details card">
-            <h2>User Details</h2>
+            <h2>Account Details</h2>
             <p><strong>College Name:</strong> {{ college_user.college_name }}</p>
             <p><strong>Address:</strong> {{ college_user.address }}</p>
             <p><strong>Phone:</strong> {{ college_user.contact_phone_number }}</p>
             <p><strong>Email:</strong> {{ user.email }}</p>
-            <p><strong>College Type:</strong> {{ college_user.college_type }}</p>
+            <p><strong>College Type:</strong> {{ college_user.get_college_type_display }}</p>
             <p><strong>College Website:</strong> {{ college_user.website }}</p>
             <!-- Add more user details here -->
         </div>
 
         <div class="user-posts card">
-            <h2>User Posts</h2>
+            <h2>Recent Posts</h2>
             <div class="post">
                 <p>This is the first post's content...</p>
                 <!-- Add more posts here -->
@@ -351,10 +352,10 @@
         </div>
 
         <div class="user-media card">
-            <h2>User Images</h2>
+            <h2>Media</h2>
             <div class="media">
                 <!-- Thumbnails of images or media content -->
-                <img src="{% static 'images/img2.jpg' %}" alt="User Media" style="width: 100%; margin-bottom: 10px;">
+                <img src="{% if user.collegeuser.cover_photo %}{{ user.collegeuser.cover_photo.url }}{% else %}{% static 'images/img11.jpg' %}{% endif %}" alt="User Media" style="width: 100%; margin-bottom: 10px;">
                 <!-- Add more media here -->
             </div>
         </div>
