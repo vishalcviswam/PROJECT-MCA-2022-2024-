@@ -1,3 +1,4 @@
+{% load static%}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,72 +6,266 @@
     <title>Add Chapters</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
 
     <style>
-        body {
-            padding: 20px;
-            background: linear-gradient(to right, #6a11cb, #2575fc);
-        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+            }
+        
+            #searchBox {
+                max-width: 200px;
+                display: none;
+            }
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
+            }
+        
+            .navbar {
+                background-color: #34a0a4 !important;
+                
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
 
-        .form-container {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
 
-        fieldset {
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin-bottom: 15px;
-            border-radius: 5px;
-        }
 
-        legend {
-            width: auto;
-            padding: 0 10px;
-            border: none;
-            font-size: 1.2em;
-        }
+            @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap');
 
-        .form-group {
-            margin-bottom: 1rem;
-        }
+            body {
+                font-family: 'Nunito', sans-serif;
+                background-color: #f4f7fc; /* A soft background color */
+                color: #333;
+                align-items: center;
+                min-height: 100vh; /* Make sure the body takes up at least the viewport height */
+                margin: 0; /* Remove default margin */
+                
+            }
 
-        .form-group label {
-            display: block;
-            margin-bottom: .5rem;
-        }
+            /*.navbar {
+                box-shadow: 0 5px 7px rgba(0, 0, 0, 0.1);
+            }*/
 
-        .form-group input[type="number"],
-        .form-group input[type="text"] {
-            width: 100%;
-            padding: .5rem;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            margin-bottom: 10px;
-        }
+            .form-container {
+                animation: 1s ease-out 0s 1 slideInFromLeft;
+                background-color: #ffffff;
+                border-radius: 8px;
+                padding: 2rem;
+                margin-top: 3rem;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+                transform: scale(1);
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                max-width: 1000px;
+            }
 
-        .form-group input[type="text"] {
-            margin-bottom: 0; /* Last text input should not have margin at the bottom */
-        }
+            @keyframes slideInFromLeft {
+                0% {
+                  transform: translateX(-100%);
+                  opacity: 0;
+                }
+                100% {
+                  transform: translateX(0);
+                  opacity: 1;
+                }
+              }
 
-        button[type="submit"] {
-            background-color: #28a745;
-            color: white;
-            padding: .5rem 1rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+            .form-container:hover {
+                transform: scale(1.02);
+                box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+                
+            }
 
-        button[type="submit"]:hover {
-            background-color: #218838;
-        }
+            h2.mb-4 {
+                font-weight: 700;
+                text-align: center;
+                color: #003566;
+                margin-bottom: 2rem;
+            }
+
+            fieldset {
+                border: 1px solid #eef1f4;
+                border-radius: 15px;
+                padding: 1rem;
+                margin-bottom: 1rem;
+                background-color: #f4f7fc;
+            }
+
+            legend {
+                background-color: #eef1f4;
+                color: #4b7bec;
+                font-size: 1.1rem;
+                font-weight: 600;
+                border-radius: 15px;
+                padding: 0.5rem 1rem;
+                width: auto;
+            }
+
+            .form-group label {
+                font-weight: 400;
+            }
+
+            input[type="number"].form-control,
+            input[type="text"].form-control {
+                border: 1px solid #ced4da;
+                border-radius: 4px;
+                padding: 0.5rem 0.75rem;
+                transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+            }
+
+            input[type="number"].form-control,
+            input[type="text"].form-control {
+                border: 2px solid #eef1f4;
+                border-radius: 20px;
+                padding: 0.75rem 1rem;
+                transition: border-color 0.2s ease-in-out;
+            }
+
+            input[type="number"].form-control:focus,
+            input[type="text"].form-control:focus {
+                border-color: #74ebd5;
+            }
+
+            input[type="submit"] {
+                cursor: pointer;
+            }
+
+            input[type="number"].form-control:not(:placeholder-shown),
+            input[type="text"].form-control:not(:placeholder-shown) {
+                animation: pulse 1.5s infinite alternate;
+            }
+
+            .btn-success {
+                background-image: linear-gradient(45deg, #6dd5ed, #219dffb3); /* Gradient button */
+                border: none;
+                border-radius: 30px;
+                padding: 0.75rem 1.25rem;
+                font-size: 1rem;
+                transition: background-image 0.3s ease-in-out;
+            }
+
+            .btn-success:hover {
+                background-image: linear-gradient(45deg, #6dd5ed, #219dff);
+                box-shadow: 0 4px 15px rgba(33, 157, 255, 0.4);
+            }
+
+            @keyframes pulse {
+                from {
+                    box-shadow: 0 0 0 0px rgba(116, 235, 213, 0.7);
+                }
+                to {
+                    box-shadow: 0 0 0 10px rgba(116, 235, 213, 0);
+                }
+            }
+
+            .btn-success:focus {
+                animation: pulse 1s infinite;
+            }
+
+            /* Responsive Design Adjustments */
+            @@media (max-width: 768px) {
+                .navbar {
+                    padding: 0.5rem;
+                }
+            
+                .form-container {
+                    padding: 1rem;
+                }
+            
+                h2.mb-4 {
+                    margin-bottom: 1.5rem;
+                }
+            }
+
+            .fa-home, .fa-book, .fa-users, .fa-bell {
+                transition: transform 0.2s ease;
+            }
+            
+            .fa-home:hover, .fa-book:hover, .fa-users:hover, .fa-bell:hover {
+                transform: scale(1.1);
+            }
+
+            /* Additional hover effects for navbar icons */
+            .navbar-nav .nav-link {
+                transition: color 0.2s ease-in-out;
+            }
+
+            .navbar-nav .nav-link:hover,
+            .navbar-nav .nav-link:focus {
+                color: #2980b9; /* Changing color on hover/focus */
+            }
+
+            /* Smooth transition for theme toggle icon */
+            #theme-icon {
+                transition: transform 0.2s ease-in-out;
+            }
+
+            .theme-toggle:hover #theme-icon {
+                transform: rotate(90deg); /* Rotate icon on hover */
+            }
+
     </style>
 </head>
 <body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+            EduSphere
+        </a>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="{% url 'college_user_home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                    <i id="theme-icon" class="fas fa-sun"></i>
+                </li>
+                <li class="nav-item">
+                    <div id="searchBox" class="mr-2">
+                        <input type="text" placeholder="Search..." class="form-control">
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+                </li>
+                <li class="nav-item">
+                    <img src="{% if user.collegeuser.profile_photo %}{{ user.collegeuser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                </li>
+            </ul>
+        </div>
+    </nav>
+
     <div class="container">
         <div class="form-container">
             <h2 class="mb-4">Add Chapters to Modules for Course: {{ course.course_name }}</h2>
@@ -116,6 +311,23 @@
                 }
             });
         });
+
+        function toggleSearch() {
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox.style.display === 'none') {
+                searchBox.style.display = 'block';
+            } else {
+                searchBox.style.display = 'none';
+            }
+        }
+    
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            body.classList.toggle('night-mode');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
+        }
     </script>
 </body>
 </html>

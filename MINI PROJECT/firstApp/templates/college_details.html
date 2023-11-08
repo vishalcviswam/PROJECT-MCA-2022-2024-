@@ -5,12 +5,14 @@
     <title>College Details</title>
     <!-- Add Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
     <!-- Add custom CSS (you can link to your own CSS file) -->
     <style>
         /* Center align the page content */
         body {
             text-align: center;
-            padding: 20px;
+            
         }
         h1, h2 {
             color: #007BFF; /* Blue color for headers */
@@ -25,80 +27,82 @@
             border-radius: 4px;
         }
 
-        /* Navbar styles */
         .navbar-brand {
-            font-family: 'Tangerine', cursive;
-            font-size: 28px;
             font-weight: bold;
-            text-shadow: 4px 4px 4px #aaa;
-        }
-
-        .navbar {
-            background: url('{% static 'images/newnav.jpg'%}') repeat-x;
-            animation: moveBackground 10s linear infinite;
-        }
+            font-size: 1.5em;
+            }
         
-        /* Remove the gap between menu items */
-        .navbar-nav {
-            margin: 0;
-        }
-
-        @keyframes moveBackground {
-            0% {
-                background-position: 0 0;
+            #searchBox {
+                max-width: 200px;
+                display: none;
             }
-            100% {
-                background-position: 100% 0;
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
             }
-        }
+        
+            .navbar {
+                background-color: #34a0a4 !important;
+                
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow">
-        <a class="navbar-brand" href="#">EduSphere Fusion</a>
-        <!-- Navbar toggler button -->
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <!-- Navbar links -->
-        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i> Home</a>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+            EduSphere
+        </a>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="{% url 'college_user_home' %}"><i class="fas fa-home"></i></a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-book"></i> Courses</a>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-envelope"></i> Query</a>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#"><i class="fas fa-bell"></i> Notifications</a>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
                 </li>
             </ul>
-        </div>
-        <!-- User profile and search bar -->
-        <div class="navbar-nav ml-auto">
-            <form class="form-inline">
-                <div class="input-group">
-                    <input type="text" class="form-control rounded-pill" placeholder="Search">
-                    <div class="input-group-append">
-                        <button class="btn btn-outline-light rounded-pill" type="button"><i class="fas fa-search"></i></button>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                    <i id="theme-icon" class="fas fa-sun"></i>
+                </li>
+                <li class="nav-item">
+                    <div id="searchBox" class="mr-2">
+                        <input type="text" placeholder="Search..." class="form-control">
                     </div>
-                </div>
-            </form>
-            <!-- User profile dropdown -->
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <img src="user-avatar.jpg" alt="User Avatar" class="profile-image">
-                </a>
-                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
-                    <a class="dropdown-item" href="{% url 'viewprofile' %}"><i class="fas fa-user"></i> View Profile</a>
-                    <a class "dropdown-item" href="{% url 'update_profile' %}"><i class="fas fa-edit"></i> Edit Profile</a>
-                    <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="{% url 'logoutp' %}"><i class="fas fa-sign-out-alt"></i> Logout</a>
-                </div>
-            </li>
+                </li>
+                <li class="nav-item">
+                    <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+                </li>
+                <li class="nav-item">
+                    <img src="{% if user.collegeuser.profile_photo %}{{ user.collegeuser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                </li>
+            </ul>
         </div>
     </nav>
     <div id="header">
@@ -180,5 +184,23 @@
     <!-- Add Bootstrap and jQuery JS -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function toggleSearch() {
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox.style.display === 'none') {
+                searchBox.style.display = 'block';
+            } else {
+                searchBox.style.display = 'none';
+            }
+        }
+    
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            body.classList.toggle('night-mode');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
+        }
+    </script>
 </body>
 </html>

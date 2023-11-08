@@ -50,7 +50,8 @@ urlpatterns = [
     path('course_list_college/', views.course_list_college, name='course_list_college'),
     path('course/<int:course_id>/', views.course_detail, name='course_detail'),
     path('course_detail_user/<int:course_id>/', views.course_detail_user, name='course_detail_user'),
-    path('chapter/<int:chapter_id>/', views.chapter_detail, name='chapter_details'),  
+    path('chapter/<int:chapter_id>/', views.chapter_detail, name='chapter_details'),
+    path('toggle_user_activation/<int:user_id>/', views.toggle_user_activation, name='toggle_user_activation'),  
 
     
 ]

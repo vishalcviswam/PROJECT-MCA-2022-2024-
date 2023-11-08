@@ -6,63 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Modules</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.1.3/css/bootstrap.min.css">
+
+
 
     <style>
-        body {
-            padding: 20px;
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(to right, #6a11cb, #2575fc);
-        }
-        
-        .form-header {
-            margin-bottom: 30px;
-            text-align: center;
-        }
-
-        .form-container {
-            background: #f7f7f7;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-
-        .module-input-group {
-            margin-bottom: 10px;
-        }
-
-        .form-container label {
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .form-container input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ddd;
-            margin-bottom: 15px;
-        }
-
-        .form-container input[type="submit"] {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .form-container input[type="submit"]:hover {
-            background-color: #0056b3;
-        }
-
-        @media (max-width: 576px) {
-            .custom-button {
-                width: 100%;
-                margin-top: 10px;
-            }
-        }
-
         .navbar-brand {
             font-weight: bold;
             font-size: 1.5em;
@@ -79,6 +28,7 @@
         
             .navbar {
                 background-color: #34a0a4 !important;
+                
             }
         
             .navbar-logo {
@@ -98,6 +48,106 @@
             body.night-mode .profile-sidebar {
                     background-color: #5c636a;
             }
+
+
+
+            @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: #f4f7fc; /* A soft background color */
+                color: #333;
+            }
+
+            .form-header h2 {
+                color: #495057;
+                font-weight: 600;
+                margin-bottom: 1rem;
+            }
+            
+            .container {
+                max-width: 800px; /* Setting a max-width for larger screens */
+                margin-top: 30px;
+            }
+            
+            .form-container {
+                animation: 1s ease-out 0s 1 slideInFromLeft;
+                background: linear-gradient(to right, #00bbf9, #00f5d4);
+                backdrop-filter: blur(20px); /* Blurring the background elements */
+                border-radius: 12px; /* Rounded corners */
+                padding: 2rem;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Adding a shadow to lift the container off the page */
+                border: 1px solid rgba(0, 0, 0, 0.1); /* A subtle border for definition */
+                margin-bottom: 2rem;
+            }
+            
+            .btn-primary {
+                background: #5e72e4; /* A vibrant primary color */
+                border: none;
+                border-radius: 8px; /* Rounded corners for the button */
+                padding: 0.75rem 1.25rem;
+                font-size: 1rem;
+                transition: all 0.3s ease-in-out;
+            }
+            
+            .btn-primary:hover {
+                background: #4e62ce; /* A darker shade on hover */
+                transform: translateY(-2px); /* Slight raise on hover */
+                box-shadow: 0 5px 15px rgba(94, 114, 228, 0.4); /* A glow effect on hover */
+            }
+            
+            .module-input-group {
+                margin-bottom: 1rem;
+            }
+            
+            .module-input-group label {
+                font-weight: 600; /* Adding weight to labels */
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+            
+            .module-input-group input {
+                border: 1px solid #ced4da;
+                border-radius: 8px;
+                padding: 0.75rem 1rem;
+                transition: border 0.2s ease-in-out;
+            }
+            
+            .module-input-group input:focus {
+                border-color: #5e72e4; /* Matching the primary color for focus state */
+                box-shadow: 0 1px 3px rgba(94, 114, 228, 0.25); /* A subtle shadow on focus */
+            }
+
+            @media (max-width: 768px) {
+
+                .container {
+                    padding: 15px; /* Adjust padding for smaller screens */
+                }
+            }
+
+            @keyframes slideInFromLeft {
+                0% {
+                  transform: translateX(-100%);
+                  opacity: 0;
+                }
+                100% {
+                  transform: translateX(0);
+                  opacity: 1;
+                }
+              }
+
+              input[type="number"].form-control,
+            input[type="text"].form-control {
+                border: 2px solid #eef1f4;
+                border-radius: 20px;
+                padding: 0.75rem 1rem;
+                transition: border-color 0.2s ease-in-out;
+            }
+
+
+            
+            
+        
     </style>
 
     <script type="text/javascript">
@@ -115,6 +165,23 @@
                     </div>
                 `;
             }
+        }
+
+        function toggleSearch() {
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox.style.display === 'none') {
+                searchBox.style.display = 'block';
+            } else {
+                searchBox.style.display = 'none';
+            }
+        }
+    
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            body.classList.toggle('night-mode');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
         }
     </script>
 </head>
@@ -160,8 +227,6 @@
         </div>
     </nav>
 
-
-
     <div class="container">
         <div class="form-header">
             <h2>Add Modules for {{ course.course_name }}</h2>
@@ -189,7 +254,7 @@
                         <input type="text" class="form-control" id="moduleName0" name="module_names[]" required>
                     </div>
                 </div>
-                <input type="submit" value="Add Modules">
+                <button type="submit" class="btn btn-primary custom-button" value="Add Modules">Add Modules</button>
             </form>
         </div>
     </div>

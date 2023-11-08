@@ -1,5 +1,5 @@
-from django.contrib.auth import authenticate, login, logout
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout,get_user_model
+from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import get_list_or_404, render, redirect
@@ -13,13 +13,14 @@ from django.views.decorators.csrf import csrf_exempt
 from django.forms import modelformset_factory
 import json
 from django.views.decorators.csrf import csrf_protect
+from django.urls import reverse
+
 
 
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.views.generic import TemplateView
-
 
 from django.views.generic import View
 from .utils import *
@@ -215,9 +216,10 @@ def update_profile(request):
 
     return redirect('home')'''
     
-@login_required(login_url='loginnew')
-def admin_home(request):
-    return render(request, 'admin.html')
+
+
+
+    
 
 @login_required(login_url='loginnew')
 def update_profile(request):
@@ -771,5 +773,26 @@ def chapter_detail(request, chapter_id):
         'chapter': chapter,
     }
     return render(request, 'chapter_detail.html', context)
+
+
+
+User = get_user_model()
+
+@login_required
+@user_passes_test(lambda u: u.is_staff, login_url='loginnew')
+def toggle_user_activation(request, user_id):
+    user = get_object_or_404(User, pk=user_id)
+    user.is_active = not user.is_active
+    user.save()
+    return redirect(reverse('admin_home'))
+
+
+@login_required(login_url='loginnew')
+@user_passes_test(lambda u: u.is_staff, login_url='loginnew')
+def admin_home(request):
+    # Exclude superusers from the query
+    users = User.objects.filter(is_superuser=False)
+    return render(request, 'admin.html', {'users': users})
+
 
 

@@ -87,6 +87,37 @@
             bottom: 20px;
             width: calc(100% - 40px); /* Subtract padding */
         }
+
+        .table {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        .table th, .table td {
+            text-align: left;
+            padding: 8px;
+        }
+
+        .table th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .table tr:nth-child(even){background-color: #f2f2f2}
+
+        .table tr:hover {background-color: #ddd;}
+
+        .btn-sm {
+            padding: .25rem .5rem;
+            font-size: .875rem;
+            line-height: 1.5;
+            border-radius: .2rem;
+        }
+
+        .btn-action {
+            margin-right: 4px;
+        }
     </style>
 </head>
 <body>
@@ -96,7 +127,7 @@
         <ul class="nav flex-column">
             <li class="nav-item">
                 <a class="nav-link active" href="#">
-                    Dashboard
+                    All Users
                 </a>
             </li>
             <li class="nav-item">
@@ -114,25 +145,38 @@
     </div>
 
     <div class="content">
-        <h1>Dashboard</h1>
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Card 1</h5>
-                            <p class="card-text">This is some text within a card.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Card 2</h5>
-                            <p class="card-text">This is some text within a card.</p>
-                        </div>
-                    </div>
-                </div>
+            <h1>All Users</h1>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Username</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Registration Date</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.date_joined }}</td>
+                            <td>
+                                <span class="badge {% if user.is_active %}badge-success{% else %}badge-secondary{% endif %}">
+                                    {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'toggle_user_activation' user.id %}" class="btn btn-action btn-sm {% if not user.is_active %}btn-success{% else %}btn-danger{% endif %}">
+                                    {% if not user.is_active %}Activate{% else %}Deactivate{% endif %}
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
