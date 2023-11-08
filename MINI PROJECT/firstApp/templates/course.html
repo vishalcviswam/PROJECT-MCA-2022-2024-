@@ -1,3 +1,4 @@
+{% load static%}
 <!DOCTYPE html>
 <html>
 
@@ -8,13 +9,56 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    
 
     <style>
-        body {
-            background: linear-gradient(to right, #6a11cb, #2575fc); /* Modern gradient background */
-            height: 100vh;
-            color: #333;
-        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+            }
+        
+            #searchBox {
+                max-width: 200px;
+                display: none;
+            }
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
+            }
+        
+            .navbar {
+                background-color: #34a0a4 !important;
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
+            
+
+
+
+            body {
+                font-family: 'Open Sans', sans-serif;
+                background: #e0eafc; /* Lighter background for a modern look */
+                color: #333;
+            }
 
         .custom-select.multiple-selection {
             height: auto !important;
@@ -25,12 +69,16 @@
         }
 
         .form-container {
-            margin-top: 50px;
-            background-color: #ffffff;
-            padding: 30px 40px; /* Enhanced padding */
-            border-radius: 20px; /* Rounded borders */
-            box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.2); /* Soft shadow */
+            background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(210, 214, 220, 0.5); /* Slight border color for depth */
         }
+        
+        
 
         .form-group {
             position: relative;
@@ -54,11 +102,14 @@
 
         .form-container {
             margin-top: 50px;
-            background: linear-gradient(to bottom, #ffffff, #f3f4f6); /* subtle gradient background for container */
-            padding: 50px 60px; /* Increased padding for roomier feel */
+            background: linear-gradient(to right, #00bbf9, #00f5d4); /* subtle gradient background for container */
+            padding: 30px 60px; /* Increased padding for roomier feel */
             border-radius: 25px; /* More pronounced rounded borders */
             box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1); /* More pronounced shadow for depth */
             transition: transform 0.3s; /* smooth transition for hover effect */
+            width: 80%; /* Adjust the width as needed, or remove this line to let it auto size */
+            max-width: 1000px; /* Maximum width the container can be, adjust as needed */
+            
         }
         
         .form-container:hover {
@@ -194,6 +245,10 @@
             max-height: 150px; /* or whatever height suits your design */
             overflow-y: auto; /* make it scrollable */
         }
+
+        textarea {
+            resize: none;
+        }
         
 
 
@@ -257,10 +312,68 @@
             });
         });
 
+
+        function toggleSearch() {
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox.style.display === 'none') {
+                searchBox.style.display = 'block';
+            } else {
+                searchBox.style.display = 'none';
+            }
+        }
+    
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            body.classList.toggle('night-mode');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
+        }
+
     </script>
 </head>
 
 <body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+            EduSphere
+        </a>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="{% url 'college_user_home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                    <i id="theme-icon" class="fas fa-sun"></i>
+                </li>
+                <li class="nav-item">
+                    <div id="searchBox" class="mr-2">
+                        <input type="text" placeholder="Search..." class="form-control">
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+                </li>
+                <li class="nav-item">
+                    <img src="{% if user.collegeuser.profile_photo %}{{ user.collegeuser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                </li>
+            </ul>
+        </div>
+    </nav>
 
     <div class="container form-container">
         <h2 class="mb-4" align="center">ADD A NEW COURSE</h2>

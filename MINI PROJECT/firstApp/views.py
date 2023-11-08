@@ -18,6 +18,8 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.views.generic import TemplateView
+
 
 from django.views.generic import View
 from .utils import *
@@ -478,7 +480,7 @@ def add_course(request):
 
         return redirect('add_modules',course_id=course.course_id)
     else:
-        instructors = Instructor.objects.all()
+        instructors = Instructor.objects.filter(college__user=request.user)
         departments = Department.objects.filter(college__user=request.user)
         
         context = {
@@ -596,6 +598,16 @@ def add_chapters(request, course_id):
         return render(request, 'add_chapters.html', {'course': course, 'modules': modules})
     
 
+class AddCourseMaterialView(TemplateView):
+    template_name = 'add_material.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['course'] = get_object_or_404(Course, pk=self.kwargs['course_id'])
+        context['modules'] = Module.objects.filter(course=context['course'])
+        return context
+    
+
 def add_course_material(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     modules = Module.objects.filter(course=course)
@@ -609,15 +621,11 @@ def add_course_material(request, course_id):
         chapters = module.chapters.all()
 
         for chapter in chapters:
-            # The expected key format in the POST data
             material_type_key = f'material_type_{chapter.chapter_id}'
             material_type = request.POST.get(material_type_key)
-            
-            # Debugging: check if material_type is being received
             print(f"Chapter ID: {chapter.chapter_id}, Material Type: {material_type}")
 
             if not material_type:
-                # If material_type is not submitted, skip this chapter
                 print(f"No material type provided for chapter ID {chapter.chapter_id}")
                 continue
 
@@ -636,46 +644,58 @@ def add_course_material(request, course_id):
                         title=title,
                         text_content=text_content,
                         images=images
-                        )
+                    )
                     print(f"Reading material created for Chapter ID: {chapter.chapter_id}")
 
                 elif material_type == 'video':
-                        video_key = f'video_video_{chapter.chapter_id}'
-                        transcript_key = f'video_transcript_{chapter.chapter_id}'
+                    video_key = f'video_video_{chapter.chapter_id}'
+                    transcript_key = f'video_transcript_{chapter.chapter_id}'
 
-                        video = request.FILES.get(video_key)
-                        transcript = request.POST.get(transcript_key)
+                    video = request.FILES.get(video_key)
+                    transcript = request.POST.get(transcript_key)
 
-                        VideoMaterial.objects.create(
-                            chapter=chapter,
-                            video=video,
-                            transcript=transcript
-                            )
-                        print(f"Video material created for Chapter ID: {chapter.chapter_id}")
+                    VideoMaterial.objects.create(
+                        chapter=chapter,
+                        video=video,
+                        transcript=transcript
+                    )
+                    print(f"Video material created for Chapter ID: {chapter.chapter_id}")
 
                 elif material_type == 'multiple_choice':
-                            # Add logic for saving multiple choice questions
-                        mcq_data = {
-                            'question_text': request.POST.get(f'mc_question_text_{chapter.chapter_id}'),
-                            'choice_1': request.POST.get(f'mc_choice_1_{chapter.chapter_id}'),
-                            'choice_2': request.POST.get(f'mc_choice_2_{chapter.chapter_id}'),
-                            'choice_3': request.POST.get(f'mc_choice_3_{chapter.chapter_id}'),
-                            'choice_4': request.POST.get(f'mc_choice_4_{chapter.chapter_id}'),
-                            'correct_answer': request.POST.get(f'mc_correct_answer_{chapter.chapter_id}')
-                            }
+                    # Process each multiple choice question
+                    question_keys = [key for key in request.POST if key.startswith(f'mc_question_text_{chapter.chapter_id}')]
 
-                        mcq = MultipleChoiceQuestion.objects.create(
+                    for question_key in question_keys:
+                        # Extracting the index using string manipulation
+                        question_index = question_key.split('[')[-1].rstrip(']')
+
+                        # Constructing the keys for choices and the correct answer
+                        choices_keys = [
+                            f'mc_choice_1_{chapter.chapter_id}[{question_index}]',
+                            f'mc_choice_2_{chapter.chapter_id}[{question_index}]',
+                            f'mc_choice_3_{chapter.chapter_id}[{question_index}]',
+                            f'mc_choice_4_{chapter.chapter_id}[{question_index}]'
+                        ]
+
+                        # Retrieving the values for choices and the correct answer
+                        choices_values = [request.POST.get(key, '') for key in choices_keys]
+                        correct_answer_key = f'mc_correct_answer_{chapter.chapter_id}[{question_index}]'
+                        correct_answer_value = request.POST.get(correct_answer_key, '')
+
+                        # Creating the MultipleChoiceQuestion object
+                        MultipleChoiceQuestion.objects.create(
                             chapter=chapter,
-                            **mcq_data
-                            )
-                        mcq.clean()  # Ensure the correct answer is one of the choices
-                        mcq.save()
-                        print(f"Multiple choice question created for Chapter ID: {chapter.chapter_id}")
-
+                            question_text=request.POST[question_key],
+                            choice_1=choices_values[0],
+                            choice_2=choices_values[1],
+                            choice_3=choices_values[2],
+                            choice_4=choices_values[3],
+                            correct_answer=correct_answer_value
+                        )
+                        print(f"Multiple choice question {question_index} created for Chapter ID: {chapter.chapter_id}")
                 # ... additional elif clauses for other material types ...
 
             except ValidationError as e:
-                # Handle validation error
                 print(f"Validation Error for chapter {chapter.chapter_id}: {e}")
                 return HttpResponse(f"Validation error: {e}", status=400)
             except json.JSONDecodeError:
@@ -685,9 +705,7 @@ def add_course_material(request, course_id):
         return HttpResponse("Material added successfully")
 
     # If the request method is GET, display the form
-    return render(request, 'add_material.html', {'course': course, 'modules': modules})
-
-
+    return render(request, 'add_material.html', {'course_id': course_id, 'modules': modules})
 def get_chapters_for_module(request, module_id):
     # Check for AJAX request header
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -695,5 +713,63 @@ def get_chapters_for_module(request, module_id):
         return JsonResponse(chapters, safe=False)
     else:
         return HttpResponseBadRequest("This endpoint only accepts AJAX requests.")
+    
+
+def course_list(request):
+    # Fetch all courses from the database
+    courses = Course.objects.select_related('college').all()
+    # Render the courses.html template with the courses data
+    return render(request, 'courseviewforuser.html', {'courses': courses})
+
+
+@login_required
+def course_list_college(request):
+    try:
+        college_user = request.user.collegeuser
+    except CollegeUser.DoesNotExist:
+        college_user = None
+    
+    if college_user:
+        courses = Course.objects.filter(college=college_user)
+    else:
+        courses = Course.objects.none()
+
+    return render(request, 'courseview.html', {'courses': courses})
+
+
+def course_detail(request, course_id):
+    # Retrieve the Course object by id
+    course = get_object_or_404(Course, pk=course_id)
+    # No need to separately retrieve modules or chapters, they can be accessed via the course object in the template
+
+    # Context dictionary to pass data to the template
+    context = {
+        'course': course,
+    }
+
+    # Render the course detail template with the course and related data
+    return render(request, 'coursedetails.html', context)
+
+
+def course_detail_user(request, course_id):
+    # Retrieve the Course object by id
+    course = get_object_or_404(Course, pk=course_id)
+    # No need to separately retrieve modules or chapters, they can be accessed via the course object in the template
+
+    # Context dictionary to pass data to the template
+    context = {
+        'course': course,
+    }
+
+    # Render the course detail template with the course and related data
+    return render(request, 'coursedetailsforusers.html', context)
+
+
+def chapter_detail(request, chapter_id):
+    chapter = get_object_or_404(Chapter, pk=chapter_id)
+    context = {
+        'chapter': chapter,
+    }
+    return render(request, 'chapter_detail.html', context)
 
 

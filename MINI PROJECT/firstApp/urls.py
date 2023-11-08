@@ -44,7 +44,13 @@ urlpatterns = [
     path('course/<int:course_id>/add_modules/', views.add_modules, name='add_modules'),
     path('course/<int:course_id>/add_chapters/', views.add_chapters, name='add_chapters'),
     path('course/<int:course_id>/add_material/', views.add_course_material, name='add_course_material'),
-    path('ajax/get_chapters_for_module/<int:module_id>/', views.get_chapters_for_module, name='get_chapters_for_module')    
+    path('ajax/get_chapters_for_module/<int:module_id>/', views.get_chapters_for_module, name='get_chapters_for_module'),
+
+    path('course_list/', views.course_list, name='course_list'), 
+    path('course_list_college/', views.course_list_college, name='course_list_college'),
+    path('course/<int:course_id>/', views.course_detail, name='course_detail'),
+    path('course_detail_user/<int:course_id>/', views.course_detail_user, name='course_detail_user'),
+    path('chapter/<int:chapter_id>/', views.chapter_detail, name='chapter_details'),  
 
     
 ]
