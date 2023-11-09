@@ -388,7 +388,7 @@ def college_details(request, pk):
     
     return render(request, 'college_details.html', {'college_user': college_user, 'departments': departments})
 
-@login_required
+@login_required(login_url='loginnew')
 def add_department(request):
     if request.method == 'POST':
         college_user = CollegeUser.objects.get(user=request.user)
@@ -396,13 +396,13 @@ def add_department(request):
         name = request.POST['department_name']
         programs = request.POST['offered_programs']
         hod = request.POST['head_of_department']
-        start_year = request.POST['department_start_year']
+        #start_year = request.POST['department_start_year']
 
         department = Department()
         department.college = college_user
         department.name = name
         department.head_of_department = hod
-        department.department_start_year = start_year
+        #department.department_start_year = start_year
 
         if programs == 'both':
             department.undergrad_offered = True
@@ -492,7 +492,7 @@ def add_course(request):
         
         return render(request, 'course.html', context)
     
-
+@login_required(login_url='loginnew')
 def add_instructor(request):
     if not request.user.is_authenticated or not request.user.is_college_user:
         return redirect('loginnew') 
@@ -704,7 +704,7 @@ def add_course_material(request, course_id):
                 print("Invalid JSON format for answers or pairs")
                 return HttpResponse("Invalid JSON format for answers or pairs", status=400)
 
-        return HttpResponse("Material added successfully")
+        return redirect("course_list_college")
 
     # If the request method is GET, display the form
     return render(request, 'add_material.html', {'course_id': course_id, 'modules': modules})

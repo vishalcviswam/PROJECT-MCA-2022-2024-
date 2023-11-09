@@ -61,7 +61,7 @@ class Department(models.Model):
     undergrad_offered = models.BooleanField(default=False)
     postgrad_offered = models.BooleanField(default=False)
     head_of_department = models.CharField(max_length=255)
-    department_start_year = models.DateField()
+    department_start_year = models.DateField(blank=True, null=True)
 
     def __str__(self):
         return self.name

@@ -133,7 +133,7 @@
                                     No programs offered
                                 {% endif %}
                                 <br>
-                                Year Started: {{ department.department_start_year }}
+                                <!--Year Started: {{ department.department_start_year }}-->
                                 <form method="post" action="{% url 'delete_department' department.id %}">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger">Delete Department</button>
@@ -169,10 +169,10 @@
                                 <label for="head_of_department">Head of Department:</label>
                                 <input type="text" id="head_of_department" name="head_of_department" class="form-control" required>
                             </div>
-                            <div class="form-group">
+                            <!--<div class="form-group">
                                 <label for="department_start_year">Department Start Year:</label>
                                 <input type="date" id="department_start_year" name="department_start_year" class="form-control" required>
-                            </div>
+                            </div>-->
                             <button type="submit" class="btn btn-primary">Add Department</button>
                         </form>
                     </div>

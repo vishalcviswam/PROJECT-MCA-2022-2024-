@@ -92,8 +92,7 @@
                                 <p id="cpassword-error" class="error-message"></p>
                             </div>
                             <a href="{% url 'loginnew' %}" >Already have an account</a>
-                            {% load socialaccount %}
-                            <a href="{% provider_login_url 'google' %}?next=home" class="forgot-pwd">Login with Google</a>
+                            
                             <div class="submit-btns">
                                 <button class="mtr-btn" type="submit" name="btn1"><span>Register</span></button>
                             </div>
@@ -111,8 +110,8 @@
         var name = document.getElementById("name");
         var nameError = document.getElementById("name-error");
 
-        if (!/^[A-Za-z\s]+$/.test(name.value)) {
-            nameError.textContent = "Name should not contain numbers";
+        if (!/^[A-Za-z]+$/.test(name.value)) {
+            nameError.textContent = "First Name should only contain letters";
             name.focus();
             return false;
         }
@@ -148,15 +147,32 @@
     }
 
     function validateMobileNumber() {
-        var phone = document.getElementById("phone");
+        var phone = document.getElementsByName("phone")[0];
         var phoneError = document.getElementById("phone-error");
-        var phonePattern = /^[6-9]\d{9}$/;
+        var phonePattern = /^[6-9]\d{9,12}$/;
 
         if (!phonePattern.test(phone.value)) {
-            phoneError.textContent = "Please enter a valid 10-digit phone number starting from 6 to 9";
+            phoneError.textContent = "Please enter a valid phone number starting from 6 to 9 and between 10 to 13 digits";
             phone.focus();
             return false;
         }
+
+        // Check if the same digit occurs more than 4 times randomly or consecutively
+        var phoneDigits = phone.value.split('');
+        var consecutiveCount = 1;
+        for (var i = 1; i < phoneDigits.length; i++) {
+            if (phoneDigits[i] === phoneDigits[i - 1]) {
+                consecutiveCount++;
+                if (consecutiveCount > 4) {
+                    phoneError.textContent = "The same number should not occur more than 4 times consecutively";
+                    phone.focus();
+                    return false;
+                }
+            } else {
+                consecutiveCount = 1;
+            }
+        }
+
         phoneError.textContent = "";
         return true;
     }
