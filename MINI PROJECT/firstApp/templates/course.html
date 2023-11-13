@@ -257,6 +257,16 @@
                 padding: 0.75rem 1rem;
                 transition: border-color 0.2s ease-in-out;
         }
+
+        .error-message {
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+        
+        .is-invalid {
+            border-color: red;
+        }
+        
         
 
 
@@ -601,6 +611,80 @@
                 }
             }
         }
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            function validateInput(input, validatorFunction) {
+                const errorMessage = validatorFunction(input.value);
+                let errorDiv = input.nextElementSibling;
+                if (errorMessage) {
+                    if (!errorDiv || !errorDiv.classList.contains('error-message')) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.classList.add('error-message');
+                        input.parentNode.insertBefore(errorDiv, input.nextSibling);
+                    }
+                    input.classList.add('is-invalid');
+                    errorDiv.textContent = errorMessage;
+                    errorDiv.style.color = 'red';
+                } else {
+                    input.classList.remove('is-invalid');
+                    if (errorDiv) {
+                        errorDiv.remove();
+                    }
+                }
+            }
+        
+            function validateCourseName(name) {
+                if (name.startsWith(' ')) return 'The course name should not start with a space.';
+                if (/[^a-zA-Z0-9 ]/.test(name)) return 'The course name should not include special characters.';
+                return '';
+            }
+        
+            function validateCourseDuration(duration) {
+                if (duration < 1 || duration > 4500) return 'The course duration should be between 1 to 4500.';
+                return '';
+            }
+        
+            function validateCourseFee(fee) {
+                if (fee < 0 || fee > 1000) return 'The course fee should not fall below 0 and maximum is 1000.';
+                return '';
+            }
+        
+            function validateCourseDescription(description) {
+                if (description.startsWith(' ')) return 'The course description should not start with a white space.';
+                if (!/\S+ \S+/.test(description)) return 'The course description should not be a single word.';
+                if (/(.)\1{4,}/.test(description)) return 'No same letter should be consecutively for 5 or more times.';
+                return '';
+            }
+        
+            function validateTotalAssignments(assignments) {
+                if (assignments < 1 || assignments > 500) return 'The total assignments should be minimum 1 and maximum 500.';
+                return '';
+            }
+        
+            // Attach blur event listeners
+            document.querySelector('[name="course_name"]').addEventListener('blur', function () {
+                validateInput(this, validateCourseName);
+            });
+        
+            document.querySelector('[name="course_duration"]').addEventListener('blur', function () {
+                validateInput(this, validateCourseDuration);
+            });
+        
+            document.querySelector('[name="course_fee"]').addEventListener('blur', function () {
+                validateInput(this, validateCourseFee);
+            });
+        
+            document.querySelector('[name="course_description"]').addEventListener('blur', function () {
+                validateInput(this, validateCourseDescription);
+            });
+        
+            document.querySelector('[name="total_assignments"]').addEventListener('blur', function () {
+                validateInput(this, validateTotalAssignments);
+            });
+        });
+        
         
     </script>
 

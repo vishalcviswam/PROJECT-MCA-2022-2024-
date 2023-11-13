@@ -1,0 +1,9 @@
+{% for reading_material in reading_materials %}
+  <div class="reading-material">
+    <h4>{{ reading_material.title }}</h4>
+    <p>{{ reading_material.text_content }}</p>
+    {% if reading_material.images %}
+      <img src="{{ reading_material.images.url }}" alt="{{ reading_material.title }}">
+    {% endif %}
+  </div>
+{% endfor %}

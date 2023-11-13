@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import get_list_or_404, render, redirect
-from .models import FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
+from .models import CourseEnrollment, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
 
 from datetime import date
 from django.db import IntegrityError
@@ -14,8 +14,7 @@ from django.forms import modelformset_factory
 import json
 from django.views.decorators.csrf import csrf_protect
 from django.urls import reverse
-
-
+from django.core.mail import send_mail
 
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
@@ -97,7 +96,7 @@ def register_normal_user(request):
         if not error_messages:  # If there are no errors, proceed with registration
             user = User(username=uname, email=email,  is_normal_user=True)
             user.set_password(password)
-            user.is_active=False  #make the user inactive
+            #user.is_active=False  #make the user inactive
             user.save()
             current_site=get_current_site(request)  
             email_subject="Activate your account"
@@ -112,7 +111,7 @@ def register_normal_user(request):
 
             email_message=EmailMessage(email_subject,message,settings.EMAIL_HOST_USER,[email],)
             EmailThread(email_message).start()
-            messages.info(request,"Active your account by clicking the link send to your email")
+            #messages.info(request,"Active your account by clicking the link send to your email")
 
             
             normal_user = NormalUser(user=user, phone_number=phone, first_name=fname, last_name=lname)
@@ -391,18 +390,21 @@ def college_details(request, pk):
 @login_required(login_url='loginnew')
 def add_department(request):
     if request.method == 'POST':
-        college_user = CollegeUser.objects.get(user=request.user)
-
+        college_user = get_object_or_404(CollegeUser, user=request.user)
         name = request.POST['department_name']
         programs = request.POST['offered_programs']
         hod = request.POST['head_of_department']
-        #start_year = request.POST['department_start_year']
+
+        # Check if department with same name already exists for this college
+        if Department.objects.filter(college=college_user, name=name).exists():
+            messages.error(request, f"A department with the name '{name}' already exists.")
+            return render(request, 'department.html')
 
         department = Department()
         department.college = college_user
         department.name = name
         department.head_of_department = hod
-        #department.department_start_year = start_year
+        department.is_active = True
 
         if programs == 'both':
             department.undergrad_offered = True
@@ -413,18 +415,16 @@ def add_department(request):
             department.postgrad_offered = True
 
         department.save()
-
-        return redirect('college_details', pk=request.user.pk)
-
+        messages.success(request, f"Department '{name}' was successfully created.")
+        return redirect('college_details', pk=college_user.pk)
     else:
         return render(request, 'department.html')
     
-def delete_department(request, department_id):
+def deactivate_department(request, department_id):
     department = get_object_or_404(Department, pk=department_id)
-    
     if request.method == 'POST':
-        department.delete()
-    
+        department.is_active = not department.is_active  # This toggles the active state
+        department.save()
     return redirect('college_details', pk=request.user.pk)
 
 
@@ -483,7 +483,7 @@ def add_course(request):
         return redirect('add_modules',course_id=course.course_id)
     else:
         instructors = Instructor.objects.filter(college__user=request.user)
-        departments = Department.objects.filter(college__user=request.user)
+        departments = Department.objects.filter(college__user=request.user, is_active=True)
         
         context = {
             'instructors': instructors,
@@ -536,12 +536,13 @@ def view_instructors(request):
         # Handle the case where the college user does not exist
         return HttpResponse('You are not associated with any college.', status=403)
 
-    departments = Department.objects.filter(college=user_college)
+    departments = Department.objects.filter(college=user_college, is_active=True)
     selected_department = request.GET.get('department')
 
     if selected_department:
         instructors = Instructor.objects.filter(
             department__id=selected_department,
+            department__is_active=True,
             college=user_college
         ).select_related('department')
     else:
@@ -703,6 +704,10 @@ def add_course_material(request, course_id):
             except json.JSONDecodeError:
                 print("Invalid JSON format for answers or pairs")
                 return HttpResponse("Invalid JSON format for answers or pairs", status=400)
+            
+        # After successfully creating course material
+        messages.success(request, "Course material added successfully!")
+
 
         return redirect("course_list_college")
 
@@ -740,16 +745,12 @@ def course_list_college(request):
 
 
 def course_detail(request, course_id):
-    # Retrieve the Course object by id
     course = get_object_or_404(Course, pk=course_id)
-    # No need to separately retrieve modules or chapters, they can be accessed via the course object in the template
 
-    # Context dictionary to pass data to the template
     context = {
         'course': course,
     }
 
-    # Render the course detail template with the course and related data
     return render(request, 'coursedetails.html', context)
 
 
@@ -776,16 +777,40 @@ def chapter_detail(request, chapter_id):
 
 
 
-User = get_user_model()
-
 @login_required
 @user_passes_test(lambda u: u.is_staff, login_url='loginnew')
 def toggle_user_activation(request, user_id):
     user = get_object_or_404(User, pk=user_id)
+    reason = request.POST.get('reason', '')  # Get the reason from POST data
+
+    # If toggling from active to inactive, send an email
+    if user.is_active and reason:
+        email_subject = 'Your account has been deactivated'
+        email_body = f'Your account on our site has been deactivated for the following reason:\n{reason}'
+        send_mail(
+            email_subject,
+            email_body,
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+    
+    # If toggling from inactive to active, send an activation email
+    elif not user.is_active:
+        email_subject = 'Your account has been activated'
+        email_body = 'Your account on our site has been activated. You can now login and start using our services.'
+        send_mail(
+            email_subject,
+            email_body,
+            settings.EMAIL_HOST_USER,
+            [user.email],
+            fail_silently=False,
+        )
+
     user.is_active = not user.is_active
     user.save()
+    
     return redirect(reverse('admin_home'))
-
 
 @login_required(login_url='loginnew')
 @user_passes_test(lambda u: u.is_staff, login_url='loginnew')
@@ -794,5 +819,47 @@ def admin_home(request):
     users = User.objects.filter(is_superuser=False)
     return render(request, 'admin.html', {'users': users})
 
+
+
+
+def course_detail_view(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    modules = Module.objects.filter(course=course).prefetch_related('chapters')
+    context = {
+        'course': course,
+        'modules': modules,
+    }
+    return render(request, 'course_detail.html', context)
+
+@login_required
+@csrf_exempt  # Only if you're skipping CSRF validation, which is not recommended for production
+def enroll_in_course(request, course_id):
+    if request.method == 'POST':
+        course = get_object_or_404(Course, pk=course_id)
+        normal_user, created = NormalUser.objects.get_or_create(user=request.user)
+        
+        enrollment, created = CourseEnrollment.objects.get_or_create(normal_user=normal_user, course=course)
+        if created:
+            # User was not previously enrolled
+            messages.success(request, "You have been successfully enrolled in the course.")
+        else:
+            # User was already enrolled
+            messages.info(request, "You are already enrolled in this course.")
+        
+        return redirect('course_detail_view', course_id=course_id)
+
+def get_chapter_content(request, chapter_id):
+    chapter = get_object_or_404(Chapter, pk=chapter_id)
+    reading_materials = chapter.reading_materials.all()
+    video_materials = chapter.video_materials.all()
+    mcqs = chapter.multiple_choice_questions.all()
+
+    # Since you have separate templates for each type of material, you will render each to a string
+    content_html = {
+        'reading_materials_html': render_to_string('reading_materials_template.html', {'reading_materials': reading_materials}),
+        'video_materials_html': render_to_string('video_materials_template.html', {'video_materials': video_materials}),
+        'mcq_html': render_to_string('mcq_template.html', {'mcqs': mcqs}),
+    }
+    return JsonResponse(content_html)
 
 

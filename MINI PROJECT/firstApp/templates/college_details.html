@@ -134,10 +134,19 @@
                                 {% endif %}
                                 <br>
                                 <!--Year Started: {{ department.department_start_year }}-->
-                                <form method="post" action="{% url 'delete_department' department.id %}">
+                                <!-- Before the closing </li> tag for each department -->
+                                {% if department.is_active %}
+                                <form method="post" action="{% url 'deactivate_department' department.id %}">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-danger">Delete Department</button>
+                                    <button type="submit" class="btn btn-warning">Deactivate Department</button>
                                 </form>
+                                {% else %}
+                                <form method="post" action="{% url 'deactivate_department' department.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success">Activate Department</button>
+                                </form>
+                                {% endif %}
+
                             </li>
                         {% empty %}
                             <li>No departments found.</li>
@@ -150,6 +159,16 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
                         <h3>Add Department</h3>
                         <form method="post" action="{% url 'department' %}">
                             {% csrf_token %}

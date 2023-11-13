@@ -173,7 +173,7 @@
 
 <div class="container">
     <div class="card p-4">
-    <form method="POST" enctype="multipart/form-data">
+    <form method="POST" id="profile-form" enctype="multipart/form-data">
         {% csrf_token %}
 	<div class="cover-photo-container mb-3" style="background-image: url('{% static 'images/img11.jpg' %}');" id="cover-photo">
             <label class="change-cover-btn" for="cover-photo-input"><i class="fas fa-camera"></i> Change Cover</label>
@@ -248,7 +248,144 @@
             themeIcon.classList.toggle('fa-sun');
             themeIcon.classList.toggle('fa-moon');
         }
-	
+    
+        // Validation functions
+        function validateCollegeName(input) {
+            if (/^\s/.test(input)) {
+                return "The college name cannot start with a space.";
+            } else if (/\d/.test(input)) {
+                return "The college name cannot include numbers or digits.";
+            } else if (/(.)\1{4,}/.test(input)) {
+                return "The college name cannot have the same letter appear consecutively more than four times.";
+            } else if (/[^a-zA-Z\s]/.test(input)) {
+                return "The college name cannot include dots or special characters.";
+            }
+            return ""; // No error
+        }
+
+        function validateWebsite(input) {
+            if (!/^(https?:\/\/)?([\w-]+(\.[\w-]+)+)([/\w-]*)*\/?$/.test(input)) {
+                return "Please enter a valid website URL. It should start with http:// or https://.";
+            }
+            return ""; // No error
+        }
+
+        function validateAddress(input) {
+            if (/^\s/.test(input)) {
+                return "The address cannot start with a space.";
+            } else if (!/\s/.test(input)) {
+                return "The address must include more than one word.";
+            } else if (/[^a-zA-Z0-9\s,.-]/.test(input)) {
+                return "The address cannot include special characters.";
+            }
+            return ""; // No error
+        }
+
+        function validatePhoneNumber(input) {
+            if (!/^[6-9]/.test(input)) {
+                return "The phone number must start with a digit between 6 to 9.";
+            } else if (!/^[\d]{10,13}$/.test(input)) {
+                return "The phone number must be 10 to 13 digits long.";
+            } else if (/(.)\1{4,}/.test(input)) {
+                return "The phone number cannot have the same digit appear consecutively more than four times.";
+            } else if (/[^0-9]/.test(input)) {
+                return "The phone number cannot include letters, special characters, or dots.";
+            }
+            return ""; // No error
+        }
+
+        // Function to show the validation message
+        function showValidationMessage(input, message) {
+            let errorDiv = input.nextElementSibling;
+            // Create the error message div if it does not exist
+            if (!errorDiv || !errorDiv.classList.contains('error-message')) {
+                errorDiv = document.createElement('div');
+                errorDiv.classList.add('error-message');
+                input.parentNode.insertBefore(errorDiv, input.nextSibling);
+            }
+            // If there is an error message, set it and add the 'is-invalid' class
+            if (message) {
+                input.classList.add('is-invalid');
+                errorDiv.textContent = message;
+                errorDiv.style.color = 'red';
+            } else {
+                input.classList.remove('is-invalid');
+                errorDiv.remove();
+            }
+        }
+
+        // Event listeners for validation
+        document.getElementById('first_name').addEventListener('blur', function(event) {
+            const errorMessage = validateCollegeName(event.target.value);
+            showValidationMessage(event.target, errorMessage);
+        });
+
+        document.getElementById('last_name').addEventListener('blur', function(event) {
+            const errorMessage = validateWebsite(event.target.value);
+            showValidationMessage(event.target, errorMessage);
+        });
+
+        document.getElementById('phone').addEventListener('blur', function(event) {
+            const errorMessage = validatePhoneNumber(event.target.value);
+            showValidationMessage(event.target, errorMessage);
+        });
+
+        document.getElementById('bio').addEventListener('blur', function(event) {
+            const errorMessage = validateAddress(event.target.value);
+            showValidationMessage(event.target, errorMessage);
+        });
+
+        
+        function showValidationMessage(input, message) {
+            let errorDiv = input.nextElementSibling;
+        
+            // If the next element is not an error message div, create one
+            if (!errorDiv || !errorDiv.classList.contains('error-message')) {
+                errorDiv = document.createElement('div');
+                errorDiv.classList.add('error-message'); // Make sure to define this class in your CSS
+                input.parentNode.insertBefore(errorDiv, input.nextSibling);
+            }
+        
+            // If there's an error message, display it and add 'is-invalid' class
+            if (message) {
+                input.classList.add('is-invalid');
+                errorDiv.textContent = message;
+                errorDiv.style.color = 'red';
+                errorDiv.style.display = 'block'; // Ensure it's visible
+            } else {
+                // If there's no error, remove the 'is-invalid' class and hide the message
+                input.classList.remove('is-invalid');
+                errorDiv.style.display = 'none'; // Hide the error message
+            }
+        }
+
+        document.getElementById('profile-form').addEventListener('submit', function(event) {
+            // Run all validations
+            const collegeNameError = validateCollegeName(document.getElementById('first_name').value);
+            const websiteError = validateWebsite(document.getElementById('last_name').value);
+            const phoneNumberError = validatePhoneNumber(document.getElementById('phone').value);
+            const addressError = validateAddress(document.getElementById('bio').value);
+        
+            // Check if any validations have returned an error message
+            if (collegeNameError || websiteError || phoneNumberError || addressError) {
+                // Show all validation messages
+                showValidationMessage(document.getElementById('first_name'), collegeNameError);
+                showValidationMessage(document.getElementById('last_name'), websiteError);
+                showValidationMessage(document.getElementById('phone'), phoneNumberError);
+                showValidationMessage(document.getElementById('bio'), addressError);
+        
+                // Prevent form submission
+                event.preventDefault();
+        
+                // Optionally, scroll to the first error message
+                const firstErrorInput = document.querySelector('.is-invalid');
+                if (firstErrorInput) {
+                    firstErrorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        });
+        
+        
 </script>
 </body>
 </html>

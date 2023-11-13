@@ -1,0 +1,252 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- ... other head elements ... -->
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    
+    <!-- Custom Styles -->
+    <style>
+        body {  }
+        .module-name { cursor: pointer; }
+        .chapter-name { cursor: pointer; }
+        
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+            }
+        
+            #searchBox {
+                max-width: 200px;
+                display: none;
+            }
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
+            }
+        
+            .navbar {
+                background-color: #468faf !important;
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
+
+
+            .sub-navbar {
+                background-color: #4cc9f0; /* Light blue background */
+                padding: 0.5rem 1rem; /* Padding for the sub-navbar */
+              }
+              .sub-navbar a {
+                color: white; /* White text for links */
+                margin-right: 1rem; /* Space between links */
+              }
+              
+              /* Responsive and colorful sidebar */
+              #module-list h2 {
+                background-color: #f76e11; /* Orange background for course title */
+                color: white; /* White text for course title */
+                padding: 0.5rem 1rem; /* Padding for course title */
+                border-radius: 5px; /* Rounded corners for course title */
+              }
+              .module-name {
+                background-color: #4cc9f0; /* Light blue background for module names */
+                color: white; /* White text for module names */
+                padding: 0.5rem 1rem; /* Padding for module names */
+                margin: 0.5rem 0; /* Margin for module names */
+                border-radius: 5px; /* Rounded corners for module names */
+              }
+              .module-name:hover,
+              .module-name:focus {
+                background-color: #3b9fe0; /* Darker blue background for hover/focus */
+              }
+              .chapter-name {
+                background-color: #e7e7e7; /* Light grey background for chapter names */
+                padding: 0.3rem 1rem; /* Padding for chapter names */
+                margin: 0.3rem 0; /* Margin for chapter names */
+              }
+              .chapter-name:hover,
+              .chapter-name:focus {
+                background-color: #dcdcdc; /* Darker grey background for hover/focus */
+              }
+              
+              @media (max-width: 768px) {
+                #module-list h2,
+                .module-name,
+                .chapter-name {
+                  padding: 0.3rem; /* Less padding on smaller screens */
+                }
+              }
+
+
+              .sidebar {
+    background-color: #f0f0f0; /* Light grey background */
+    min-height: 100vh; /* Full viewport height */
+    width: 250px; /* Sidebar width */
+    position: fixed; /* Fixed position */
+    top: 0;
+    left: 0;
+    overflow-y: auto; /* Scrollable content */
+    padding-top: 60px; /* Padding from the top */
+  }
+
+  /* Content Styles */
+  .content {
+    margin-left: 250px; /* Margin to make space for the sidebar */
+    padding: 1rem;
+  }
+  
+  /* Adjustments for smaller screens */
+  @media (max-width: 768px) {
+    .sidebar {
+      width: 100%; /* Full width on small screens */
+      padding-top: 20px; /* Less padding from the top */
+    }
+    .content {
+      margin-left: 0; /* No margin for sidebar on small screens */
+    }
+  }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+            EduSphere
+        </a>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                    <i id="theme-icon" class="fas fa-sun"></i>
+                </li>
+                <li class="nav-item">
+                    <div id="searchBox" class="mr-2">
+                        <input type="text" placeholder="Search..." class="form-control">
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+                </li>
+                <li class="nav-item">
+                    <img src="{% if user.normaluser.profile_photo %}{{ user.normaluser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="sub-navbar">
+        <a href="#content">Content</a>
+        <a href="#progress">Progress</a>
+    </div>
+
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar: List of Modules and Chapters -->
+        <div class="col-md-4">
+            <div id="module-list">
+                <h2>{{ course.course_name }}</h2>
+                {% for module in course.module_set.all %}
+                    <div>
+                        <h4 class="module-name" data-toggle="collapse" data-target="#module-chapters-{{ module.module_id }}">{{ module.module_name }}</h4>
+                        <div id="module-chapters-{{ module.module_id }}" class="collapse module-chapters">
+                            {% for chapter in module.chapters.all %}
+                                <p class="chapter-name" data-chapter-id="{{ chapter.chapter_id }}">
+                                    {{ chapter.chapter_name }}
+                                </p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <!-- Main Content Area: Chapter Content -->
+        <div class="col-md-8" id="content-area">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+</div>
+
+<!-- jQuery and Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function() {
+        // Handle clicking on a module to toggle its chapters
+        $('.module-name').on('click', function() {
+            var targetId = $(this).attr('data-target');
+            $(targetId).collapse('toggle');
+        });
+
+        // Handle clicking on a chapter to load its content
+        $('.chapter-name').click(function() {
+            var chapterId = $(this).data('chapter-id');
+            // AJAX call to server to get chapter content
+            $.ajax({
+                url: '/get_chapter_content/' + chapterId + '/',
+                type: 'GET',
+                success: function(data) {
+                    $('#content-area').html(data.reading_materials_html + data.video_materials_html + data.mcq_html);
+                },
+                error: function() {
+                    $('#content-area').html('<p>Error loading chapter content.</p>');
+                }
+            });
+        });
+    });
+
+    function toggleSearch() {
+        const searchBox = document.getElementById('searchBox');
+        if (searchBox.style.display === 'none') {
+            searchBox.style.display = 'block';
+        } else {
+            searchBox.style.display = 'none';
+        }
+    }
+
+    function toggleTheme() {
+        const body = document.body;
+        const themeIcon = document.getElementById('theme-icon');
+        body.classList.toggle('night-mode');
+        themeIcon.classList.toggle('fa-sun');
+        themeIcon.classList.toggle('fa-moon');
+    }
+</script>
+</body>
+</html>

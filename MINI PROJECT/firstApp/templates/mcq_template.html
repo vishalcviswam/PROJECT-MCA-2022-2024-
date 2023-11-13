@@ -1,0 +1,54 @@
+{% for mcq in mcqs %}
+  <div class="mcq" id="mcq-{{ forloop.counter }}">
+    <form>
+      <p>{{ mcq.question_text }}</p>
+      <ul>
+        <li>
+          <label>
+            <input type="radio" name="answer{{ forloop.counter }}" value="{{ mcq.choice_1 }}">
+            {{ mcq.choice_1 }}
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="answer{{ forloop.counter }}" value="{{ mcq.choice_2 }}">
+            {{ mcq.choice_2 }}
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="answer{{ forloop.counter }}" value="{{ mcq.choice_3 }}">
+            {{ mcq.choice_3 }}
+          </label>
+        </li>
+        <li>
+          <label>
+            <input type="radio" name="answer{{ forloop.counter }}" value="{{ mcq.choice_4 }}">
+            {{ mcq.choice_4 }}
+          </label>
+        </li>
+      </ul>
+      <button type="button" onclick="checkAnswer({{ forloop.counter }}, '{{ mcq.correct_answer }}')">Check Answer</button>
+      <p id="result-{{ forloop.counter }}"></p>
+    </form>
+  </div>
+{% endfor %}
+
+<script>
+  function checkAnswer(mcqNumber, correctAnswer) {
+    const selected = document.querySelector(`#mcq-${mcqNumber} input[name="answer${mcqNumber}"]:checked`);
+    const resultDisplay = document.getElementById(`result-${mcqNumber}`);
+    if (selected) {
+      if (selected.value === correctAnswer) {
+        resultDisplay.textContent = 'Correct!';
+        resultDisplay.style.color = 'green';
+      } else {
+        resultDisplay.textContent = 'Incorrect.';
+        resultDisplay.style.color = 'red';
+      }
+    } else {
+      resultDisplay.textContent = 'Please select an answer.';
+      resultDisplay.style.color = 'orange';
+    }
+  }
+</script>

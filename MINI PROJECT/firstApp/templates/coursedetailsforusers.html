@@ -233,7 +233,11 @@
             <!-- Course Fee -->
             <div class="mt-3 d-flex align-items-center">
                 <h4 class="mr-3">Course Fee: ${{ course.course_fee }}</h4>
-                <button onclick="location.href='" type="button" class="btn btn-primary">Enroll Now</button>
+                <!-- Enroll Now Button -->
+                <form action="{% url 'enroll_in_course' course.course_id %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary">Enroll Now</button>
+                </form>
             </div>
             <!-- Course Details -->
             <div class="mt-3">

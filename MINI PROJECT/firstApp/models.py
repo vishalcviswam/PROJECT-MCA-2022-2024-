@@ -62,6 +62,7 @@ class Department(models.Model):
     postgrad_offered = models.BooleanField(default=False)
     head_of_department = models.CharField(max_length=255)
     department_start_year = models.DateField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
@@ -192,3 +193,14 @@ class MultipleChoiceQuestion(models.Model):
         correct_answers = (self.choice_1, self.choice_2, self.choice_3,self.choice_4)
         if self.correct_answer not in correct_answers:
             raise ValidationError({'correct_answer': "Correct answer must be one of the choices."})
+        
+
+class CourseEnrollment(models.Model):
+    enrollment_id = models.AutoField(primary_key=True)
+    normal_user = models.ForeignKey('NormalUser', on_delete=models.CASCADE)
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)
+    enrollment_date = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"Enrollment {self.enrollment_id}: {self.normal_user.user.username} in {self.course.course_name}"

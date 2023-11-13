@@ -37,7 +37,7 @@ urlpatterns = [
     path('activate/<uidb64>/<token>',views.ActivateAccountView.as_view(),name='activate'),
 
     path('college_details/<int:pk>/', views.college_details, name='college_details'),
-    path('delete_department/<int:department_id>/', views.delete_department, name='delete_department'),
+    path('deactivate_department/<int:department_id>/', views.deactivate_department, name='deactivate_department'),
     path('add_instructor/', views.add_instructor, name='add_instructor'),
     path('get_instructors_for_department/<int:department_id>/', views.get_instructors_for_department, name='get_instructors_for_department'),
     path('view_instructors',views.view_instructors,name='view_instructors'),
@@ -51,7 +51,11 @@ urlpatterns = [
     path('course/<int:course_id>/', views.course_detail, name='course_detail'),
     path('course_detail_user/<int:course_id>/', views.course_detail_user, name='course_detail_user'),
     path('chapter/<int:chapter_id>/', views.chapter_detail, name='chapter_details'),
-    path('toggle_user_activation/<int:user_id>/', views.toggle_user_activation, name='toggle_user_activation'),  
+    path('toggle_user_activation/<int:user_id>/', views.toggle_user_activation, name='toggle_user_activation'),
+
+    path('courses/<int:course_id>/', views.course_detail_view, name='course_detail_view'),  
+    path('course/enroll/<int:course_id>/', views.enroll_in_course, name='enroll_in_course'),
+    path('get_chapter_content/<int:chapter_id>/', views.get_chapter_content, name='get_chapter_content'),
 
     
 ]
