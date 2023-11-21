@@ -53,9 +53,15 @@ urlpatterns = [
     path('chapter/<int:chapter_id>/', views.chapter_detail, name='chapter_details'),
     path('toggle_user_activation/<int:user_id>/', views.toggle_user_activation, name='toggle_user_activation'),
 
-    path('courses/<int:course_id>/', views.course_detail_view, name='course_detail_view'),  
+    path('courses/<int:course_id>/', views.course_detail_view, name='course_detail_view'),
     path('course/enroll/<int:course_id>/', views.enroll_in_course, name='enroll_in_course'),
     path('get_chapter_content/<int:chapter_id>/', views.get_chapter_content, name='get_chapter_content'),
+    path('courses/<int:course_id>/progress/', views.progress_view, name='progress_view'),
+    path('update_progress/', views.update_progress, name='update_progress'),
+    path('courses/<int:course_id>/claim_certificate/', views.claim_certificate, name='claim_certificate'),
+
+
+
 
     
 ]

@@ -219,6 +219,13 @@
     </nav>
 
     <div class="form-container">
+        {% if messages %}
+        <div class="alert alert-success" role="alert">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
         <form method="post" action="{% url 'add_course_material' course_id=course_id %}" enctype="multipart/form-data">
             {% csrf_token %}
             <fieldset>
@@ -239,9 +246,21 @@
             </fieldset>
     
             <div class="text-center">
-                <input type="submit" value="Add Course Material" class="btn btn-primary">
+                <input type="submit" value="Save Materials" class="btn btn-primary">
+                {% if next_module %}
+                <a href="?module_id={{ next_module.module_id }}" class="btn btn-secondary">Continue to Next Module</a>
+                {% endif %}
             </div>
         </form>
+        {% if saved_module %}
+        <div class="mt-3">
+            <p>Materials for "{{ saved_module.module_name }}" have been saved. Do you want to add materials to the next module?</p>
+            {% if next_module %}
+            <a href="?module_id={{ next_module.module_id }}" class="btn btn-primary">Yes, Continue</a>
+            {% endif %}
+            <a href="{% url 'course_list_college' %}" class="btn btn-secondary">No, I'm Done</a>
+        </div>
+        {% endif %}
     </div>
 
 <script>

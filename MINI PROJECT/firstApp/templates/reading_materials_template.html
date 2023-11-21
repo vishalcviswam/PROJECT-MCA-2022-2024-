@@ -5,5 +5,12 @@
     {% if reading_material.images %}
       <img src="{{ reading_material.images.url }}" alt="{{ reading_material.title }}">
     {% endif %}
+    <!-- Add a checkbox for marking completion -->
+    <div class="form-check">
+      <input class="form-check-input chapter-complete-checkbox" type="checkbox" value="" id="chapterComplete{{ reading_material.chapter.id }}" data-chapter-id="{{ reading_material.chapter.id }}">
+      <label class="form-check-label" for="chapterComplete{{ reading_material.chapter.id }}">
+        Mark as complete
+      </label>
+    </div>
   </div>
 {% endfor %}

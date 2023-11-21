@@ -1,0 +1,56 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Progress - {{ course.course_name }}</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <style>
+        .progress-container {
+            margin-top: 50px; /* Adjust the top margin to align with your page design */
+        }
+        .certificate-button {
+            margin-top: 20px; /* Space above the certificate button */
+        }
+        /* Additional styles as needed */
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="{% url 'course_detail_view' course_id=course.course_id %}">Back to Course</a>
+    </nav>
+
+    <div class="container progress-container">
+        <h2>Progress for {{ course.course_name }}</h2>
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="width: {{ overall_progress }}%" aria-valuenow="{{ overall_progress }}" aria-valuemin="0" aria-valuemax="100">
+                {{ overall_progress }}%
+            </div>
+        </div>
+        {% if can_claim_certificate %}
+            <!-- The button is enabled if the certificate can be claimed. -->
+            <button class="btn btn-success certificate-button" id="claim-certificate-btn">Claim Your Certificate</button>
+        {% else %}
+            <!-- The button is disabled if the certificate cannot be claimed yet. -->
+            <button class="btn btn-secondary certificate-button" disabled>Complete the course to claim your certificate</button>
+        {% endif %}
+    </div>
+
+    <script src="{% static 'js/jquery.min.js' %}"></script>
+    <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+    <script>
+        $(document).ready(function() {
+            // Event listener for the 'Claim Your Certificate' button
+            $('#claim-certificate-btn').on('click', function() {
+                // Redirect to the URL where the user can claim their certificate.
+                // You need to define a view named 'claim_certificate' in your Django app.
+                window.location.href = '{% url "claim_certificate" course_id=course.course_id %}';
+            });
+        });
+    </script>
+
+</body>
+</html>

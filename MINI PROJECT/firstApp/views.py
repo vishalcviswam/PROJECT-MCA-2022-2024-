@@ -1,25 +1,30 @@
+from io import BytesIO
+import os
 from django.contrib.auth import authenticate, login, logout,get_user_model
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import get_list_or_404, render, redirect
-from .models import CourseEnrollment, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
+from .models import CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
 
-from datetime import date
+from datetime import date, timezone
 from django.db import IntegrityError
 from django.shortcuts import render, get_object_or_404
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect, JsonResponse
+from django.http import FileResponse, Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseRedirect, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.forms import modelformset_factory
 import json
 from django.views.decorators.csrf import csrf_protect
 from django.urls import reverse
 from django.core.mail import send_mail
+from reportlab.pdfgen import canvas
+
 
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.views.generic import TemplateView
+from django.utils import timezone
 
 from django.views.generic import View
 from .utils import *
@@ -613,14 +618,16 @@ class AddCourseMaterialView(TemplateView):
 
 def add_course_material(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
-    modules = Module.objects.filter(course=course)
+    completed_modules = request.session.get('completed_modules', [])
+
+    modules = Module.objects.filter(course=course).exclude(module_id__in=completed_modules)
 
     if request.method == 'POST':
         print(request.POST)
         print(request.FILES)
 
         module_id = request.POST.get('module_id')
-        module = get_object_or_404(Module, pk=module_id)
+        module = get_object_or_404(Module, module_id=module_id)
         chapters = module.chapters.all()
 
         for chapter in chapters:
@@ -705,14 +712,43 @@ def add_course_material(request, course_id):
                 print("Invalid JSON format for answers or pairs")
                 return HttpResponse("Invalid JSON format for answers or pairs", status=400)
             
-        # After successfully creating course material
-        messages.success(request, "Course material added successfully!")
+        completed_modules.append(module_id)
+        request.session['completed_modules'] = completed_modules
+        request.session.modified = True
+            
+        next_module = modules.exclude(module_id__in=completed_modules).first()
+            
+        messages.success(request, f"Materials for module '{module.module_name}' saved successfully.")
 
 
-        return redirect("course_list_college")
+        if next_module:
+            messages.info(request, f"Do you want to add materials to the next module: '{next_module.module_name}'?")
+            redirect_url = f"{reverse('add_course_material', args=[course_id])}?module_id={next_module.module_id}"
+        else:
+            redirect_url = reverse('course_list_college')
+
+        return HttpResponseRedirect(redirect_url)
+    
 
     # If the request method is GET, display the form
     return render(request, 'add_material.html', {'course_id': course_id, 'modules': modules})
+
+def get_next_module(current_module):
+    """
+    Gets the next module in the course after the current module.
+
+    Args:
+    - current_module: The current Module object.
+
+    Returns:
+    - The next Module object or None if there is no next module.
+    """
+    next_modules = Module.objects.filter(
+        course=current_module.course, 
+        module_id__gt=current_module.module_id
+    ).order_by('module_id')
+    return next_modules.first()
+
 def get_chapters_for_module(request, module_id):
     # Check for AJAX request header
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
@@ -756,7 +792,7 @@ def course_detail(request, course_id):
 
 def course_detail_user(request, course_id):
     # Retrieve the Course object by id
-    course = get_object_or_404(Course, pk=course_id)
+    course = get_object_or_404(Course, course_id=course_id)
     # No need to separately retrieve modules or chapters, they can be accessed via the course object in the template
 
     # Context dictionary to pass data to the template
@@ -863,3 +899,101 @@ def get_chapter_content(request, chapter_id):
     return JsonResponse(content_html)
 
 
+@login_required
+def progress_view(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    progress, created = CourseProgress.objects.get_or_create(
+        user=request.user,
+        course=course,
+        defaults={'reading_progress': 0, 'video_progress': 0, 'quiz_progress': 0}
+    )
+    completion, created = CourseCompletion.objects.get_or_create(
+        user=request.user,
+        course=course,
+        defaults={'completed': False}
+    )
+
+    context = {
+        'course': course,
+        'progress': progress,
+        'completion': completion,
+        'can_claim_certificate': completion.completed
+    }
+    return render(request, 'progress.html', context)
+
+@csrf_exempt
+@login_required
+def update_progress(request):
+    if request.method == 'POST':
+        course_id = request.POST.get('course_id')
+        content_type = request.POST.get('content_type')
+        progress_value = float(request.POST.get('progress', 0))
+        
+        course_progress, created = CourseProgress.objects.get_or_create(
+            user=request.user,
+            course_id=course_id,
+            defaults={'reading_progress': 0, 'video_progress': 0, 'quiz_progress': 0}
+        )
+
+        if content_type == 'reading':
+            course_progress.reading_progress = max(course_progress.reading_progress, progress_value)
+        elif content_type == 'video':
+            course_progress.video_progress = max(course_progress.video_progress, progress_value)
+        elif content_type == 'quiz':
+            course_progress.quiz_progress = max(course_progress.quiz_progress, progress_value)
+
+        course_progress.save()
+        overall_progress = course_progress.overall_progress()
+
+        # Check if course is completed
+        if overall_progress >= 100:
+            CourseCompletion.objects.update_or_create(
+                user=request.user,
+                course_id=course_id,
+                defaults={'completed': True, 'completion_date': timezone.now()}
+            )
+
+        return JsonResponse({'overall_progress': overall_progress})
+    else:
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+
+@login_required
+def claim_certificate(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    completion = get_object_or_404(CourseCompletion, user=request.user, course=course)
+
+    if completion.completed:
+        # Logic to generate and serve the certificate PDF
+        # You would replace this with your actual PDF generation logic
+        pdf_file_path = generate_certificate_pdf(user=request.user, course=course)
+        return serve_pdf_file_response(pdf_file_path)
+    else:
+        return redirect('progress_view', course_id=course_id)
+
+# This is a mock-up function for PDF generation; you'll need to implement it according to your requirements
+def generate_certificate_pdf(user, course):
+    # Create a file-like buffer to receive PDF data
+    buffer = BytesIO()
+
+    # Create the PDF object, using the buffer as its "file."
+    p = canvas.Canvas(buffer)
+
+    # Draw things on the PDF
+    p.drawString(100, 100, f"Certificate of Completion for {course.course_name}")
+
+    # Close the PDF object cleanly, and we're done.
+    p.showPage()
+    p.save()
+
+    # FileResponse sets the Content-Disposition header so that browsers
+    # present the option to save the file.
+    buffer.seek(0)
+    return FileResponse(buffer, as_attachment=True, filename='certificate.pdf')
+
+# Mock-up function to serve a PDF file; you'll need to implement it according to your requirements
+def serve_pdf_file_response(file_path):
+    if os.path.exists(file_path):
+        return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='certificate.pdf')
+    else:
+        # Handle the error, maybe return a 404 response or a custom error page
+        return HttpResponseNotFound('The requested pdf was not found on our server.')

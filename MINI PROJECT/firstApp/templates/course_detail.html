@@ -100,32 +100,49 @@
 
 
               .sidebar {
-    background-color: #f0f0f0; /* Light grey background */
-    min-height: 100vh; /* Full viewport height */
-    width: 250px; /* Sidebar width */
-    position: fixed; /* Fixed position */
-    top: 0;
-    left: 0;
-    overflow-y: auto; /* Scrollable content */
-    padding-top: 60px; /* Padding from the top */
-  }
+                background-color: #f0f0f0; /* Light grey background */
+                min-height: 100vh; /* Full viewport height */
+                width: 250px; /* Sidebar width */
+                position: fixed; /* Fixed position */
+                top: 0;
+                left: 0;
+                overflow-y: auto; /* Scrollable content */
+                padding-top: 60px; /* Padding from the top */
+            }
 
-  /* Content Styles */
-  .content {
-    margin-left: 250px; /* Margin to make space for the sidebar */
-    padding: 1rem;
-  }
-  
-  /* Adjustments for smaller screens */
-  @media (max-width: 768px) {
-    .sidebar {
-      width: 100%; /* Full width on small screens */
-      padding-top: 20px; /* Less padding from the top */
+            /* Content Styles */
+            .content {
+                margin-left: 250px; /* Margin to make space for the sidebar */
+                padding: 1rem;
+            }
+            
+            /* Adjustments for smaller screens */
+            @media (max-width: 768px) {
+                .sidebar {
+                width: 100%; /* Full width on small screens */
+                padding-top: 20px; /* Less padding from the top */
+                }
+                .content {
+                margin-left: 0; /* No margin for sidebar on small screens */
+                }
+            }
+
+    .reading-material h4 {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 20px;
     }
-    .content {
-      margin-left: 0; /* No margin for sidebar on small screens */
+    .reading-material img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 0 auto 20px auto;
     }
-  }
+    .reading-material p {
+        text-align: justify;
+        margin-bottom: 20px;
+    }
     </style>
 </head>
 <body>
@@ -172,7 +189,7 @@
 
     <div class="sub-navbar">
         <a href="#content">Content</a>
-        <a href="#progress">Progress</a>
+        <a href="{% url 'progress_view' course_id=course.course_id %}">Progress</a>
     </div>
 
 <div class="container-fluid">
@@ -207,19 +224,110 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
+    // Function to handle updating progress on the server
     $(document).ready(function() {
-        // Handle clicking on a module to toggle its chapters
+        // Define a threshold for each type of interaction
+        var scrollThreshold = 10; // Percentage of reading material scrolled
+        var videoThreshold = 5; // Time in seconds
+        var quizThreshold = 70; // Percentage of correct answers
+    
+        // Variables to store progress
+        var readingProgress = 0;
+        var videoProgress = 0;
+        var quizProgress = 0;
+    
+        // Function to send progress to the server
+        function sendProgressUpdate(reading, video, quiz) {
+            $.ajax({
+                url: '/update_progress/', // Your server endpoint
+                type: 'POST',
+                data: {
+                    'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val(),
+                    'course_id': '{{ course.course_id }}', // Make sure to replace this with actual course ID
+                    'reading_progress': reading,
+                    'video_progress': video,
+                    'quiz_progress': quiz
+                },
+                success: function(response) {
+                    console.log('Progress updated successfully!');
+                    // Handle successful response
+                    // Update your progress bar or other UI elements here
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating progress:', error);
+                    // Handle errors here
+                }
+            });
+        }
+    
+        // Function to calculate reading progress
+        function updateReadingProgress() {
+            var scrollTop = $(window).scrollTop();
+            var docHeight = $(document).height();
+            var windowHeight = $(window).height();
+            var scrollPercent = (scrollTop / (docHeight - windowHeight)) * 100;
+    
+            // Check if the new scroll percentage is greater than the last and above the threshold
+            if (scrollPercent > readingProgress && scrollPercent >= scrollThreshold) {
+                readingProgress = scrollPercent;
+                sendProgressUpdate(readingProgress, videoProgress, quizProgress);
+            }
+        }
+    
+        // Scroll event for reading materials
+        $(window).on('scroll', function() {
+            updateReadingProgress();
+        });
+    
+        // Time update event for videos
+        $('video').on('timeupdate', function() {
+            if (this.currentTime > videoThreshold && videoProgress == 0) {
+                videoProgress = 100; // Mark as complete
+                sendProgressUpdate(readingProgress, videoProgress, quizProgress);
+            }
+        });
+    
+        // Function to calculate quiz progress
+        function updateQuizProgress() {
+            var totalQuestions = $('.mcq').length;
+            var correctAnswers = 0;
+            $('.mcq').each(function() {
+                var isCorrect = $(this).data('correct'); // Assuming you set a data attribute for correct answers
+                if (isCorrect) correctAnswers++;
+            });
+            var correctPercent = (correctAnswers / totalQuestions) * 100;
+    
+            // Check if the score is above the threshold
+            if (correctPercent >= quizThreshold) {
+                quizProgress = correctPercent;
+                sendProgressUpdate(readingProgress, videoProgress, quizProgress);
+            }
+        }
+    
+        // Assuming you have a way to check quiz answers, such as a button or form submission
+        $('#quiz-submit').on('click', function() {
+            updateQuizProgress();
+        });
+    
+        // Call the update functions initially to set the initial progress
+        updateReadingProgress();
+        updateQuizProgress();
+    });
+
+    // Event bindings and other logic
+    $(document).ready(function() {
+        // Logic for UI interactions like toggling chapters
         $('.module-name').on('click', function() {
-            var targetId = $(this).attr('data-target');
+            var targetId = $(this).data('target');
             $(targetId).collapse('toggle');
         });
 
-        // Handle clicking on a chapter to load its content
+        // Logic for loading chapter content
         $('.chapter-name').click(function() {
             var chapterId = $(this).data('chapter-id');
-            // AJAX call to server to get chapter content
+            var contentUrl = '/get_chapter_content/' + chapterId + '/';
             $.ajax({
-                url: '/get_chapter_content/' + chapterId + '/',
+                url: contentUrl,
                 type: 'GET',
                 success: function(data) {
                     $('#content-area').html(data.reading_materials_html + data.video_materials_html + data.mcq_html);
@@ -229,23 +337,19 @@
                 }
             });
         });
+
+        // Call to send initial progress update on page load
+        sendProgressUpdate(0, 0, 0); // Replace 0s with actual progress if available
     });
 
+    // Remaining UI interaction handlers
     function toggleSearch() {
-        const searchBox = document.getElementById('searchBox');
-        if (searchBox.style.display === 'none') {
-            searchBox.style.display = 'block';
-        } else {
-            searchBox.style.display = 'none';
-        }
+        $('#searchBox').toggle();
     }
 
     function toggleTheme() {
-        const body = document.body;
-        const themeIcon = document.getElementById('theme-icon');
-        body.classList.toggle('night-mode');
-        themeIcon.classList.toggle('fa-sun');
-        themeIcon.classList.toggle('fa-moon');
+        $('body').toggleClass('night-mode');
+        $('#theme-icon').toggleClass('fa-sun fa-moon');
     }
 </script>
 </body>

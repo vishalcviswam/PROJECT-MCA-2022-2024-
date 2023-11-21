@@ -204,3 +204,40 @@ class CourseEnrollment(models.Model):
 
     def __str__(self):
         return f"Enrollment {self.enrollment_id}: {self.normal_user.user.username} in {self.course.course_name}"
+    
+
+class CourseProgress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_progress')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='course_progress')
+    reading_progress = models.IntegerField(default=0)
+    video_progress = models.IntegerField(default=0)
+    quiz_progress = models.IntegerField(default=0)
+    # You can add other fields to track different types of progress
+
+    class Meta:
+        unique_together = ('user', 'course')  # Ensure one entry per user per course
+
+    def overall_progress(self):
+        # Here you can customize how you want to calculate the overall progress
+        total = self.reading_progress + self.video_progress + self.quiz_progress
+        count = 3  # Total number of components
+        return total / count if count else 0
+
+    def __str__(self):
+        return f"{self.user.username}'s progress on {self.course.course_name}"
+    
+
+class CourseCompletion(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='course_completions')
+    course = models.ForeignKey(Course, on_delete=models.CASCADE, related_name='course_completions')
+    completed = models.BooleanField(default=False)
+    completion_date = models.DateField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'course')  # Ensure one entry per user per course
+
+    def __str__(self):
+        completion_status = 'completed' if self.completed else 'not completed'
+        return f"{self.user.username}'s course {self.course.course_name} is {completion_status}"
+    
+
