@@ -59,6 +59,17 @@ urlpatterns = [
     path('courses/<int:course_id>/progress/', views.progress_view, name='progress_view'),
     path('update_progress/', views.update_progress, name='update_progress'),
     path('courses/<int:course_id>/claim_certificate/', views.claim_certificate, name='claim_certificate'),
+    path('posts/', views.post_list_and_create, name='post_list_and_create'),
+    path('posts/<int:post_id>/', views.post_detail, name='post_detail'),
+    path('like_post/', views.like_post, name='like_post'),
+    path('save_post/', views.save_post, name='save_post'),
+    path('saved-posts/', views.view_saved_posts, name='view_saved_posts'),
+    path('hashtag/<str:hashtag>/', views.posts_by_hashtag, name='posts_by_hashtag'),
+    path('hashtag/<str:hashtag>/', views.posts_by_hashtagg, name='posts_by_hashtagg'),
+
+
+
+
 
 
 

@@ -1,3 +1,4 @@
+from collections import Counter
 from io import BytesIO
 import os
 from django.contrib.auth import authenticate, login, logout,get_user_model
@@ -5,7 +6,7 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import get_list_or_404, render, redirect
-from .models import CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
+from .models import CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Post, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
 
 from datetime import date, timezone
 from django.db import IntegrityError
@@ -18,7 +19,9 @@ from django.views.decorators.csrf import csrf_protect
 from django.urls import reverse
 from django.core.mail import send_mail
 from reportlab.pdfgen import canvas
+from django.views.decorators.http import require_POST
 
+ 
 
 from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError
@@ -41,7 +44,12 @@ import threading
 
 @login_required(login_url='loginnew')
 def home(request):
-    return render(request, 'userhome.html')
+
+    posts = Post.objects.all().order_by('-created_at')
+    trending_hashtags = get_trending_hashtagss()
+
+    return render(request, 'userhome.html', {'posts': posts,'trending': trending_hashtags})
+
 
 @login_required(login_url='loginnew')
 def home2(request):
@@ -185,7 +193,16 @@ def normal_user_home(request):
 
 @login_required(login_url='loginnew')
 def college_user_home(request):
-    return render(request, 'collegehome.html')
+    # Retrieve posts for GET request, ordered with the newest posts first
+    posts = Post.objects.all().order_by('-created_at')
+    trending_hashtags = get_trending_hashtags()
+    
+    # Render the college home template with the posts and trending hashtags context
+    return render(request, 'collegehome.html', {
+        'posts': posts,
+        'trending': trending_hashtags
+    })
+
 
 '''def logoutnew(request):
     logout(request)
@@ -997,3 +1014,173 @@ def serve_pdf_file_response(file_path):
     else:
         # Handle the error, maybe return a 404 response or a custom error page
         return HttpResponseNotFound('The requested pdf was not found on our server.')
+    
+
+@login_required
+def post_list_and_create(request):
+    # Handle file upload on POST
+    if request.method == 'POST':
+        content = request.POST.get('content', '')
+        image = request.FILES.get('image') if 'image' in request.FILES else None
+        video = request.FILES.get('video') if 'video' in request.FILES else None
+        
+        # Assuming the user is associated with a CollegeUser
+        college_user = request.user.collegeuser
+        
+        # Create and save the new post instance
+        Post.objects.create(
+            college_user=college_user,
+            content=content,
+            image=image,
+            video=video,
+        )
+        return redirect('post_list_and_create')  # Redirect to the same page to display the post list
+
+    # Retrieve posts for GET request
+    posts = Post.objects.all().order_by('-created_at')  # Assuming you want to display the newest posts first
+
+    # Render the post list template with the posts context
+    return render(request, 'collegehome.html', {'posts': posts})
+
+
+def post_detail(request, post_id):
+    # Retrieve a single post by id
+    try:
+        post = Post.objects.get(post_id=post_id)
+    except Post.DoesNotExist:
+        return HttpResponse(status=404)
+
+    # Render the post detail template with the post context
+    return render(request, 'collegehome.html', {'post': post})
+
+@login_required
+@require_POST
+def like_post(request):
+    data = json.loads(request.body)
+    post_id = data.get('id')
+    post = get_object_or_404(Post, pk=post_id)  # Simplified with get_object_or_404
+
+    # Toggle like
+    if post.likes.filter(id=request.user.id).exists():
+        post.likes.remove(request.user)
+        liked = False
+    else:
+        post.likes.add(request.user)
+        liked = True
+
+    return JsonResponse({
+        'total_likes': post.total_likes,
+        'liked': liked
+    })
+
+
+@login_required
+@require_POST
+def save_post(request):
+    data = json.loads(request.body)
+    post_id = data.get('id')
+    post = get_object_or_404(Post, pk=post_id)
+
+    # Check if the post is already saved by the user
+    saved_post, created = SavedPost.objects.get_or_create(user=request.user, post=post)
+
+    if not created:
+        # The post was already saved, so we unsave it
+        saved_post.delete()
+        is_saved = False
+    else:
+        # The post is now saved
+        is_saved = True
+
+    return JsonResponse({'is_saved': is_saved})
+
+
+
+@login_required
+def view_saved_posts(request):
+    # Retrieve all instances of SavedPost for the current user
+    saved_posts = SavedPost.objects.filter(user=request.user).order_by('-saved_at')
+
+    # Prepare the posts in a format that the template can easily iterate over
+    posts = [saved_post.post for saved_post in saved_posts]
+
+    # Pass the posts to the template
+    return render(request, 'saved_posts.html', {'saved_posts': posts})
+
+
+def get_trending_hashtags():
+    # Get all posts
+    all_posts = Post.objects.all()
+    
+    # Create a counter to hold the hashtags and their counts
+    hashtags_counter = Counter()
+    
+    # Go through all posts and update the counter with hashtags from each post
+    for post in all_posts:
+        hashtags_in_post = post.get_hashtags()
+        hashtags_counter.update(hashtags_in_post)
+    
+    # Get the most common hashtags - specify the number of top trending hashtags you want
+    trending_hashtags = hashtags_counter.most_common(10)
+    
+    # Include college name and photo in the trending data
+    trending_with_details = []
+    for hashtag, count in trending_hashtags:
+        posts = Post.get_posts_by_hashtag(hashtag)
+        if posts.exists():
+            post = posts.first()
+            trending_with_details.append({
+                'hashtag': hashtag,
+                'count': count,
+                'college_name': post.college_user.college_name,
+                'profile_photo_url': post.college_user.profile_photo.url if post.college_user.profile_photo else None
+            })
+    
+    return trending_with_details
+
+# View for displaying posts by hashtag
+def posts_by_hashtag(request, hashtag):
+    # Use the model's static method to get posts containing the hashtag
+    posts = Post.get_posts_by_hashtag(hashtag)
+    # Render the page with the filtered posts and the hashtag
+    return render(request, 'collegehome.html', {'posts': posts, 'hashtag': hashtag})
+
+
+
+def get_trending_hashtagss():
+    # Get all posts
+    all_posts = Post.objects.all()
+    
+    # Create a counter to hold the hashtags and their counts
+    hashtags_counter = Counter()
+    
+    # Go through all posts and update the counter with hashtags from each post
+    for post in all_posts:
+        hashtags_in_post = post.get_hashtags()
+        hashtags_counter.update(hashtags_in_post)
+    
+    # Get the most common hashtags - specify the number of top trending hashtags you want
+    trending_hashtags = hashtags_counter.most_common(10)
+    
+    # Include college name and photo in the trending data
+    trending_with_details = []
+    for hashtag, count in trending_hashtags:
+        posts = Post.get_posts_by_hashtag(hashtag)
+        if posts.exists():
+            post = posts.first()
+            trending_with_details.append({
+                'hashtag': hashtag,
+                'count': count,
+                'college_name': post.college_user.college_name,
+                'profile_photo_url': post.college_user.profile_photo.url if post.college_user.profile_photo else None
+            })
+    
+    return trending_with_details
+
+# View for displaying posts by hashtag
+def posts_by_hashtagg(request, hashtag):
+    # Use the model's static method to get posts containing the hashtag
+    posts = Post.get_posts_by_hashtag(hashtag)
+    # Render the page with the filtered posts and the hashtag
+    return render(request, 'userhome.html', {'posts': posts, 'hashtag': hashtag})
+

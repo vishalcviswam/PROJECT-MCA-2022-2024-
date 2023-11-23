@@ -15,6 +15,11 @@
 			
         }
 
+        body{
+            background-color: #f6fff8;
+            padding-top: 70px;
+        }
+
         .trends, .follow-suggestions {
             background-color: #eaf4f4;
             border-radius: 10px;
@@ -113,13 +118,33 @@
 			transform: translateX(10px); 
 		}
 
+        .file-name {
+            display: block; /* or inline-block */
+            margin-top: 5px;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .saved {
+            color: gold; /* or any other style changes */
+        }
+
+        .trends a {
+            text-decoration: none; /* This will remove the underline from links */
+            color: inherit; /* This ensures that the color of the links is the same as the text around them */
+        }
+        
+        .trends a:hover {
+            text-decoration: underline; /* Adds underline on hover for better user interaction, optional */
+        }
+
 
 
 
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center fixed-top">
     <a class="navbar-brand" href="#">
         <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
         EduSphere
@@ -171,6 +196,7 @@
 			<li><a href="{% url 'add_instructor' %}">Add Instructors</a></li>
             <li><a href="{% url 'view_instructors' %}">View Instructors</a></li>
 			<li><a href="{% url 'add_course' %}">Add Courses</a></li>
+            <li><a href="{% url 'view_saved_posts' %}">Saved Posts</a></li>
 			<li><a href="{% url 'logoutp' %}">Log Out</a></li>
 		</ul>
 	</div>
@@ -192,34 +218,88 @@
             <div class="col-md-3">
                 <div class="trends p-3 mb-4">
                     <h6>Trending</h6>
-                    <!-- Trending topics go here -->
+                    {% for trend in trending %}
+                        <a href="{% url 'posts_by_hashtag' hashtag=trend.hashtag %}" class="trend-card">
+                            <div class="card mb-1">
+                                <div class="card-body py-2 px-3">
+                                    {% if trend.profile_photo_url %}
+                                        <img src="{{ trend.profile_photo_url }}" alt="Profile Picture" class="rounded-circle" style="width: 20px; height: 20px;">
+                                    {% endif %}
+                                    <strong>{{ trend.college_name }}</strong><br>
+                                    #{{ trend.hashtag }} <small>({{ trend.count }})</small>
+                                </div>
+                            </div>
+                        </a>
+                    {% endfor %}
                 </div>
+                
             </div>
             <div class="col-md-6">
                 <!-- Post form goes here -->
                 <div class="post-form mb-3 p-3 bg-light">
-                    <form>
-					<div class="form-group">
-						<textarea class="form-control" rows="3" placeholder="What's happening?"></textarea>
-								</div>
-					
-					<!-- Photo Upload Button -->
-					<div class="form-group d-inline-block mr-2">
-						<label for="photoUpload" class="btn btn-outline-secondary"><i class="fas fa-image"></i></label>
-						<input type="file" id="photoUpload" accept=".jpeg, .jpg, .png" style="display:none;" onchange="previewImage(this)">
-					</div>
+                    <form method="post" enctype="multipart/form-data" action="{% url 'post_list_and_create' %}">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <textarea class="form-control" name="content" rows="3" placeholder="What's happening?"></textarea>
+                        </div>
+                        
+                        <!-- Photo Upload -->
+                        <div class="form-group d-inline-block mr-2">
+                            <label for="photoUpload" class="btn btn-outline-secondary"><i class="fas fa-image"></i></label>
+                            <input type="file" id="photoUpload" name="image" accept="image/jpeg, image/jpg, image/png" style="display:none;" onchange="updateFileName(this, 'photo-name')">
+                            <span id="photo-name" class="file-name"></span>
+                        </div>
 
-					<!-- Video Upload Button -->
-					<div class="form-group d-inline-block mr-2">
-						<label for="videoUpload" class="btn btn-outline-secondary"><i class="fas fa-video"></i></label>
-						<input type="file" id="videoUpload" accept=".mp4" style="display:none;" onchange="previewVideo(this)">
-					</div>
+                        <!-- Video Upload -->
+                        <div class="form-group d-inline-block mr-2">
+                            <label for="videoUpload" class="btn btn-outline-secondary"><i class="fas fa-video"></i></label>
+                            <input type="file" id="videoUpload" name="video" accept="video/mp4" style="display:none;" onchange="updateFileName(this, 'video-name')">
+                            <span id="video-name" class="file-name"></span>
+                        </div>
 
-					<button type="submit" class="btn btn-primary">Post</button>
+            
+                        <button type="submit" class="btn btn-primary">Post</button>
                     </form>
                 </div>
-                <!-- Posts go here -->
+                
+                    
+                    <!-- Posts go here -->
+                    {% for post in posts %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <img src="{{ post.college_user.profile_photo.url }}" alt="Profile Picture" class="rounded-circle" style="width: 40px; height: 40px;">
+                        <div style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+                            <strong>{{ post.college_user.college_name }}</strong><br>
+                            <span>@{{ post.college_user.user.username }}</span>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <small class="text-muted">{{ post.created_at|date:"N j, Y" }}</small>
+                        </div>
+                    </div>
+                        <div class="card-body">
+                            <p>{{ post.content }}</p>
+                            {% if post.image %}
+                                <img src="{{ post.image.url }}" class="card-img-top" alt="Post Image">
+                            {% endif %}
+                            {% if post.video %}
+                                <video controls class="card-img-top">
+                                    <source src="{{ post.video.url }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            {% endif %}
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" class="btn btn-outline-primary like-btn" data-post-id="{{ post.post_id }}">
+                                <i class="fas fa-thumbs-up"></i> <span class="like-count">{{ post.total_likes }}</span>
+                            </button>                            
+                            <button type="button" class="btn btn-outline-secondary save-btn" data-post-id="{{ post.post_id }}">
+                                <i class="fas fa-bookmark"></i>
+                            </button>
+                        </div>
+                </div>    
+                {% endfor %}
             </div>
+                
             <div class="col-md-3">
                 <div class="follow-suggestions p-3">
                     <h6>Who to follow</h6>
@@ -266,7 +346,92 @@
 		function closeProfileSidebar() {
         const sidebar = document.getElementById('profileSidebar');
         sidebar.style.right = '-300px';
-		}		
+		}
+        
+        function updateFileName(input, elementId) {
+            var fileName = input.files[0].name; // Get the file name
+            document.getElementById(elementId).textContent = fileName; // Set the text content to the file name
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var likeButtons = document.getElementsByClassName('like-btn');
+            for (var i = 0; i < likeButtons.length; i++) {
+                likeButtons[i].addEventListener('click', function () {
+                    var postId = this.dataset.postId;
+                    console.log("Like button clicked for post: ", postId); // Debugging
+        
+                    fetch('{% url 'like_post' %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        },
+                        body: JSON.stringify({ id: postId })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Response data: ", data); // Debugging
+                        this.querySelector('.like-count').textContent = data.total_likes;
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            }
+
+
+            var saveButtons = document.getElementsByClassName('save-btn');
+            for (var i = 0; i < saveButtons.length; i++) {
+                saveButtons[i].addEventListener('click', function () {
+                    var postId = this.dataset.postId;
+                    console.log("Save button clicked for post: ", postId); // Debugging
+
+                    fetch('{% url 'save_post' %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCookie('csrftoken'),
+                        },
+                        body: JSON.stringify({ id: postId })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Response data: ", data); // Debugging
+                        // Toggle the saved state visually on the button
+                        if (data.is_saved) {
+                            this.classList.add('saved');
+                        } else {
+                            this.classList.remove('saved');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
+            }
+        });
+        
+        // Function to get cookie by name; specifically, the CSRF token
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"></script>

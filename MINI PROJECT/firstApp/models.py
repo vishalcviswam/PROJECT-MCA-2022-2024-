@@ -1,3 +1,5 @@
+import re
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.forms import ValidationError
@@ -241,3 +243,70 @@ class CourseCompletion(models.Model):
         return f"{self.user.username}'s course {self.course.course_name} is {completion_status}"
     
 
+
+class Post(models.Model):
+    post_id = models.AutoField(primary_key=True)
+    college_user = models.ForeignKey(CollegeUser, on_delete=models.CASCADE)
+    content = models.TextField(blank=True, null=True)
+    image = models.ImageField(upload_to='posts/images/', blank=True, null=True)
+    video = models.FileField(upload_to='posts/videos/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    likes = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='liked_posts', blank=True)
+    saved_by_users = models.ManyToManyField(settings.AUTH_USER_MODEL, through='SavedPost', related_name='posts_saved')
+
+
+
+    def __str__(self):
+        return f"Post {self.post_id} by {self.college_user.user.username}"
+    
+    @property
+    def total_likes(self):
+        return self.likes.count()
+    
+    def get_hashtags(self):
+        # Regular expression to extract hashtags
+        return re.findall(r"#(\w+)", self.content)
+
+    @staticmethod
+    def get_posts_by_hashtag(hashtag):
+        # A static method to get posts containing a specific hashtag
+        return Post.objects.filter(content__icontains=f'#{hashtag}').distinct()
+    
+    def get_college_profile_photo_url(self):
+        if self.college_user.profile_photo:
+            return self.college_user.profile_photo.url
+        else:
+            return 'path/to/default/image'  # You can set a default image path here
+
+    def get_college_name(self):
+        return self.college_user.college_name
+    
+
+class Image(models.Model):
+    post = models.ForeignKey(Post, related_name='images', on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='posts/images/')
+
+class Video(models.Model):
+    post = models.ForeignKey(Post, related_name='videos', on_delete=models.CASCADE)
+    video = models.FileField(upload_to='posts/videos/')
+
+
+
+class SavedPost(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        on_delete=models.CASCADE, 
+        related_name='saved_post_entries'  # Unique related_name for the User -> SavedPost relationship
+    )
+    post = models.ForeignKey(
+        'Post', 
+        on_delete=models.CASCADE, 
+        related_name='saved_post_entries'  # Unique related_name for the Post -> SavedPost relationship
+    )
+    saved_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'post')  # This constraint is fine
+
+    def __str__(self):
+        return f"{self.user.username} saved Post {self.post.post_id}"
