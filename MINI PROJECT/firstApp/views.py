@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import get_list_or_404, render, redirect
-from .models import CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Post, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
+from .models import CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Post, Progress, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
 
 from datetime import date, timezone
 from django.db import IntegrityError
@@ -28,6 +28,12 @@ from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.views.generic import TemplateView
 from django.utils import timezone
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.colors import HexColor
+from django.contrib.staticfiles import finders
+from reportlab.lib import colors
+
+
 
 from django.views.generic import View
 from .utils import *
@@ -916,76 +922,114 @@ def get_chapter_content(request, chapter_id):
     return JsonResponse(content_html)
 
 
+
 @login_required
-def progress_view(request, course_id):
+def course_progress(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
-    progress, created = CourseProgress.objects.get_or_create(
-        user=request.user,
-        course=course,
-        defaults={'reading_progress': 0, 'video_progress': 0, 'quiz_progress': 0}
-    )
-    completion, created = CourseCompletion.objects.get_or_create(
-        user=request.user,
-        course=course,
-        defaults={'completed': False}
-    )
+    course_modules = course.module_set.prefetch_related('chapters').all()
+    all_modules_completed = True  # Assume all modules are completed initially
 
-    context = {
-        'course': course,
-        'progress': progress,
-        'completion': completion,
-        'can_claim_certificate': completion.completed
-    }
-    return render(request, 'progress.html', context)
-
-@csrf_exempt
-@login_required
-def update_progress(request):
-    if request.method == 'POST':
-        course_id = request.POST.get('course_id')
-        content_type = request.POST.get('content_type')
-        progress_value = float(request.POST.get('progress', 0))
-        
-        course_progress, created = CourseProgress.objects.get_or_create(
+    for module in course_modules:
+        chapters = module.chapters.all()
+        num_chapters = chapters.count()
+        num_completed = Progress.objects.filter(
             user=request.user,
-            course_id=course_id,
-            defaults={'reading_progress': 0, 'video_progress': 0, 'quiz_progress': 0}
-        )
+            chapter__in=chapters,
+            progress=True
+        ).count()
+        module.progress_percentage = (num_completed / num_chapters) * 100 if num_chapters else 0
+        # If any module is not fully completed, set all_modules_completed to False
+        if module.progress_percentage < 100:
+            all_modules_completed = False
 
-        if content_type == 'reading':
-            course_progress.reading_progress = max(course_progress.reading_progress, progress_value)
-        elif content_type == 'video':
-            course_progress.video_progress = max(course_progress.video_progress, progress_value)
-        elif content_type == 'quiz':
-            course_progress.quiz_progress = max(course_progress.quiz_progress, progress_value)
+    return render(request, 'course_progress.html', {
+        'course': course,
+        'course_modules': course_modules,
+        'all_modules_completed': all_modules_completed,
+        'course_id': course_id
 
-        course_progress.save()
-        overall_progress = course_progress.overall_progress()
+    })
 
-        # Check if course is completed
-        if overall_progress >= 100:
-            CourseCompletion.objects.update_or_create(
-                user=request.user,
-                course_id=course_id,
-                defaults={'completed': True, 'completion_date': timezone.now()}
-            )
 
-        return JsonResponse({'overall_progress': overall_progress})
-    else:
-        return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required
-def claim_certificate(request, course_id):
-    course = get_object_or_404(Course, pk=course_id)
-    completion = get_object_or_404(CourseCompletion, user=request.user, course=course)
+@require_POST
+def update_progress(request):
+    user = request.user
+    chapter_id = request.POST.get('chapter_id')
+    completed = request.POST.get('completed') == 'true'
+    
+    # Use 'pk' or 'id' instead of 'chapter_id' to get the Chapter instance.
+    chapter = get_object_or_404(Chapter, pk=chapter_id)
+    progress, created = Progress.objects.update_or_create(
+        user=user, chapter=chapter, defaults={'progress': completed}
+    )
+    return JsonResponse({'status': 'success'})
 
-    if completion.completed:
-        # Logic to generate and serve the certificate PDF
-        # You would replace this with your actual PDF generation logic
-        pdf_file_path = generate_certificate_pdf(user=request.user, course=course)
-        return serve_pdf_file_response(pdf_file_path)
-    else:
-        return redirect('progress_view', course_id=course_id)
+@login_required
+def download_certificate(request, course_id):
+    # Get the course instance and user details
+    course = get_object_or_404(Course, pk=course_id)
+    user = request.user
+
+    # Create a file-like buffer to receive PDF data
+    buffer = BytesIO()
+
+    # Create the PDF object, using the buffer as its "file"
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter  # save the dimensions of the page size
+
+
+    # Draw a gradient background
+    p.saveState()
+    p.setFillColor(HexColor('#ade8f4'))
+    p.rect(0, 0, *letter, stroke=0, fill=1)
+    p.restoreState()
+
+    p.saveState()
+    p.setFillColor(HexColor('#caf0f8'))
+    p.rect(0, letter[1] * 0.5, *letter, stroke=0, fill=1)
+    p.restoreState()
+
+    p.saveState()
+    p.setFillAlpha(0.2)
+    p.rect(0, letter[1] * 0.5, *letter, stroke=0, fill=1)
+    p.restoreState()
+
+    # Add a border
+    p.setStrokeColor(colors.HexColor("#000000"))
+    p.setLineWidth(3)
+    p.rect(50, 50, width-100, height-100, stroke=True, fill=False)
+
+    # Add the EDUSPHERE FUSION logo on the top right corner
+    logo_path = finders.find('images/esf21.png')
+    p.drawInlineImage(logo_path, letter[0] - 150, letter[1] - 100, 100, 50)
+
+    # Draw the title and other text
+    p.setFont("Helvetica-Bold", 24)
+    p.drawCentredString(letter[0] / 2, letter[1] / 2 + 80, course.course_name)
+    p.setFont("Helvetica", 12)
+    p.drawCentredString(letter[0] / 2, letter[1] / 2 + 60, course.college.college_name)
+
+    # Description
+    description = f"{user.get_full_name()} has completed the {course.course_duration} hrs {course.course_name} offered by {course.college.college_name}."
+    p.setFont("Helvetica", 14)
+    p.drawCentredString(letter[0] / 2, letter[1] / 2, description)
+
+    # Add "EDUSPHERE FUSION" in small text
+    p.setFont("Helvetica", 10)
+    p.drawRightString(letter[0] - 60, letter[1] - 50, "EDUSPHERE FUSION")
+
+    # Close the PDF object cleanly, and we're done
+    p.showPage()
+    p.save()
+
+    # Get the value of the BytesIO buffer and write it to the response
+    pdf = buffer.getvalue()
+    buffer.close()
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+    return response
 
 # This is a mock-up function for PDF generation; you'll need to implement it according to your requirements
 def generate_certificate_pdf(user, course):
@@ -1109,21 +1153,16 @@ def view_saved_posts(request):
 
 
 def get_trending_hashtags():
-    # Get all posts
     all_posts = Post.objects.all()
     
-    # Create a counter to hold the hashtags and their counts
     hashtags_counter = Counter()
     
-    # Go through all posts and update the counter with hashtags from each post
     for post in all_posts:
         hashtags_in_post = post.get_hashtags()
         hashtags_counter.update(hashtags_in_post)
     
-    # Get the most common hashtags - specify the number of top trending hashtags you want
     trending_hashtags = hashtags_counter.most_common(10)
     
-    # Include college name and photo in the trending data
     trending_with_details = []
     for hashtag, count in trending_hashtags:
         posts = Post.get_posts_by_hashtag(hashtag)
@@ -1138,11 +1177,8 @@ def get_trending_hashtags():
     
     return trending_with_details
 
-# View for displaying posts by hashtag
 def posts_by_hashtag(request, hashtag):
-    # Use the model's static method to get posts containing the hashtag
     posts = Post.get_posts_by_hashtag(hashtag)
-    # Render the page with the filtered posts and the hashtag
     return render(request, 'collegehome.html', {'posts': posts, 'hashtag': hashtag})
 
 

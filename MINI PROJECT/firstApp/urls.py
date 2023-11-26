@@ -56,9 +56,8 @@ urlpatterns = [
     path('courses/<int:course_id>/', views.course_detail_view, name='course_detail_view'),
     path('course/enroll/<int:course_id>/', views.enroll_in_course, name='enroll_in_course'),
     path('get_chapter_content/<int:chapter_id>/', views.get_chapter_content, name='get_chapter_content'),
-    path('courses/<int:course_id>/progress/', views.progress_view, name='progress_view'),
+    path('courses/<int:course_id>/progress/', views.course_progress, name='course_progress'),
     path('update_progress/', views.update_progress, name='update_progress'),
-    path('courses/<int:course_id>/claim_certificate/', views.claim_certificate, name='claim_certificate'),
     path('posts/', views.post_list_and_create, name='post_list_and_create'),
     path('posts/<int:post_id>/', views.post_detail, name='post_detail'),
     path('like_post/', views.like_post, name='like_post'),
@@ -66,12 +65,7 @@ urlpatterns = [
     path('saved-posts/', views.view_saved_posts, name='view_saved_posts'),
     path('hashtag/<str:hashtag>/', views.posts_by_hashtag, name='posts_by_hashtag'),
     path('hashtag/<str:hashtag>/', views.posts_by_hashtagg, name='posts_by_hashtagg'),
-
-
-
-
-
-
+    path('courses/<int:course_id>/download_certificate/', views.download_certificate, name='download_certificate'),
 
 
     

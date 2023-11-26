@@ -11,7 +11,10 @@
     
     <!-- Custom Styles -->
     <style>
-        body {  }
+        body {
+            background-color: #eaf4f4;
+            padding-top: 60px;
+          }
         .module-name { cursor: pointer; }
         .chapter-name { cursor: pointer; }
         
@@ -147,7 +150,7 @@
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center fixed-top">
         <a class="navbar-brand" href="#">
             <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
             EduSphere
@@ -187,9 +190,9 @@
         </div>
     </nav>
 
-    <div class="sub-navbar">
+    <div class="sub-navbar ">
         <a href="#content">Content</a>
-        <a href="{% url 'progress_view' course_id=course.course_id %}">Progress</a>
+        <a href="{% url 'course_progress' course_id=course.course_id %}">Progress</a>
     </div>
 
 <div class="container-fluid">
@@ -224,96 +227,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 <script>
-    // Function to handle updating progress on the server
-    $(document).ready(function() {
-        // Define a threshold for each type of interaction
-        var scrollThreshold = 10; // Percentage of reading material scrolled
-        var videoThreshold = 5; // Time in seconds
-        var quizThreshold = 70; // Percentage of correct answers
-    
-        // Variables to store progress
-        var readingProgress = 0;
-        var videoProgress = 0;
-        var quizProgress = 0;
-    
-        // Function to send progress to the server
-        function sendProgressUpdate(reading, video, quiz) {
-            $.ajax({
-                url: '/update_progress/', // Your server endpoint
-                type: 'POST',
-                data: {
-                    'csrfmiddlewaretoken': $('input[name="csrfmiddlewaretoken"]').val(),
-                    'course_id': '{{ course.course_id }}', // Make sure to replace this with actual course ID
-                    'reading_progress': reading,
-                    'video_progress': video,
-                    'quiz_progress': quiz
-                },
-                success: function(response) {
-                    console.log('Progress updated successfully!');
-                    // Handle successful response
-                    // Update your progress bar or other UI elements here
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error updating progress:', error);
-                    // Handle errors here
-                }
-            });
-        }
-    
-        // Function to calculate reading progress
-        function updateReadingProgress() {
-            var scrollTop = $(window).scrollTop();
-            var docHeight = $(document).height();
-            var windowHeight = $(window).height();
-            var scrollPercent = (scrollTop / (docHeight - windowHeight)) * 100;
-    
-            // Check if the new scroll percentage is greater than the last and above the threshold
-            if (scrollPercent > readingProgress && scrollPercent >= scrollThreshold) {
-                readingProgress = scrollPercent;
-                sendProgressUpdate(readingProgress, videoProgress, quizProgress);
-            }
-        }
-    
-        // Scroll event for reading materials
-        $(window).on('scroll', function() {
-            updateReadingProgress();
-        });
-    
-        // Time update event for videos
-        $('video').on('timeupdate', function() {
-            if (this.currentTime > videoThreshold && videoProgress == 0) {
-                videoProgress = 100; // Mark as complete
-                sendProgressUpdate(readingProgress, videoProgress, quizProgress);
-            }
-        });
-    
-        // Function to calculate quiz progress
-        function updateQuizProgress() {
-            var totalQuestions = $('.mcq').length;
-            var correctAnswers = 0;
-            $('.mcq').each(function() {
-                var isCorrect = $(this).data('correct'); // Assuming you set a data attribute for correct answers
-                if (isCorrect) correctAnswers++;
-            });
-            var correctPercent = (correctAnswers / totalQuestions) * 100;
-    
-            // Check if the score is above the threshold
-            if (correctPercent >= quizThreshold) {
-                quizProgress = correctPercent;
-                sendProgressUpdate(readingProgress, videoProgress, quizProgress);
-            }
-        }
-    
-        // Assuming you have a way to check quiz answers, such as a button or form submission
-        $('#quiz-submit').on('click', function() {
-            updateQuizProgress();
-        });
-    
-        // Call the update functions initially to set the initial progress
-        updateReadingProgress();
-        updateQuizProgress();
-    });
-
+   
     // Event bindings and other logic
     $(document).ready(function() {
         // Logic for UI interactions like toggling chapters
@@ -336,11 +250,53 @@
                     $('#content-area').html('<p>Error loading chapter content.</p>');
                 }
             });
-        });
 
+            updateProgress(chapterId, true); // Mark as completed
+
+        });
+        
         // Call to send initial progress update on page load
-        sendProgressUpdate(0, 0, 0); // Replace 0s with actual progress if available
     });
+
+    function updateProgress(chapterId, completed) {
+        const csrfToken = getCookie('csrftoken');
+        fetch('{% url "update_progress" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                chapter_id: chapterId,
+                completed: completed
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                console.log('Progress updated for chapter: ' + chapterId);
+                // Optionally, update the UI here
+            }
+        })
+        .catch(error => console.error('Error updating progress:', error));
+    }
+    
+    
+    // Function to get the CSRF token from cookies
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
 
     // Remaining UI interaction handlers
     function toggleSearch() {
@@ -351,6 +307,10 @@
         $('body').toggleClass('night-mode');
         $('#theme-icon').toggleClass('fa-sun fa-moon');
     }
+
+
+    
+
 </script>
 </body>
 </html>

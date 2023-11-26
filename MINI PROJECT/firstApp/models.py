@@ -310,3 +310,15 @@ class SavedPost(models.Model):
 
     def __str__(self):
         return f"{self.user.username} saved Post {self.post.post_id}"
+    
+
+class Progress(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    chapter = models.ForeignKey(Chapter, on_delete=models.CASCADE)
+    progress = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'chapter')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.chapter.chapter_name} - {'Completed' if self.progress else 'In Progress'}"

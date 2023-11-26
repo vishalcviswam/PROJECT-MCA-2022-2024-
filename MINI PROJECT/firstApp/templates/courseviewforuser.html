@@ -172,7 +172,7 @@
                     <h5 class="card-title">{{ course.course_name }}</h5>
                     <p class="card-text">{{ course.college.college_name }}</p> <!-- Adjust according to your CollegeUser model -->
                     <p class="card-text">{{ course.course_level }}</p>
-                    <p class="card-text">${{ course.course_fee }}</p>
+                    <p class="card-text">₹{{ course.course_fee }}</p>
                     <!-- Replace 'course_detail' with the actual route to the course detail page -->
                     <a href="{% url 'course_detail_user' course.course_id %}" class="btn btn-primary">More Info</a>
                 </div>
