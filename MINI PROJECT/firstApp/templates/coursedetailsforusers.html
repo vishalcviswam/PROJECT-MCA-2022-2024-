@@ -7,6 +7,7 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
     <style>
         .cover-photo {
             position: relative;
@@ -236,7 +237,7 @@
                 <!-- Enroll Now Button -->
                 <form action="{% url 'enroll_in_course' course.course_id %}" method="post">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-primary">Enroll Now</button>
+                    <button type="submit" class="btn btn-primary" id="enrollButton">Enroll Now</button>
                 </form>
             </div>
             <!-- Course Details -->
@@ -332,6 +333,56 @@
         themeIcon.classList.toggle('fa-sun');
         themeIcon.classList.toggle('fa-moon');
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        var enrollButton = document.getElementById('enrollButton');
+        
+        enrollButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // Fetch the CSRF token
+    
+            var amountInPaisa = Math.round({{ course.course_fee }} * 100); // Make sure course_fee is in the template context
+    
+            var options = {
+                "key": "rzp_test_vsH1MRk28RFSGE",
+                "amount": amountInPaisa.toString(),
+                "currency": "INR",
+                "name": "{{ course.course_name }}",
+                "description": "Course Enrollment Fee",
+                "handler": function(response) {
+                    fetch("{% url 'enroll_in_course' course_id=course.course_id %}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrfToken,
+                        },
+                        body: JSON.stringify(response)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if(data.payment_verified) {
+                            window.location.href = "{% url 'course_detail_view' course_id=course.course_id %}";
+                        } else {
+                            window.location.href = "{% url 'course_detail_view' course_id=course.course_id %}";
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert("An error occurred during the payment process. Please try again.");
+                    });
+                },
+                // Prefill and theme options
+            };
+    
+            var rzp1 = new Razorpay(options);
+            rzp1.open();
+        });
+    });
+    
+    
+    
 
 </script>
 </body>

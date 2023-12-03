@@ -47,6 +47,7 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.core.mail import EmailMessage
 import threading
+import razorpay
 
 @login_required(login_url='loginnew')
 def home(request):
@@ -890,23 +891,87 @@ def course_detail_view(request, course_id):
     }
     return render(request, 'course_detail.html', context)
 
-@login_required
-@csrf_exempt  # Only if you're skipping CSRF validation, which is not recommended for production
-def enroll_in_course(request, course_id):
-    if request.method == 'POST':
-        course = get_object_or_404(Course, pk=course_id)
-        normal_user, created = NormalUser.objects.get_or_create(user=request.user)
-        
-        enrollment, created = CourseEnrollment.objects.get_or_create(normal_user=normal_user, course=course)
-        if created:
-            # User was not previously enrolled
-            messages.success(request, "You have been successfully enrolled in the course.")
-        else:
-            # User was already enrolled
-            messages.info(request, "You are already enrolled in this course.")
-        
-        return redirect('course_detail_view', course_id=course_id)
+logger = logging.getLogger(__name__)
 
+def course_detail_view(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    modules = Module.objects.filter(course=course).prefetch_related('chapters')
+    context = {
+        'course': course,
+        'modules': modules,
+        # Add any other context variables that you need to pass to the template
+    }
+    return render(request, 'course_detail.html', context)
+
+
+
+
+
+@login_required
+def enroll_in_course(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
+    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # AJAX POST request logic here
+        data = json.loads(request.body)
+        payment_id = data.get('razorpay_payment_id')
+        razorpay_order_id = data.get('razorpay_order_id')
+        signature = data.get('razorpay_signature')
+
+        try:
+            # Verify the payment
+            client.utility.verify_payment_signature({
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature
+            })
+
+            # Payment verification successful
+            normal_user, _ = NormalUser.objects.get_or_create(user=request.user)
+            enrollment, created = CourseEnrollment.objects.get_or_create(
+                normal_user=normal_user, course=course
+            )
+
+            # Prepare the message for the response
+            if created:
+                message = "You have been successfully enrolled in the course."
+            else:
+                message = "You are already enrolled in this course."
+
+            # Return a JsonResponse with the status and message
+            return JsonResponse({'payment_verified': True, 'message': message})
+
+        except razorpay.errors.SignatureVerificationError as e:
+            return JsonResponse({'payment_verified': False, 'message': "Payment verification failed."})
+
+        except Exception as e:
+            return JsonResponse({'payment_verified': False, 'message': "Error processing payment."})
+
+    elif request.method == 'GET':
+        # GET request logic for creating a Razorpay order
+        order_amount = int(course.course_fee * 100)  # Convert to paisa
+        order_currency = 'INR'
+        order_receipt = f'order_rcptid_{course_id}'
+        data = {
+            'amount': order_amount,
+            'currency': order_currency,
+            'receipt': order_receipt,
+            'payment_capture': '1'
+        }
+
+        try:
+            razorpay_order = client.order.create(data=data)
+            context = {
+                'course': course,
+                'razorpay_order_id': razorpay_order['id'],
+                'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
+                'amount_in_paisa': order_amount
+            }
+            return render(request, 'coursedetailsforusers.html', context)
+        except Exception as e:
+            messages.error(request, "Failed to initiate payment process.")
+            return HttpResponseRedirect(reverse('course_detail_view', args=[course_id]))
 def get_chapter_content(request, chapter_id):
     chapter = get_object_or_404(Chapter, pk=chapter_id)
     reading_materials = chapter.reading_materials.all()
