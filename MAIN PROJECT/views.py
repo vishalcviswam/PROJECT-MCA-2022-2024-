@@ -135,20 +135,6 @@ def register_normal_user(request):
             user.set_password(password)
             #user.is_active=False  #make the user inactive
             user.save()
-            current_site=get_current_site(request)  
-            email_subject="Activate your account"
-            message=render_to_string('activate.html',{
-                   'user':user,
-                   'domain':current_site.domain,
-                   'uid':urlsafe_base64_encode(force_bytes(user.pk)),
-                   'token':generate_token.make_token(user)
-
-
-            })
-
-            email_message=EmailMessage(email_subject,message,settings.EMAIL_HOST_USER,[email],)
-            EmailThread(email_message).start()
-            #messages.info(request,"Active your account by clicking the link send to your email")
 
             
             normal_user = NormalUser(user=user, phone_number=phone, first_name=fname, last_name=lname)
@@ -157,9 +143,6 @@ def register_normal_user(request):
             return redirect('loginnew')
 
     return render(request, 'normal_registerpage.html', {'error_messages': error_messages})
-
-
-
 
 
 def register_content_creator(request):
@@ -1415,7 +1398,39 @@ def upload(request):
     return render(request, 'upload.html', {'random_content': random_sentence})
 
 
+#flutter development begins here
+
+from rest_framework.decorators import api_view ,permission_classes
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import NormalUserSerializer
+from rest_framework.permissions import AllowAny
+from rest_framework.authtoken.models import Token
+
+@api_view(['POST'])
+def register_normaluser_flutter(request):
+    if request.method == 'POST':
+        serializer = NormalUserSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def mobile_login(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
 
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'user_id': user.pk,
+            'username': username
+        })
+    else:
+        return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
