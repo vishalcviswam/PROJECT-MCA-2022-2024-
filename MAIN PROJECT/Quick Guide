@@ -1,0 +1,21 @@
+EduSphere Fusion is a groundbreaking online platform developed using Python Django for web and Flutter for Mobile app that integrates a
+Foreign Study Management System with an e-learning platform, revolutionizing global education access. It
+offers robust modules for admins (managing users and colleges, overseeing posts, monetization), users
+(course enrollment, profile management, real-time updates from colleges, public discussions, certification),
+and colleges (course creation, content upload, de partment management). This platform not only connects
+learners with top global institutions but also fosters a dynamic educational community, allowing users to
+share resources and engage interactively. EduSphere Fusion stands out for its comprehensive approach to
+education, blending administrative efficiency with rich learning experiences.
+
+Technologies used :
+  web:
+    Backend : Python Django
+    Database : Sqlite3
+    Frontend : HTML & CSS
+    Other : AJAX, Jquery, RazerPay
+
+  Integration:
+    Django REST Framework
+
+  Mobile:
+    Frontend: Flutter
