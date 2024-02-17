@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <title>College Details</title>
+    <!-- Add Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    <!-- Add custom CSS (you can link to your own CSS file) -->
+    <style>
+        /* Center align the page content */
+        body {
+            text-align: center;
+            
+        }
+        h1, h2 {
+            color: #007BFF; /* Blue color for headers */
+        }
+        /* Style the page header */
+        #header {
+            margin-bottom: 30px;
+        }
+        /* Style the card layout */
+        .card {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+            }
+        
+            #searchBox {
+                max-width: 200px;
+                display: none;
+            }
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
+            }
+        
+            .navbar {
+                background-color: #34a0a4 !important;
+                
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+            EduSphere
+        </a>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="{% url 'college_user_home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                    <i id="theme-icon" class="fas fa-sun"></i>
+                </li>
+                <li class="nav-item">
+                    <div id="searchBox" class="mr-2">
+                        <input type="text" placeholder="Search..." class="form-control">
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+                </li>
+                <li class="nav-item">
+                    <img src="{% if user.collegeuser.profile_photo %}{{ user.collegeuser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div id="header">
+        <h1>College Details</h1>
+        <h2>{{ college_user.college_name }}</h2>
+        <p>Location: {{ college_user.address }}</p>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Departments Card on the Left -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h3>Departments</h3>
+                        <ul>
+                        {% for department in departments %}
+                            <li>
+                                <strong style="color: blue; text-transform: uppercase; font-size: 18px;">{{ department.name }}</strong><br>
+                                Programs Offered: 
+                                {% if department.undergrad_offered and department.postgrad_offered %}
+                                    Undergraduate and Postgraduate
+                                {% elif department.undergrad_offered %}
+                                    Undergraduate
+                                {% elif department.postgrad_offered %}
+                                    Postgraduate
+                                {% else %}
+                                    No programs offered
+                                {% endif %}
+                                <br>
+                                <!--Year Started: {{ department.department_start_year }}-->
+                                <!-- Before the closing </li> tag for each department -->
+                                {% if department.is_active %}
+                                <form method="post" action="{% url 'deactivate_department' department.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-warning">Deactivate Department</button>
+                                </form>
+                                {% else %}
+                                <form method="post" action="{% url 'deactivate_department' department.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success">Activate Department</button>
+                                </form>
+                                {% endif %}
+
+                            </li>
+                        {% empty %}
+                            <li>No departments found.</li>
+                        {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Add Department Form on the Right -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <h3>Add Department</h3>
+                        <form method="post" action="{% url 'department' %}">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="department_name">Department Name:</label>
+                                <input type="text" id="department_name" name="department_name" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="offered_programs">Offered Programs:</label>
+                                <select id="offered_programs" name="offered_programs" class="form-control" required>
+                                    <option value="undergrad">Undergraduate</option>
+                                    <option value="postgrad">Postgraduate</option>
+                                    <option value="both">Both</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="head_of_department">Head of Department:</label>
+                                <input type="text" id="head_of_department" name="head_of_department" class="form-control" required>
+                            </div>
+                            <!--<div class="form-group">
+                                <label for="department_start_year">Department Start Year:</label>
+                                <input type="date" id="department_start_year" name="department_start_year" class="form-control" required>
+                            </div>-->
+                            <button type="submit" class="btn btn-primary">Add Department</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Bootstrap and jQuery JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function toggleSearch() {
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox.style.display === 'none') {
+                searchBox.style.display = 'block';
+            } else {
+                searchBox.style.display = 'none';
+            }
+        }
+    
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            body.classList.toggle('night-mode');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
+        }
+    </script>
+</body>
+</html>

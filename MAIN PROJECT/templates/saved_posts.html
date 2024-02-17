@@ -1,0 +1,164 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Posts</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+
+        body{
+            background-color: #;
+            padding-top: 50px;
+        }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+            }
+        
+            #searchBox {
+                max-width: 200px;
+                display: none;
+            }
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
+            }
+        
+            .navbar {
+                background-color: #34a0a4 !important;
+                
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center fixed-top">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+            EduSphere
+        </a>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="{% url 'college_user_home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                    <i id="theme-icon" class="fas fa-sun"></i>
+                </li>
+                <li class="nav-item">
+                    <div id="searchBox" class="mr-2">
+                        <input type="text" placeholder="Search..." class="form-control">
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+                </li>
+                <li class="nav-item">
+                    <img src="{% if user.collegeuser.profile_photo %}{{ user.collegeuser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="mb-4 text-center">Saved Posts</h2>
+        <div class="row">
+            <div class="col-md-6 offset-md-3">
+                <!-- Loop through each saved post -->
+                {% for post in saved_posts %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <img src="{{ post.college_user.profile_photo.url }}" alt="Profile Picture" class="rounded-circle" style="width: 40px; height: 40px;">
+                        <div style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+                            <strong>{{ post.college_user.college_name }}</strong><br>
+                            <span>@{{ post.college_user.user.username }}</span>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <small class="text-muted">{{ post.created_at|date:"N j, Y" }}</small>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ post.content }}</p>
+                        {% if post.image %}
+                            <img src="{{ post.image.url }}" class="card-img-top" alt="Post Image">
+                        {% endif %}
+                        {% if post.video %}
+                            <video controls class="card-img-top">
+                                <source src="{{ post.video.url }}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        {% endif %}
+                    </div>
+                    <div class="card-footer">
+                        <!-- If you want like functionality on saved posts, include this button -->
+                        <button type="button" class="btn btn-outline-primary like-btn" data-post-id="{{ post.post_id }}">
+                            <i class="fas fa-thumbs-up"></i> <span class="like-count">{{ post.total_likes }}</span>
+                        </button>
+                        <!-- The save button can be used to unsave the post -->
+                        <button type="button" class="btn btn-outline-secondary save-btn" data-post-id="{{ post.post_id }}">
+                            <i class="fas fa-bookmark"></i>
+                        </button>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="alert alert-info text-center">No posts have been saved yet.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSearch() {
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox.style.display === 'none') {
+                searchBox.style.display = 'block';
+            } else {
+                searchBox.style.display = 'none';
+            }
+        }
+    
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            body.classList.toggle('night-mode');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,223 @@
+{% load static%}
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Add College Department</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+  <!-- You can add your custom CSS here -->
+  <style>
+    /* Center the form on the page */
+    .container {
+      max-width: 400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Style the form header */
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    /* Add spacing between form elements */
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    /* Style the submit button */
+    .btn-primary {
+      background-color: #007BFF;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+    }
+
+
+    .navbar-brand {
+      font-weight: bold;
+      font-size: 1.5em;
+    }
+  
+    #searchBox {
+      max-width: 200px;
+          display: none;
+    }
+  
+    .navbar.bg-light {  
+      background-color: #4cc9f0;
+    }
+  
+    .navbar {
+      background-color: #34a0a4 !important;
+    }
+  
+    .navbar-logo {
+      width: 30px; 
+      height: 30px; 
+      margin-right: 10px; 
+    }
+    body.night-mode {
+        background-color: #343a40;
+        color: #f8f9fa;
+    }
+  
+    body.night-mode .navbar {
+        background-color: #454d55;
+    }
+  
+    body.night-mode .profile-sidebar {
+        background-color: #5c636a;
+    }
+    textarea {
+          resize: none;
+    }
+
+    body {
+      background: #f8f9fa;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    .container {
+      max-width: 600px;
+      margin-top: 50px;
+      padding: 2rem;
+      background-color: #fff;
+      border-radius: 0.5rem;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 2rem;
+      width: 100%;
+      align-self: center;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    .btn-primary {
+      background-color: #007bff;
+      border-color: #007bff;
+    }
+
+    .btn-primary:hover {
+      background-color: #0056b3;
+      border-color: #0056b3;
+    }
+
+  </style>
+</head>
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+    <a class="navbar-brand" href="#">
+        <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+        EduSphere
+    </a>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mx-auto">
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="{% url 'college_user_home' %}"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                <i id="theme-icon" class="fas fa-sun"></i>
+            </li>
+            <li class="nav-item">
+                <div id="searchBox" class="mr-2">
+                    <input type="text" placeholder="Search..." class="form-control">
+                </div>
+            </li>
+            <li class="nav-item">
+                <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+            </li>
+            <li class="nav-item">
+                <img src="{% if user.collegeuser.profile_photo %}{{ user.collegeuser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+            </li>
+        </ul>
+    </div>
+</nav>
+
+  <div class="container">
+    {% if messages %}
+    {% for message in messages %}
+        <div class="alert {{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    {% endfor %}
+{% endif %}
+    <h1>Add College Department</h1>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="user_id" value="{{ user_id }}">
+      <div class="form-group">
+        <label for="department_name">Department Name:</label>
+        <input type="text" class="form-control" id="department_name" name="department_name" required>
+      </div>
+      <div class="form-group">
+        <label for="offered_programs">Offered Programs:</label>
+        <select class="form-control" id="offered_programs" name="offered_programs" required>
+          <option value="undergrad">Undergraduate</option>
+          <option value="postgrad">Postgraduate</option>
+          <option value="both">Both</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="head_of_department">Head of Department:</label>
+        <input type="text" class="form-control" id="head_of_department" name="head_of_department" required>
+      </div>
+      <!--<div class="form-group">
+        <label for="department_start_year">Department Started Year:</label>
+        <input type="date" class="form-control" id="department_start_year" name="department_start_year" required>
+      </div>-->
+      <button type="submit" class="btn btn-primary">Add Department</button>
+    </form>
+  </div>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function toggleSearch() {
+			const searchBox = document.getElementById('searchBox');
+			if (searchBox.style.display === 'none') {
+				searchBox.style.display = 'block';
+			} else {
+				searchBox.style.display = 'none';
+			}
+		}
+
+		function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            body.classList.toggle('night-mode');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
+        }
+  </script>
+</body>
+</html>

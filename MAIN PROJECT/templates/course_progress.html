@@ -1,0 +1,260 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Progress</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <!-- Additional CSS for styling goes here -->
+    <style>
+
+      .navbar-brand {
+        font-weight: bold;
+        font-size: 1.5em;
+        }
+    
+        #searchBox {
+            max-width: 200px;
+            display: none;
+        }
+    
+        .navbar.bg-light {  
+            background-color: #4cc9f0;
+        }
+    
+        .navbar {
+            background-color: #468faf !important;
+        }
+    
+        .navbar-logo {
+            width: 30px; 
+            height: 30px; 
+            margin-right: 10px; 
+        }
+        body.night-mode {
+                background-color: #000000;
+                color: #f8f9fa;
+        }
+    
+        body.night-mode .navbar {
+                background-color: #454d55;
+        }
+    
+        body.night-mode .profile-sidebar {
+                background-color: #5c636a;
+        }
+
+
+        .sub-navbar {
+            background-color: #4cc9f0; /* Light blue background */
+            padding: 0.5rem 1rem; /* Padding for the sub-navbar */
+          }
+          .sub-navbar a {
+            color: white; /* White text for links */
+            margin-right: 1rem; /* Space between links */
+          }
+          
+
+
+      
+      body, html {
+          height: 100%;
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+      
+      .sidebar {
+        background-color: #ffffff;
+        padding: 15px;
+        border-radius: 5px;
+    }
+      
+    .sidebar .list-group-item {
+      border-radius: 20px;
+      margin-bottom: 10px;
+  }
+
+  .sidebar .list-group-item.active, 
+  .sidebar .list-group-item:hover {
+      background-color: #5c7cfa;
+      color: white;
+      border: none;
+  }
+      
+  .progress {
+    background-color: #e9ecef;
+    border-radius: 20px;
+    overflow: hidden;
+}
+      
+.progress-bar {
+  background-color: #38b000;
+  transition: width 0.6s ease;
+}
+
+.module-progress {
+  background-color: #ffffff;
+  padding: 20px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+}
+      
+      h1, h3 {
+          color: #343a40;
+      }
+      
+      /* Add media queries for responsiveness */
+      @media (max-width: 768px) {
+        .sidebar {
+            margin-right: 0;
+            margin-bottom: 15px;
+        }
+    }
+      
+    </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+    <a class="navbar-brand" href="#">
+        <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+        EduSphere
+    </a>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mx-auto">
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                <i id="theme-icon" class="fas fa-sun"></i>
+            </li>
+            <li class="nav-item">
+                <div id="searchBox" class="mr-2">
+                    <input type="text" placeholder="Search..." class="form-control">
+                </div>
+            </li>
+            <li class="nav-item">
+                <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+            </li>
+            <li class="nav-item">
+                <img src="{% if user.normaluser.profile_photo %}{{ user.normaluser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="sub-navbar">
+    <a href="#content">Content</a>
+    <a href="{% url 'course_progress' course_id=course.course_id %}">Progress</a>
+</div>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 sidebar">
+                <!-- Course Modules List -->
+                <div class="list-group">
+                    {% for module in course_modules %}
+                        <a href="#" class="list-group-item list-group-item-action">
+                            {{ module.module_name }}
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <h1 class="my-4">Course Progress</h1>
+                {% for module in course_modules %}
+                  <div class="module-progress">
+                    <h4>{{ module.module_name }}</h4>
+                    <div class="progress">
+                      <div class="progress-bar" role="progressbar"
+                          style="width: {{ module.progress_percentage }}%;"
+                          aria-valuenow="{{ module.progress_percentage }}"
+                          aria-valuemin="0" aria-valuemax="100">
+                        {{ module.module_name }}
+                      </div>
+                    </div>
+                  </div>
+                {% endfor %}
+
+                {% if all_modules_completed %}
+                  <div class="text-center mt-4">
+                    <a href="{% url 'download_certificate' course_id=course_id %}" class="btn btn-primary">
+                      Download Certificate
+                    </a>
+                  </div>
+                {% endif %}
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+      function toggleSearch() {
+        $('#searchBox').toggle();
+    }
+
+    function toggleTheme() {
+        $('body').toggleClass('night-mode');
+        $('#theme-icon').toggleClass('fa-sun fa-moon');
+    }
+
+
+    function getCookie(name) {
+      let cookieValue = null;
+      if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+  
+    function updateProgress(chapterId, completed) {
+      // Prepare the data to send in the request
+      const data = {
+        chapter_id: chapterId,
+        completed: completed,
+        csrfmiddlewaretoken: getCookie('csrftoken'), // Function to get CSRF token
+      };
+  
+      // Send the data to the server using AJAX
+      $.post('/update_progress/', data, function(response) {
+        if (response.status === 'success') {
+          // Update the progress bar width
+          const progressBar = document.querySelector(`#progress-chapter-${chapterId}`);
+          progressBar.style.width = completed ? '100%' : '0%';
+        } else {
+          // Handle errors
+          console.error('Failed to update progress:', response.error);
+        }
+      });
+    }
+    </script>
+</body>
+</html>

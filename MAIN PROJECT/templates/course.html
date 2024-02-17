@@ -1,0 +1,693 @@
+{% load static%}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Add Course</title>
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+    
+
+    <style>
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+            }
+        
+            #searchBox {
+                max-width: 200px;
+                display: none;
+            }
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
+            }
+        
+            .navbar {
+                background-color: #34a0a4 !important;
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
+            
+
+
+
+            body {
+                font-family: 'Open Sans', sans-serif;
+                background-color: #f4f7fc; /* A soft background color */
+                color: #333;
+            }
+
+        .custom-select.multiple-selection {
+            height: auto !important;
+        }
+
+        .custom-file-label {
+            cursor: pointer;
+        }
+
+        .form-container {
+            background-color: rgba(255, 255, 255, 0.85); /* Semi-transparent white */
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(210, 214, 220, 0.5); /* Slight border color for depth */
+        }
+        
+        
+
+        .form-group {
+            position: relative;
+        }
+
+        .form-control {
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1); /* subtle shadow when input is focused */
+            border-color: #6a11cb;
+        }
+
+        /* Hover effect for the submit button */
+        .btn-primary:hover {
+            background-color: #6a11cb;
+        }
+
+        .form-container {
+            margin-top: 50px;
+            background: linear-gradient(to right, #00bbf9, #00f5d4); /* subtle gradient background for container */
+            padding: 30px 60px; /* Increased padding for roomier feel */
+            border-radius: 25px; /* More pronounced rounded borders */
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1); /* More pronounced shadow for depth */
+            transition: transform 0.3s; /* smooth transition for hover effect */
+            width: 80%; /* Adjust the width as needed, or remove this line to let it auto size */
+            max-width: 1000px; /* Maximum width the container can be, adjust as needed */
+            
+        }
+        
+        .form-container:hover {
+            transform: translateY(-10px); /* subtle lift on hover */
+        }
+
+        h2.mb-4:hover {
+            font-weight: 700;
+                text-align: center;
+                color: #003566;
+                margin-bottom: 2rem;
+        }
+        
+        /* Dynamic Shadow */
+        .form-container:hover {
+            box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Interactive Form Fields */
+        .form-control:focus, .custom-file-input:focus ~ .custom-file-label {
+            border: 2px solid #6a11cb;
+        }
+        
+        /* Tooltip */
+        [data-tooltip]:hover:after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            right: 50%;
+            background: #333;
+            color: #fff;
+            border-radius: 5px;
+            padding: 5px 10px;
+            white-space: nowrap;
+            transform: translateX(50%);
+            pointer-events: none;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .show {
+            display: block;
+        }
+        .dropdown-btn {
+            cursor: pointer;
+        }
+
+        /* Styling for dropdown buttons */
+        .dropdown-btn {
+            background-color: #6a11cb;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            outline: none;
+            transition: background-color 0.3s;
+        }
+
+        .dropdown-btn:hover {
+            background-color: #4d0b9f;
+        }
+
+        /* Checkbox styles */
+        .form-check-input {
+            margin-right: 10px;
+            width: 20px;
+            height: 20px;
+            vertical-align: middle;
+        }
+
+        .form-check-label {
+            font-size: 16px;
+        }
+
+        /* Dropdown content styles */
+        .dropdown-content {
+            border: 1px solid #6a11cb;
+            border-radius: 5px;
+            margin-top: 5px;
+            padding: 10px;
+        }
+
+        .dropdown-content input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        button {
+            margin-bottom: 10px; /* Adjust this value as per your requirement */
+        }
+        .dropdown {
+            z-index: 10;
+        }
+        
+        .choose-file {
+            z-index: 5;
+        }
+        .select-languages-dropdown {
+            z-index: 1000; /* or any value higher than the z-index of the Select Course Tags button */
+        }
+        /* Styles for parent container holding both dropdowns */
+        .parent-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Styles for each dropdown */
+        .dropdown {
+            position: relative; /* To ensure dropdown content displays relative to the button */
+        }
+
+        /* Styles for dropdown content */
+        .dropdown-content {
+            display: none; /* Hide dropdown content by default */
+            position: absolute;
+            top: 100%; /* Place dropdown below the button */
+            left: 0;
+            z-index: 1; /* To ensure dropdown content displays above other elements */
+        }
+
+        /* Style to show the dropdown content when active */
+        .dropdown-content.active {
+            display: block;
+        }
+        .dropdown-content {
+            max-height: 150px; /* or whatever height suits your design */
+            overflow-y: auto; /* make it scrollable */
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        input[type="number"].form-control,
+            input[type="text"].form-control {
+                border: 2px solid #eef1f4;
+                border-radius: 20px;
+                padding: 0.75rem 1rem;
+                transition: border-color 0.2s ease-in-out;
+        }
+
+        .error-message {
+            font-size: 0.8rem;
+            margin-top: 4px;
+        }
+        
+        .is-invalid {
+            border-color: red;
+        }
+        
+        
+
+
+    </style>
+    
+    <script>
+        $(document).ready(function() {
+            // Toggle visibility of Exam Types based on the state of 'exam' checkbox
+            $('#exam').change(function() {
+                if($(this).prop('checked')) {
+                    $('#exam_types_section').show();
+                } else {
+                    $('#exam_types_section').hide();
+                }
+            });
+    
+            // Toggle visibility of Certificate Criteria based on the state of 'certificate_available' checkbox
+            $('#certificate_available').change(function() {
+                if($(this).prop('checked')) {
+                    $('#certificate_criteria_section').show();
+                } else {
+                    $('#certificate_criteria_section').hide();
+                }
+            });
+    
+            // Toggle visibility of Total Assignments based on the state of 'assignment' checkbox
+            $('#assignment').change(function() {
+                if($(this).prop('checked')) {
+                    $('#total_assignments_section').show();
+                } else {
+                    $('#total_assignments_section').hide();
+                }
+            });
+
+            $('.custom-file-input').on('change', function() { 
+                let fileName = $(this).val().split('\\').pop(); 
+                $(this).next('.custom-file-label').addClass("selected").html(fileName); 
+            });
+        
+
+            $("h2.mb-4").click(function() {
+                $("form").slideToggle(300);
+            });
+
+            $("#department").change(function() {
+                var selectedDepartment = $(this).val();
+                
+                $.ajax({
+                    url: "/get_instructors_for_department/" + selectedDepartment + "/",
+                    type: "GET",
+                    dataType: "json",
+                    success: function(data) {
+                        var instructorsDropdown = $("[name='instructors']");
+                        instructorsDropdown.empty(); // Clear existing options
+                        
+                        $.each(data, function(key, value) {
+                            instructorsDropdown.append('<option value="' + value.id + '">' + value.instructor_name + '</option>');
+                        });
+                    }
+                });
+            });
+        });
+
+
+        function toggleSearch() {
+            const searchBox = document.getElementById('searchBox');
+            if (searchBox.style.display === 'none') {
+                searchBox.style.display = 'block';
+            } else {
+                searchBox.style.display = 'none';
+            }
+        }
+    
+        function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            body.classList.toggle('night-mode');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
+        }
+
+    </script>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+            EduSphere
+        </a>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="{% url 'college_user_home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                    <i id="theme-icon" class="fas fa-sun"></i>
+                </li>
+                <li class="nav-item">
+                    <div id="searchBox" class="mr-2">
+                        <input type="text" placeholder="Search..." class="form-control">
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+                </li>
+                <li class="nav-item">
+                    <img src="{% if user.collegeuser.profile_photo %}{{ user.collegeuser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container form-container">
+        <h2 class="mb-4" align="center">ADD A NEW COURSE</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <!-- Course Name -->
+            <div class="form-group">
+                <label for="course_name" data-tooltip="Enter the full course name.">Course Name:</label>
+                <input type="text" class="form-control" name="course_name" required>
+            </div>
+
+            <!-- Department Dropdown -->
+            <!-- Department Dropdown -->
+            <div class="form-group">
+                <label for="department">Department:</label>
+                <select class="form-control" id="department" name="department" required>
+                    {% for department in departments %}
+                    <option value="{{ department.id }}">{{ department.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Instructors Dropdown with multi-select checkboxes -->
+            <div class="form-group">
+                <label for="instructors">Instructors:</label>
+                <select class="form-control custom-select multiple-selection" name="instructors" multiple>
+                    {% for instructor in instructors %}
+                    <option value="{{ instructor.id }}">{{ instructor.instructor_name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+
+            <!-- Course Duration -->
+            <div class="form-group">
+                <label for="course_duration" data-tooltip="Duration in total hours.">Course Duration (in hours):</label>
+                <input type="number" class="form-control" name="course_duration" required>
+            </div>
+
+            <!-- Course Fee -->
+            <div class="form-group">
+                <label for="course_fee" data-tooltip="Amount in USD.">Course Fee:(₹)</label>
+                <input type="number" class="form-control" name="course_fee" step="0.01" required>
+            </div>
+
+            <!-- Course Description -->
+            <div class="form-group">
+                <label for="course_description">Course Description:</label>
+                <textarea class="form-control" name="course_description" required></textarea>
+            </div>
+
+            <!-- Languages Dropdown with multi-select checkboxes -->
+            <div class="parent-container">
+            <div class="dropdown">
+                <button type="button" class="dropdown-btn" onclick="toggleDropdown('langDropdown')">Select Languages</button>
+                <div class="dropdown-content" id="langDropdown">
+                    <input type="checkbox" id="langAll" onclick="toggleAll('lang')" name='languages'> Check All<br>
+                    <input type="checkbox" class="lang" value="english" name='languages'> English<br>
+                    <input type="checkbox" class="lang" value="hindi" name='languages'> Hindi<br>
+                    <input type="checkbox" class="lang" value="spanish" name='languages'> Spanish<br>
+                    <input type="checkbox" class="lang" value="french" name='languages'> French<br>
+                    <input type="checkbox" class="lang" value="arabic" name='languages'> Arabic<br>
+                </div>
+            </div>
+
+            <div class="dropdown">
+                <button type="button" class="dropdown-btn" onclick="toggleDropdown('tagDropdown')">Select Course Tags</button>
+                <div class="dropdown-content" id="tagDropdown">
+                    <input type="checkbox" id="tagAll" onclick="toggleAll('tag')" name="course_tags"> Check All<br>
+                    <input type="checkbox" class="tag" value="programming" name="course_tags"> Programming<br>
+                    <input type="checkbox" class="tag" value="web Development" name="course_tags"> Web Development<br>
+                    <input type="checkbox" class="tag" value="mobile Development" name="course_tags"> Mobile Development<br>
+                    <input type="checkbox" class="tag" value="Data Science" name="course_tags"> Data Science<br>
+                    <input type="checkbox" class="tag" value="Machine Learning" name="course_tags"> Machine Learning<br>
+                    <input type="checkbox" class="tag" value="Artificial Intelligence" name="course_tags"> Artificial Intelligence<br>
+                    <input type="checkbox" class="tag" value="Cybersecurity" name="course_tags"> Cybersecurity<br>
+                    <input type="checkbox" class="tag" value="Networking" name="course_tags"> Networking<br>
+                    <input type="checkbox" class="tag" value="Database Management" name="course_tags"> Database Management<br>
+                    <input type="checkbox" class="tag" value="Blockchain" name="course_tags"> Blockchain<br>
+                    <input type="checkbox" class="tag" value="Cloud Computing" name="course_tags"> Cloud Computing<br>
+                    <input type="checkbox" class="tag" value="Game Development" name="course_tags"> Game Development<br>
+                    <input type="checkbox" class="tag" value="Graphic Design" name="course_tags"> Graphic Design<br>
+                    <input type="checkbox" class="tag" value="User Experience (UX)" name="course_tags"> User Experience (UX)<br>
+                    <input type="checkbox" class="tag" value="Project Management" name="course_tags"> Project Management<br>
+                    <input type="checkbox" class="tag" value="Digital Marketing" name="course_tags"> Digital Marketing<br>
+                    <input type="checkbox" class="tag" value="SEO Optimization" name="course_tags"> SEO Optimization<br>
+                    <input type="checkbox" class="tag" value="Social Media Marketing" name="course_tags"> Social Media Marketing<br>
+                    <input type="checkbox" class="tag" value="Content Creation" name="course_tags"> Content Creation<br>
+                    <input type="checkbox" class="tag" value="Entrepreneurship" name="course_tags"> Entrepreneurship<br>
+                    <input type="checkbox" class="tag" value="Business Analytics" name="course_tags"> Business Analytics<br>
+                    <input type="checkbox" class="tag" value="Finance and Accounting" name="course_tags"> Finance and Accounting<br>
+                    <input type="checkbox" class="tag" value="Human Resources" name="course_tags"> Human Resources<br>
+                    <input type="checkbox" class="tag" value="Leadership and Management" name="course_tags"> Leadership and Management<br>
+                    <input type="checkbox" class="tag" value="Public Speaking" name="course_tags"> Public Speaking<br>
+                    <input type="checkbox" class="tag" value="Health and Wellness" name="course_tags"> Health and Wellness<br>
+                    <input type="checkbox" class="tag" value="Nutrition and Dietetics" name="course_tags"> Nutrition and Dietetics<br>
+                    <input type="checkbox" class="tag" value="Psychology" name="course_tags"> Psychology<br>
+                    <input type="checkbox" class="tag" value="Language Learning" name="course_tags"> Language Learning<br>
+                    <input type="checkbox" class="tag" value="Creative Writing" name="course_tags"> Creative Writing<br>
+                    <input type="checkbox" class="tag" value="Music and Audio Production" name="course_tags"> Music and Audio Production<br>
+                    <input type="checkbox" class="tag" value="Film and Video Production" name="course_tags"> Film and Video Production<br>
+                    <input type="checkbox" class="tag" value="Photography" name="course_tags"> Photography<br>
+                    <input type="checkbox" class="tag" value="Fine Arts" name="course_tags"> Fine Arts<br>
+                    <input type="checkbox" class="tag" value="History and Culture" name="course_tags"> History and Culture<br>
+                    <input type="checkbox" class="tag" value="Environmental Science" name="course_tags"> Environmental Science<br>
+                    <input type="checkbox" class="tag" value="Sustainability" name="course_tags"> Sustainability<br>
+                    <input type="checkbox" class="tag" value="Physics and Astronomy" name="course_tags"> Physics and Astronomy<br>
+                    <input type="checkbox" class="tag" value="Chemistry" name="course_tags"> Chemistry<br>
+                    <input type="checkbox" class="tag" value="Biology and Life Sciences" name="course_tags"> Biology and Life Sciences<br>
+                    <input type="checkbox" class="tag" value="Mathematics" name="course_tags"> Mathematics<br>
+                    <input type="checkbox" class="tag" value="Engineering" name="course_tags"> Engineering<br>
+                    <input type="checkbox" class="tag" value="Robotics" name="course_tags"> Robotics<br>
+                    <input type="checkbox" class="tag" value="Legal Studies" name="course_tags"> Legal Studies<br>
+                    <input type="checkbox" class="tag" value="Educational Technology" name="course_tags"> Educational Technology<br>
+                    <input type="checkbox" class="tag" value="Teaching and Training" name="course_tags"> Teaching and Training<br>
+                    <input type="checkbox" class="tag" value="Sports and Fitness" name="course_tags"> Sports and Fitness<br>
+                    <input type="checkbox" class="tag" value="Travel and Tourism" name="course_tags"> Travel and Tourism<br>
+                    <input type="checkbox" class="tag" value="Real Estate" name="course_tags"> Real Estate<br>
+                    <input type="checkbox" class="tag" value="E-commerce" name="course_tags"> E-commerce<br>
+                </div>
+            </div>
+        </div>
+
+            
+            <!-- Course Level Dropdown -->
+            <div class="form-group">
+                <label for="course_level">Course Level:</label>
+                <select class="form-control" name="course_level">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="expert">Expert</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="cover_photo">Cover Photo:</label>
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" name="cover_photo" id="cover_photo" accept="image/*">
+                    <label class="custom-file-label" for="cover_photo">Choose file</label>
+                </div>
+            </div>
+
+            <!-- Certificate Available Checkbox -->
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="certificate_available" id="certificate_available">
+                <label class="form-check-label" for="certificate_available">Certificate Available</label>
+            </div>
+            <div class="form-group" id="certificate_criteria_section" style="display: none;">
+                <label for="certificate_criteria">Certificate Criteria:</label>
+                <textarea class="form-control" name="certificate_criteria"></textarea>
+            </div>
+
+            <!-- Exam Checkbox -->
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="exam" id="exam">
+                <label class="form-check-label" for="exam">Exam</label>
+            </div>
+            <div class="dropdown" id="exam_types_section" style="display: none;">
+                <button type="button" class="dropdown-btn" onclick="toggleDropdown('examDropdown')">Select Exam Type</button>
+                <div class="dropdown-content" id="examDropdown">
+                    <input type="checkbox" id="examAll" onclick="toggleAll('exam')" name="exam_types" > Check All<br>
+                    <input type="checkbox" class="exam" value="multiple_choice" name="exam_types" > Multiple Choice<br>
+                    <!--<input type="checkbox" class="exam" value="true_false" name="exam_types" > True/False<br>
+                    <input type="checkbox" class="exam" value="short_answer" name="exam_types" > Short Answer<br>
+                    <input type="checkbox" class="exam" value="fill_in_the_blanks" name="exam_types" > Fill in the Blanks<br>
+                    <input type="checkbox" class="exam" value="matching_questions" name="exam_types" > Matching Questions<br>-->
+                </div>
+            </div>
+
+            <!-- Assignment Checkbox -->
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="assignment" id="assignment">
+                <label class="form-check-label" for="assignment">Assignment</label>
+            </div>
+
+            <div class="form-group" id="total_assignments_section" style="display: none;">
+                <label for="total_assignments">Total Assignments:</label>
+                <input type="number" class="form-control" name="total_assignments">
+            </div>
+
+
+            <!-- Submit Button -->
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="Add Course">
+            </div>
+        </form>
+    </div>
+    <script>
+        function toggleDropdown(dropdownId) {
+            var dropdownContent = document.getElementById(dropdownId);
+            if (dropdownContent.style.display === "none" || dropdownContent.style.display === "") {
+                dropdownContent.style.display = "block";
+            } else {
+                dropdownContent.style.display = "none";
+            }
+        }
+        
+        function toggleAll(prefix) {
+            var mainCheckbox = document.getElementById(prefix + "All");
+            var checkboxes = document.querySelectorAll("." + prefix);
+            checkboxes.forEach(function(checkbox) {
+                checkbox.checked = mainCheckbox.checked;
+            });
+        }
+        
+    
+        // Close the dropdown if the user clicks outside of it
+        window.onclick = function(event) {
+            if (!event.target.matches('.dropdown-btn') && !event.target.matches('input')) {
+                let dropdowns = document.getElementsByClassName("dropdown-content");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    let openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            function validateInput(input, validatorFunction) {
+                const errorMessage = validatorFunction(input.value);
+                let errorDiv = input.nextElementSibling;
+                if (errorMessage) {
+                    if (!errorDiv || !errorDiv.classList.contains('error-message')) {
+                        errorDiv = document.createElement('div');
+                        errorDiv.classList.add('error-message');
+                        input.parentNode.insertBefore(errorDiv, input.nextSibling);
+                    }
+                    input.classList.add('is-invalid');
+                    errorDiv.textContent = errorMessage;
+                    errorDiv.style.color = 'red';
+                } else {
+                    input.classList.remove('is-invalid');
+                    if (errorDiv) {
+                        errorDiv.remove();
+                    }
+                }
+            }
+        
+            function validateCourseName(name) {
+                if (name.startsWith(' ')) return 'The course name should not start with a space.';
+                if (/[^a-zA-Z0-9 ]/.test(name)) return 'The course name should not include special characters.';
+                return '';
+            }
+        
+            function validateCourseDuration(duration) {
+                if (duration < 1 || duration > 4500) return 'The course duration should be between 1 to 4500.';
+                return '';
+            }
+        
+            function validateCourseFee(fee) {
+                if (fee < 0 || fee > 5000) return 'The course fee should not fall below 0 and maximum is 5000.';
+                return '';
+            }
+        
+            function validateCourseDescription(description) {
+                if (description.startsWith(' ')) return 'The course description should not start with a white space.';
+                if (!/\S+ \S+/.test(description)) return 'The course description should not be a single word.';
+                if (/(.)\1{4,}/.test(description)) return 'No same letter should be consecutively for 5 or more times.';
+                return '';
+            }
+        
+            function validateTotalAssignments(assignments) {
+                if (assignments < 1 || assignments > 500) return 'The total assignments should be minimum 1 and maximum 500.';
+                return '';
+            }
+        
+            // Attach blur event listeners
+            document.querySelector('[name="course_name"]').addEventListener('blur', function () {
+                validateInput(this, validateCourseName);
+            });
+        
+            document.querySelector('[name="course_duration"]').addEventListener('blur', function () {
+                validateInput(this, validateCourseDuration);
+            });
+        
+            document.querySelector('[name="course_fee"]').addEventListener('blur', function () {
+                validateInput(this, validateCourseFee);
+            });
+        
+            document.querySelector('[name="course_description"]').addEventListener('blur', function () {
+                validateInput(this, validateCourseDescription);
+            });
+        
+            document.querySelector('[name="total_assignments"]').addEventListener('blur', function () {
+                validateInput(this, validateTotalAssignments);
+            });
+        });
+        
+        
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <title>EduSphere Fusion</title>
+    <link rel="icon" href="{% static 'images/fav.png' %}" type="image/png" sizes="16x16"> 
+    
+    <link rel="stylesheet" href="{% static 'css/main.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/color.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+
+    <style>
+        /* Your custom styles go here */
+    </style>
+</head>
+<body>
+<div class="theme-layout">
+    <div class="container-fluid pdng0">
+        <div class="row merged">
+            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                <div class="land-featurearea">
+                    <div class="land-meta">
+                        <h1>EduSphere Fusion</h1>
+                        <p>Your Path to Success Begins Here..</p>
+                        <div class="friend-logo">
+                            <span><img src="{% static 'images/wink.png' %}" alt=""></span>
+                        </div>
+                        <a href="https://www.linkedin.com/in/edusphere-fusion-384444227/" title="" class="folow-me">Follow Us on</a>
+                    </div>    
+                </div>
+            </div>
+            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-12">
+                <div class="login-reg-bg">
+                    <div class="log-reg-area sign">
+                    
+                        <h2 class="log-title">College Registration</h2>
+                        
+                        <form method="post" action="#" onsubmit="return validateForm();">
+                            {% csrf_token %}
+                            <div class="form-group">   
+                                <input type="text" id="name" required="required" name="cname" onblur="validateName()">
+                                <label class="control-label" for="name">College Name</label>
+                                <i class="mtrl-select"></i>
+                                <p id="name-error" class="error-message"></p>
+                            </div> 
+                            <div class="form-group">   
+                                <input type="text" required="required" name="uname" id="uname" onblur="validateUsername()">
+                                <label class="control-label" for="uname">User Name</label>
+                                <i class="mtrl-select"></i>
+                                <p id="uname-error" class "error-message"></p>
+                                {% if error_messages.uname %}
+                                <p class="error-message">{{ error_messages.uname }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">   
+                                <input type="email" required="required" name="email" onblur="validateEmail()">
+                                <label class="control-label" for="email">Email</label>
+                                <i class="mtrl-select"></i>
+                                <p id="email-error" class="error-message"></p>
+                                {% if error_messages.email %}
+                                <p class="error-message">{{ error_messages.email }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="form-group">   
+                                <input type="text" required="required" name="phone" id="phone" onblur="validateMobileNumber()">
+                                <label class="control-label" for="phone">Phone Number</label>
+                                <i class="mtrl-select"></i>
+                                <p id="phone-error" class="error-message"></p>
+                            </div>
+                            <div class="form-group">
+                                <textarea id="address" name="address" required="required" rows="1"></textarea>
+                                <label class="control-label" for="address">Address</label>
+                                <i class="mtrl-select"></i>
+                            </div>
+                                                    
+                            <div class="form-group">   
+                                <input type="password" required="required" name="password" onblur="validatePassword()">
+                                <label class="control-label" for="password">Password</label>
+                                <i class="mtrl-select"></i>
+                                <p id="password-error" class="error-message"></p>
+                            </div>
+                            <div class="form-group">   
+                                <input type="password" required="required" name="cpassword" onblur="validateConfirmPassword()">
+                                <label class="control-label" for="cpassword">Confirm Password</label>
+                                <i class="mtrl-select"></i>
+                                <p id="cpassword-error" class="error-message"></p>
+                            </div>
+                            <a href="{% url 'loginnew' %}" >Already have an account</a>
+                            
+                            <div class="submit-btns">
+                                <button class="mtr-btn" type="submit" name="btn1"><span>Register</span></button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Validation functions (include all validation functions here)
+    function validateName() {
+        var name = document.getElementById("name");
+        var nameError = document.getElementById("name-error");
+
+        if (!/^[A-Za-z]+$/.test(name.value)) {
+            nameError.textContent = "First Name should only contain letters";
+            name.focus();
+            return false;
+        }
+        nameError.textContent = "";
+        return true;
+    }
+
+    function validateUsername() {
+        var uname = document.getElementById("uname");
+        var unameError = document.getElementById("uname-error");
+
+        if (!/^[a-zA-Z0-9]+$/.test(uname.value)) {
+            unameError.textContent = "Username should only contain alphanumeric characters";
+            uname.focus();
+            return false;
+        }
+        unameError.textContent = "";
+        return true;
+    }
+
+    function validateEmail() {
+        var email = document.getElementsByName("email")[0];
+        var emailError = document.getElementById("email-error");
+        var emailPattern = /^[a-z0-9._-]+@[a-z0-9.-]+\.[a-z]{2,4}$/;
+
+        if (!emailPattern.test(email.value) || /[A-Z]/.test(email.value)) {
+            emailError.textContent = "Please enter a valid lowercase email address";
+            email.focus();
+            return false;
+        }
+        emailError.textContent = "";
+        return true;
+    }
+
+    function validateMobileNumber() {
+        var phone = document.getElementsByName("phone")[0];
+        var phoneError = document.getElementById("phone-error");
+        var phonePattern = /^[6-9]\d{9,12}$/;
+
+        if (!phonePattern.test(phone.value)) {
+            phoneError.textContent = "Please enter a valid phone number starting from 6 to 9 and between 10 to 13 digits";
+            phone.focus();
+            return false;
+        }
+
+        // Check if the same digit occurs more than 4 times randomly or consecutively
+        var phoneDigits = phone.value.split('');
+        var consecutiveCount = 1;
+        for (var i = 1; i < phoneDigits.length; i++) {
+            if (phoneDigits[i] === phoneDigits[i - 1]) {
+                consecutiveCount++;
+                if (consecutiveCount > 4) {
+                    phoneError.textContent = "The same number should not occur more than 4 times consecutively";
+                    phone.focus();
+                    return false;
+                }
+            } else {
+                consecutiveCount = 1;
+            }
+        }
+
+        phoneError.textContent = "";
+        return true;
+    }
+
+    function validatePassword() {
+        var password = document.getElementsByName("password")[0];
+        var passwordError = document.getElementById("password-error");
+        var passwordPattern = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+        if (!passwordPattern.test(password.value)) {
+            passwordError.textContent = "Password should have at least 8 characters, including one uppercase letter, one lowercase letter, one digit, and one special character.";
+            password.focus();
+            return false;
+        }
+        passwordError.textContent = "";
+        return true;
+    }
+
+    function validateConfirmPassword() {
+        var password = document.getElementsByName("password")[0];
+        var cpassword = document.getElementsByName("cpassword")[0];
+        var cpasswordError = document.getElementById("cpassword-error");
+
+        if (password.value !== cpassword.value) {
+            cpasswordError.textContent = "Passwords do not match";
+            cpassword.focus();
+            return false;
+        }
+        cpasswordError.textContent = "";
+        return true;
+    }
+
+    function validateForm() {
+        return (
+            validateName() &&
+            validateUsername() &&
+            validateEmail() &&
+            validateMobileNumber() &&
+            validatePassword() &&
+            validateConfirmPassword()
+        );
+    }
+</script>
+
+<script data-cfasync="false" src="../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+<script src="{% static 'js/main.min.js' %}"></script>
+<script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

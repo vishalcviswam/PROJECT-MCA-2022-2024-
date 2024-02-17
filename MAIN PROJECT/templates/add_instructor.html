@@ -1,0 +1,205 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Instructor</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Roboto', sans-serif;
+        }
+        .container {
+            max-width: 700px;
+            background: white;
+            padding: 25px;
+            margin: 50px auto;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            border-radius: 8px;
+        }
+        .header {
+            background: linear-gradient(60deg, #00C1FE, #FAFFC1);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            margin: -25px -25px 20px -25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header h1 {
+            font-size: 2em;
+        }
+        .form-label {
+            font-weight: 500;
+            color: #333;
+        }
+        .form-control, .btn-primary {
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(0, 193, 254, 0.25);
+        }
+        .btn-primary {
+            padding: 10px 25px;
+            background: #00C1FE;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-primary:hover {
+            background: #00a2d3;
+        }
+        .form-control:hover, .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 15px;
+            }
+        }
+		
+		.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5em;
+	}
+
+	#searchBox {
+		max-width: 200px;
+		display: none;
+	}
+
+	.navbar.bg-light {  
+		background-color: #4cc9f0;
+	}
+
+	.navbar {
+		background-color: #34a0a4 !important;
+	}
+
+	.navbar-logo {
+		width: 30px; 
+		height: 30px; 
+		margin-right: 10px; 
+	}
+	body.night-mode {
+			background-color: #343a40;
+			color: #f8f9fa;
+	}
+
+	body.night-mode .navbar {
+			background-color: #454d55;
+	}
+
+	body.night-mode .profile-sidebar {
+			background-color: #5c636a;
+	}
+	
+	textarea {
+        resize: none;
+    }
+    </style>
+</head>
+<body>
+<nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+    <a class="navbar-brand" href="#">
+        <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+        EduSphere
+    </a>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mx-auto">
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="{% url 'college_user_home' %}"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                <i id="theme-icon" class="fas fa-sun"></i>
+            </li>
+            <li class="nav-item">
+                <div id="searchBox" class="mr-2">
+                    <input type="text" placeholder="Search..." class="form-control">
+                </div>
+            </li>
+            <li class="nav-item">
+                <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+            </li>
+            <li class="nav-item">
+                <img src="{% if user.collegeuser.profile_photo %}{{ user.collegeuser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+            </li>
+        </ul>
+    </div>
+</nav>
+    <div class="container">
+        <div class="header">
+            <h1>Add New Instructor</h1>
+        </div>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="mb-3">
+                <label for="department" class="form-label">Department</label>
+                <select class="form-control" name="department" id="department" required>
+                    <option value="">--Select Department--</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept.id }}">{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="instructorName" class="form-label">Name</label>
+                <input type="text" class="form-control" id="instructorName" name="instructor_name" placeholder="Enter instructor name" required>
+            </div>
+            <div class="mb-3">
+                <label for="instructorCourses" class="form-label">Courses Taught</label>
+                <input type="text" class="form-control" id="instructorCourses" name="subject_taught" placeholder="Enter courses taught" required>
+            </div>
+            <div class="mb-3">
+                <label for="instructorCourses" class="form-label">Qualification</label>
+                <input type="text" class="form-control" id="instructorQualification" name="qualification" placeholder="Enter the qualification">
+            </div>
+            <div class="mb-3">
+                <label for="profilePicture" class="form-label">Instructor Picture</label>
+                <input class="form-control" type="file" id="profilePicture" name="profile_photo">
+            </div>
+            <button type="submit" class="btn btn-primary">Add Instructor</button>
+        </form>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script>
+        function toggleSearch() {
+			const searchBox = document.getElementById('searchBox');
+			if (searchBox.style.display === 'none') {
+				searchBox.style.display = 'block';
+			} else {
+				searchBox.style.display = 'none';
+			}
+		}
+
+		function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            body.classList.toggle('night-mode');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
+        }
+
+    </script>
+</body>
+</html>

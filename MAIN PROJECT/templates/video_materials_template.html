@@ -1,0 +1,7 @@
+{% for video_material in video_materials %}
+  <div class="video-material">
+    <h4>{{ video_material.title }}</h4>
+    <video controls src="{{ video_material.video.url }}" class="img-fluid"></video>
+    <p>{{ video_material.transcript | safe }}</p>
+  </div>
+{% endfor %}

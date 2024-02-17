@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Audio Recorder</title>
+    <style>
+        #transcriptionContainer, #randomContentContainer {
+            margin-top: 20px;
+            border: 1px solid #000;
+            min-height: 50px;
+            padding: 10px;
+
+           
+        }
+    </style>
+    <script>
+        // Function to get the CSRF token from the cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        let mediaRecorder;
+        let audioChunks = [];
+
+        function startRecording() {
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
+                    mediaRecorder.onstop = () => {
+                        document.getElementById('transcribeButton').disabled = false;
+                    };
+                    mediaRecorder.start();
+                    document.getElementById('startButton').disabled = true;
+                    document.getElementById('stopButton').disabled = false;
+                });
+        }
+
+        function stopRecording() {
+            if (mediaRecorder) {
+                mediaRecorder.stop();
+                mediaRecorder.stream.getTracks().forEach(track => track.stop()); // Stop each track on the stream
+                mediaRecorder.onstop = () => {
+                    document.getElementById('transcribeButton').disabled = false;
+                };
+                document.getElementById('startButton').disabled = false;
+                document.getElementById('stopButton').disabled = true;
+            }
+        }
+        
+        function transcribeAudio() {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            sendDataToServer(audioBlob);
+            audioChunks = []; // Clear the chunks array for the next recording
+        }
+
+        function sendDataToServer(audioBlob) {
+            const formData = new FormData();
+            formData.append("audio", audioBlob);
+            const csrftoken = getCookie('csrftoken'); // Get the CSRF token
+        
+            fetch("/upload/", {
+                method: "POST",
+                body: formData,
+                headers: {
+                    "X-CSRFToken": csrftoken // Include the CSRF token in the header
+                },
+                credentials: 'include' // Include cookies in the request (needed for CSRF)
+            })
+            .then(response => response.text())
+            .then(data => {
+                // Assuming the server response is in the format "Transcribed Text: actual transcribed text"
+                // We need to extract the actual transcribed text after the label
+                const transcribedText = data.replace("Transcribed Text: ", "").trim();
+        
+                // Display the transcription in the container
+                document.getElementById('transcriptionContainer').innerText = transcribedText; 
+        
+                // Get the expected text from the randomContentContainer
+                const expectedText = document.getElementById('randomContentContainer').innerText;
+        
+                // Call compareTexts with the expected text and the transcribed text
+                compareTexts(expectedText, transcribedText);
+            });
+        }
+        
+        
+
+        function generateRandomContent() {
+            fetch('/get-random-content/') // URL to the Django view that returns random content
+                .then(response => response.text())
+                .then(text => {
+                    document.getElementById('randomContentContainer').innerText = text;
+                    speakText(text);
+                })
+                .catch(error => {
+                    console.error('Error fetching random content:', error);
+                    document.getElementById('randomContentContainer').innerText = 'Failed to load new content.';
+                });
+        }
+
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                // Optionally set voice, pitch, and rate properties here
+                speechSynthesis.speak(utterance);
+            } else {
+                console.error("Speech synthesis not supported in this browser.");
+            }
+        }
+
+        function speakCurrentText() {
+            const text = document.getElementById('randomContentContainer').innerText;
+            speakText(text);
+        }
+
+        function compareTexts(expectedText, transcribedText) {
+            const normalizeText = (text) => text.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").split(' ').filter(Boolean);
+            
+            const expectedWords = normalizeText(expectedText);
+            const transcribedWords = normalizeText(transcribedText);
+            
+            const missingWords = expectedWords.filter(word => !transcribedWords.includes(word));
+            const extraWords = transcribedWords.filter(word => !expectedWords.includes(word));
+        
+            // Update the page with the results
+            document.getElementById('missingWords').innerText = "Missing Words: " + missingWords.join(', ');
+            document.getElementById('extraWords').innerText = "Extra Words: " + extraWords.join(', ');
+        }
+        
+                
+    </script>
+</head>
+<body>
+
+<div id="randomContentContainer">{{ random_content }}</div>
+<button onclick="generateRandomContent()">Generate Random Content</button>
+<button onclick="speakCurrentText()">Pronounce Text</button>
+
+<div id="missingWords">Missing Words: </div>
+<div id="extraWords">Extra Words: </div>
+
+
+
+<button id="startButton" onclick="startRecording()">Start Recording</button>
+<button id="stopButton" onclick="stopRecording()" disabled>Stop Recording</button>
+<button id="transcribeButton" onclick="transcribeAudio()" disabled>Transcribe</button>
+
+<div id="transcriptionContainer">Transcription will appear here...</div>
+
+</body>
+</html>

@@ -1,0 +1,334 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ course.course_name }} Details</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        .cover-photo {
+            position: relative;
+            text-align: center;
+            color: white;
+        }
+
+        .cover-photo h1, .cover-photo h3 {
+            background: rgba(0, 0, 0, 0.5); /* Adding dark background for better readability */
+        }
+
+        .cover-photo-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+            }
+        
+            #searchBox {
+                max-width: 200px;
+                display: none;
+            }
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
+            }
+        
+            .navbar {
+                background-color: #34a0a4 !important;
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
+
+
+            :root {
+                --primary-color: #007bff;
+                --secondary-color: #6c757d;
+                --background-light: #f8f9fa;
+                --background-dark: #343a40;
+                --text-color: #212529;
+                --text-light: rgba(255, 255, 255, 0.8);
+                --box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                --border-radius: 0.25rem;
+            }
+            
+            body {
+                
+                background-color: var(--background-light);
+                color: var(--text-color);
+            }
+            
+            .cover-photo h1, .cover-photo h3 {
+                background: rgba(0, 0, 0, 0.5); /* Adding dark background for better readability */
+                padding: 0.5em 1em; /* Padding for the text */
+                display: inline-block; /* Wraps the background to the text */
+                border-radius: var(--border-radius); /* Rounded corners for modern look */
+            }
+            
+            .card {
+                background: rgba(255, 255, 255, 0.8); /* Glassmorphism effect */
+                backdrop-filter: blur(10px); /* Frosted glass effect */
+                border: none;
+                box-shadow: var(--box-shadow);
+                border-radius: var(--border-radius);
+            }
+            
+            .card:hover {
+                box-shadow: 0 10px 20px rgba(0,0,0,0.2); /* Deeper shadow on hover */
+            }
+            
+            .btn-primary {
+                background-image: linear-gradient(45deg, #6e45e2 0%, #88d3ce 100%);
+                border: none;
+                box-shadow: var(--box-shadow);
+                transition: transform 0.2s ease-in-out;
+            }
+
+            .cover-photo-text {
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+            }
+
+            .btn-primary:hover {
+                transform: translateY(-3px); /* Button moves up slightly on hover */
+                box-shadow: 0 8px 15px rgba(0,0,0,0.3); /* Deeper shadow on hover */
+            }
+            
+            /* Responsive image for cover photo */
+            .cover-photo img {
+                border-radius: var(--border-radius);
+                box-shadow: var(--box-shadow);
+            }
+            
+            /* Instructor Cards */
+            .instructor-card img {
+                transition: transform 0.3s ease-in-out;
+            }
+            
+            .instructor-card:hover img {
+                transform: scale(1.05); /* Zoom effect on hover */
+            }
+            
+            /* Add your additional styles here */
+            
+            @media (max-width: 768px) {
+                .cover-photo-text {
+                    position: static; /* Adjust text position on smaller screens */
+                    transform: none;
+                    text-align: left;
+                }
+            }
+            
+            /* Accessibility Improvements */
+            a, button {
+                transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+            }
+            
+            a:focus, button:focus {
+                outline: none;
+                box-shadow: 0 0 0 2px var(--primary-color);
+            }
+
+            .cover-photo img {
+                height: 300px; /* Fixed height for the cover photo */
+                width: 100%; /* Full width */
+                object-fit: cover; /* Cover the space without stretching */
+                border-radius: var(--border-radius); /* Optional: if you want rounded corners */
+            }
+            
+            /* Fixed size for instructor profile pictures */
+            .card .instructor-profile-pic {
+                height: 150px; /* Fixed height for profile pictures */
+                width: 100%; /* Full width of the card */
+                object-fit: cover; /* Cover the space without stretching */
+                border-top-left-radius: var(--border-radius); /* Rounded corners at the top */
+                border-top-right-radius: var(--border-radius); /* Rounded corners at the top */
+            }
+
+            .card-body {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between; /* Distribute space evenly */
+                height: calc(100% - 150px); /* Subtract the height of the image from the card's total height */
+            }
+            
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+            EduSphere
+        </a>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="{% url 'college_user_home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                    <i id="theme-icon" class="fas fa-sun"></i>
+                </li>
+                <li class="nav-item">
+                    <div id="searchBox" class="mr-2">
+                        <input type="text" placeholder="Search..." class="form-control">
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+                </li>
+                <li class="nav-item">
+                    <img src="{% if user.collegeuser.profile_photo %}{{ user.collegeuser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                </li>
+            </ul>
+        </div>
+    </nav>
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="cover-photo">
+                <!-- Course Cover Photo -->
+                {% if course.cover_photo %}
+                <img src="{{ course.cover_photo.url }}" class="img-fluid" alt="{{ course.course_name }}">
+                <div class="cover-photo-text">
+                    <h1>{{ course.course_name }}</h1>
+                    <h3>{{ course.college.college_name }}</h3>
+                </div>
+                {% endif %}
+            </div>
+            <!-- Course Fee -->
+            <div class="mt-3 d-flex align-items-center">
+                <h4 class="mr-3">Course Fee: ₹{{ course.course_fee }}</h4>
+                <button onclick="location.href='" type="button" class="btn btn-primary">Edit</button>
+            </div>
+            <!-- Course Details -->
+            <div class="mt-3">
+                <h5>Course Description:</h5>
+                <p>{{ course.course_description }}</p>
+            </div>
+            <!-- Modules and Chapters -->
+            <div class="mt-3">
+                <h5>Modules:</h5>
+                    {% for module in course.module_set.all %}
+                        <div class="module">
+                            <h6>{{ module.module_name }}</h6>
+                            <ul>
+                            {% for chapter in module.chapters.all %}
+                                <li>
+                                    Chapter {{ forloop.counter }}: {% if chapter.id %}
+                                        <a href="{% url 'chapter_details' chapter.chapter_id %}">{{ chapter.chapter_name }}</a>
+                                    {% else %}
+                                        {{ chapter.chapter_name }} (No details available)
+                                    {% endif %}
+                                </li>
+                            {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+
+            </div>
+        </div>
+        <!-- Sidebar for course attributes -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Course Details</h5>
+                    <p class="card-text">Duration: {{ course.course_duration }} hours</p>
+                    <p class="card-text">Languages: {{ course.languages }}</p>
+                    <p class="card-text">Level: {{ course.course_level }}</p>
+                    <p class="card-text">Exam: {% if course.exam %}Yes{% else %}No{% endif %}</p>
+                    {% if course.exam %}
+                        <p class="card-text">Number of Exams: {{ course.exam_types|length }}</p>
+                    {% endif %}
+                    <p class="card-text">Assignment: {% if course.assignment %}Yes{% else %}No{% endif %}</p>
+                    {% if course.assignment %}
+                        <p class="card-text">Number of Assignments: {{ course.total_assignments }}</p>
+                    {% endif %}
+                    <p class="card-text">Certificate: {% if course.certificate_available %}Yes{% else %}No{% endif %}</p>
+                </div>
+            </div>
+        </div>
+        <div class="mt-3">
+            <h5>Instructors:</h5>
+            <div class="row">
+                {% for instructor in course.instructors.all %}
+                    <div class="col-sm-6 col-md-4 col-lg-3 mb-3">
+                        <div class="card">
+                            {% if instructor.profile_photo %}
+                                <img src="{{ instructor.profile_photo.url }}" class="card-img-top" alt="{{ instructor.instructor_name }}">
+                            {% endif %}
+                            <div class="card-body">
+                                <h6 class="card-title">{{ instructor.instructor_name }}</h6>
+                                <!-- Add other instructor details you want to display -->
+                                <p class="card-text">Department: {{ instructor.department.name }}</p>
+                                <p class="card-text">Qualification: {{ instructor.qualification }}</p>
+                                <!-- Add a link if there's a detail view for instructors -->
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No instructors available for this course.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+    function toggleSearch() {
+        const searchBox = document.getElementById('searchBox');
+        if (searchBox.style.display === 'none') {
+            searchBox.style.display = 'block';
+        } else {
+            searchBox.style.display = 'none';
+        }
+    }
+
+    function toggleTheme() {
+        const body = document.body;
+        const themeIcon = document.getElementById('theme-icon');
+        body.classList.toggle('night-mode');
+        themeIcon.classList.toggle('fa-sun');
+        themeIcon.classList.toggle('fa-moon');
+    }
+
+</script>
+</body>
+</html>

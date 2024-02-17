@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Social Media Profile</title>
+  <!-- Include Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <!-- Include FontAwesome CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css">
+  <style>
+    .navbar { margin-bottom: 0; }
+    .cover-photo { width: 100%; height: 300px; position: relative; overflow: hidden; }
+    .cover-photo img { width: 100%; height: 100%; object-fit: cover; }
+    .profile-pic { width: 150px; height: 150px; border: 4px solid white; position: relative; margin: -75px auto 10px; }
+    .profile-info h2, .profile-info p { text-align: center; margin: 0; padding: 10px 0; }
+    .custom-button-bar {
+      display: flex;
+      width: 100%;
+      justify-content: space-between; /* Make the buttons span the entire width */
+    }
+    .custom-button {
+      flex: 1;
+      background: #007BFF;
+      color: white;
+      border: none;
+    }
+    .iframe-container {
+      width: 100%;
+      height: 500px; /* Adjust the height as needed */
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+  <a class="navbar-brand" href="#">Profile</a>
+  <div class="collapse navbar-collapse">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Course</a></li>
+      <li class="nav-item"><a class="nav-link" href="#">Queries</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Cover Photo and Profile Pic -->
+<div class="cover-photo">
+  <img src="{{ user.normaluser.cover_photo.url }}" alt="Cover Photo">
+</div>
+
+<div class="container">
+  <!-- Profile details -->
+  <div class="profile-info">
+    <center>
+      <img src="{{ user.normaluser.profile_photo.url }}" alt="Profile Picture" class="profile-pic rounded-circle img-thumbnail">
+    </center>
+    
+    {% if user.is_authenticated %}
+    <h2 class="modal-title">{{ user.username }}</h2>
+    <p>{{ user.normaluser.about_me }}</p>
+    {% endif %}
+  </div>
+
+  <!-- Button bar -->
+  <div class="custom-button-bar">
+    <a class="custom-button" href="{% url 'viewprofile' %}" ><i class="fas fa-user"></i> View Profile</a>
+    <a class="custom-button" href="{% url 'update_profile' %}"><i class="fas fa-edit"></i> Edit Profile</a>
+    <a class="custom-button" href="#"><i class="fas fa-book-open"></i> View Courses</a>
+  </div>
+  
+  <input type="hidden" id="viewProfileUrl" value="{%  url 'viewprofile' %}">
+  <input type="hidden" id="editProfileUrl" value="{%  url 'update_profile' %}"> 
+
+  <!-- Individual Containers -->
+  <div class="iframe-container">
+  <iframe id="pageContainer" src="" frameborder="0"></iframe>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+    function loadProfilePage() {
+      var viewProfileUrl = document.getElementById("viewProfileUrl").value;
+      document.getElementById("pageContainer").src = viewProfileUrl;
+    }
+  
+    function loadEditProfilePage() {
+      var editProfileUrl = document.getElementById("editProfileUrl").value;
+      document.getElementById("pageContainer").src = editProfileUrl;
+    }
+  
+    function loadCoursesPage() {
+      document.getElementById("pageContainer").src = "";
+    }
+  </script>
+</body>
+</html>
+
+

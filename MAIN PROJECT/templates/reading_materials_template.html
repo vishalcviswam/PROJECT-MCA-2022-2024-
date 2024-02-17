@@ -1,0 +1,53 @@
+{% for reading_material in reading_materials %}
+  <div class="reading-material">
+    <h4>{{ reading_material.title }}</h4>
+    <p>{{ reading_material.text_content }}</p>
+    {% if reading_material.images %}
+      <img src="{{ reading_material.images.url }}" alt="{{ reading_material.title }}">
+    {% endif %}
+    <!-- Add a checkbox for marking completion -->
+    
+{% endfor %}
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+  // Helper function to get the CSRF token from cookies
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  // Function that updates the progress of a chapter
+  function updateProgress(chapterId, isComplete) {
+    // Prepare the data to send in the request
+    const data = {
+      chapter_id: chapterId,
+      completed: isComplete,
+      csrfmiddlewaretoken: getCookie('csrftoken') // Get the CSRF token
+    };
+
+    // Send the data to the server using AJAX
+    $.post('/update_progress/', data, function(response) {
+      if (response.status === 'success') {
+        // Optionally, update the UI to reflect the progress change
+        console.log(`Progress updated for chapter ${chapterId}: ${isComplete}`);
+      } else {
+        // Handle any errors
+        console.error('Failed to update progress:', response.error);
+      }
+    });
+  }
+</script>
+
+

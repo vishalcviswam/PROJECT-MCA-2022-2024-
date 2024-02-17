@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- Add Bootstrap CSS (you can replace the link with your own Bootstrap CSS file) -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Custom CSS for the dashboard */
+        .sidebar {
+            height: 100%;
+            width: 250px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #007BFF; /* Blue background color */
+            color: #fff;
+            padding: 20px;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.3);
+            z-index: 1;
+            transition: 0.5s;
+        }
+
+        .sidebar:hover {
+            width: 280px; /* Expand the sidebar on hover */
+        }
+
+        .content {
+            margin-left: 250px;
+            padding: 20px;
+        }
+
+        .content h1 {
+            margin-bottom: 20px;
+        }
+
+        .nav-link {
+            color: #fff;
+        }
+
+        .nav-link:hover {
+            background-color: #555;
+        }
+
+        .card {
+            margin-bottom: 20px;
+        }
+		
+		.theme-toggle-btn {
+            cursor: pointer;
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border-radius: 5px;
+            z-index: 2;
+        }
+
+        /* Night Mode Styles */
+        body.night-mode {
+            background-color: #343a40;
+            color: #adb5bd;
+        }
+
+        body.night-mode .sidebar {
+            background-color: #495057;
+        }
+
+        body.night-mode .card {
+            background-color: #495057;
+            color: #adb5bd;
+        }
+
+        body.night-mode .nav-link {
+            color: #adb5bd;
+        }
+        
+        body.night-mode .nav-link:hover {
+            background-color: #6c757d;
+        }
+
+        .logout-btn {
+            position: absolute;
+            bottom: 20px;
+            width: calc(100% - 40px); /* Subtract padding */
+        }
+
+        .table {
+            border-collapse: collapse;
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+
+        .table th, .table td {
+            text-align: left;
+            padding: 8px;
+        }
+
+        .table th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .table tr:nth-child(even){background-color: #f2f2f2}
+
+        .table tr:hover {background-color: #ddd;}
+
+        .btn-sm {
+            padding: .25rem .5rem;
+            font-size: .875rem;
+            line-height: 1.5;
+            border-radius: .2rem;
+        }
+
+        .btn-action {
+            margin-right: 4px;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        /* The Modal (background) */
+        .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        }
+
+        /* Modal Content/Box */
+        .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto; /* 15% from the top and centered */
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%; /* Could be more or less, depending on screen size */
+        }
+
+        /* The Close Button */
+        .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+        }
+
+        /* Additional CSS for a larger textarea */
+        .textarea-reason {
+            width: 100%;      /* Full width of the modal content */
+            height: 150px;    /* Larger height for more text */
+            margin-top: 10px; /* Some space above the textarea */
+            margin-bottom: 20px; /* Some space below the textarea */
+            padding: 10px;   /* Padding inside the textarea */
+            font-size: 16px; /* Optional: Larger font size for the text inside the textarea */
+        }
+
+
+    </style>
+</head>
+<body>
+<div class="theme-toggle-btn" onclick="toggleTheme()">Change Theme</div>
+    <div class="sidebar">
+        <h2>Admin</h2>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">
+                    All Users
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">
+                    Users
+                </a>
+            </li>
+            <!--<li class="nav-item">
+                <a class="nav-link" href="#">
+                    Courses
+                </a>
+            </li>-->
+        </ul>
+        <a href="{% url 'logoutp' %}" class="btn btn-danger logout-btn" role="button">Logout</a>
+    </div>
+
+    <div class="content">
+            <h1>All Users</h1>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th scope="col">Username</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Registration Date</th>
+                            <th scope="col">Status</th>
+                            <th scope="col">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.date_joined }}</td>
+                            <td>
+                                <span class="badge {% if user.is_active %}badge-success{% else %}badge-secondary{% endif %}">
+                                    {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                {% if user.is_active %}
+                                    <!-- Trigger/Open The Modal -->
+                                    <button id="deactivateBtn{{ user.id }}" class="btn btn-danger" onclick="openModal({{ user.id }})">Deactivate</button>
+
+                                    <!-- The Modal -->
+                                    <div id="deactivateModal{{ user.id }}" class="modal">
+
+                                        <!-- Modal content -->
+                                        <div class="modal-content">
+                                            <span class="close" onclick="closeModal({{ user.id }})">&times;</span>
+                                            <form method="post" action="{% url 'toggle_user_activation' user.id %}">
+                                                {% csrf_token %}
+                                                <h2>Deactivate Account</h2>
+                                                <p>Please enter the reason for deactivation:</p>
+                                                <textarea name="reason" placeholder="Enter reason for deactivation" class="textarea-reason"></textarea>
+                                                <button type="submit" class="btn btn-danger">Send and Deactivate</button>
+                                            </form>
+                                        </div>
+
+                                    </div>
+                                {% else %}
+                                <a href="{% url 'toggle_user_activation' user.id %}" class="btn btn-success">Activate</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Bootstrap JS and Popper.js (you can replace the links with your own Bootstrap JS files) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+	<script>
+        // Function to toggle light/night mode
+        function toggleTheme() {
+            document.body.classList.toggle('night-mode');
+        }
+
+        function openModal(userId) {
+            var modal = document.getElementById('deactivateModal' + userId);
+            modal.style.display = "block";
+        }
+        
+        // When the user clicks on <span> (x), close the modal
+        function closeModal(userId) {
+            var modal = document.getElementById('deactivateModal' + userId);
+            modal.style.display = "none";
+        }
+        
+        // When the user clicks anywhere outside of the modal, close it
+        window.onclick = function(event) {
+            var modals = document.getElementsByClassName('modal');
+            for (var i = 0; i < modals.length; i++) {
+                if (event.target == modals[i]) {
+                    modals[i].style.display = "none";
+                }
+            }
+        }
+    </script>
+</body>
+</html>

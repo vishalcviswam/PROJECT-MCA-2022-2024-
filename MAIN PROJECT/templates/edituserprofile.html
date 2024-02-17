@@ -1,0 +1,328 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f4f7f6;
+            font-family: 'Arial', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+        }
+        .profile-img-container {
+            position: relative;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .profile-img-container img {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 6px solid #fff;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .profile-img-container label {
+            position: absolute;
+            bottom: 0;
+            right: 110px;
+            background: #007bff;
+            color: #fff;
+            border-radius: 50%;
+            font-size: 20px;
+            padding: 10px;
+            cursor: pointer;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .profile-img-container input[type="file"] {
+            display: none;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .form-control, .form-select {
+            border-radius: 20px;
+        }
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+        }
+		
+		.cover-photo-container {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .cover-photo-container input[type="file"] {
+            display: none;
+        }
+        .change-cover-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .change-cover-btn:hover {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+		
+		.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5em;
+	}
+
+	#searchBox {
+		max-width: 200px;
+        display: none;
+	}
+
+	.navbar.bg-light {  
+		background-color: #4cc9f0;
+	}
+
+	.navbar {
+		background-color: #468faf !important;
+	}
+
+	.navbar-logo {
+		width: 30px; 
+		height: 30px; 
+		margin-right: 10px; 
+	}
+	body.night-mode {
+			background-color: #343a40;
+			color: #f8f9fa;
+	}
+
+	body.night-mode .navbar {
+			background-color: #454d55;
+	}
+
+	body.night-mode .profile-sidebar {
+			background-color: #5c636a;
+	}
+    textarea {
+        resize: none;
+    }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+    <a class="navbar-brand" href="#">
+        <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+        EduSphere
+    </a>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav mx-auto">
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+            </li>
+            <li class="nav-item mx-5">
+                <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                <i id="theme-icon" class="fas fa-sun"></i>
+            </li>
+            <li class="nav-item">
+                <div id="searchBox" class="mr-2">
+                    <input type="text" placeholder="Search..." class="form-control">
+                </div>
+            </li>
+            <li class="nav-item">
+                <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+            </li>
+            <li class="nav-item">
+                <img src="{% if user.normaluser.profile_photo %}{{ user.normaluser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+            </li>
+        </ul>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="card p-4">
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+	<div class="cover-photo-container mb-3" style="background-image: url('{% static 'images/img11.jpg' %}');" id="cover-photo">
+            <label class="change-cover-btn" for="cover-photo-input"><i class="fas fa-camera"></i> Change Cover</label>
+            <input id="cover-photo-input" type="file" onchange="loadCover(event)" name="cover_photo" value="{% if user.normaluser.cover_photo %}{{ user.normaluser.cover_photo.url }}{% else %}{% static 'images/img11.jpg' %}{% endif %}" accept="image/*"/>
+        </div>
+        <div class="profile-img-container">
+            <img id="profile-img" src="{% if user.normaluser.profile_photo %}{{ user.normaluser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Image"/>
+            <label class="change-profile-btn" for="profile-img-input"><i class="fas fa-camera"></i></label>
+            <input id="profile-img-input" type="file" onchange="loadFile(event)" name="profile_photo" value="{% if user.normaluser.profile_photo %}{{ user.normaluser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" accept="image/*"/>
+        </div>
+            <div class="mb-3">
+                <label for="firstname" class="form-label">First Name</label>
+                <input type="text" class="form-control" id="first_name" placeholder="First Name" name="first_name" value="{{ normal_user.first_name }}" onblur="validateName()">
+                <p id="name-error" class="error-message"></p>
+            </div>
+			<div class="mb-3">
+                <label for="lastname" class="form-label">Last Name</label>
+                <input type="text" class="form-control" id="last_name" placeholder="Last Name" name="last_name" value="{{ normal_user.last_name }}" onblur="validatelName()">
+                <p id="lname-error" class="error-message"></p>
+            </div>
+            <div class="mb-3">
+                <label for="bio" class="form-label">Bio</label>
+                <textarea class="form-control" id="bio" rows="3" placeholder="A short bio..." name="about_me" rows="5" value="{{ user.normaluser.about_me }}"></textarea>
+            </div>
+            <div class="mb-3">
+                <label for="phone" class="form-label">Phone Number</label>
+                <input type="tel" class="form-control" id="phone" placeholder="Phone Number" name="phone_number" value="{{ normal_user.phone_number }}" onblur="validateMobileNumber()">
+                <p id="phone-error" class="error-message"></p>
+            </div>
+            <div class="mb-3">
+                <label for="gender" class="form-label">Gender</label>
+                <select class="form-select" id="gender" name="gender" value="{{ normal_user.gender }}">
+                    <option selected>Choose...</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Function to preview image after selecting
+    const loadFile = function(event) {
+        const output = document.getElementById('profile-img');
+        output.src = URL.createObjectURL(event.target.files[0]);
+        output.onload = function() {
+            URL.revokeObjectURL(output.src) // free memory
+        }
+	};
+	const loadCover = function(event) {
+        const cover = document.getElementById('cover-photo');
+        cover.style.backgroundImage = `url(${URL.createObjectURL(event.target.files[0])})`;
+        cover.onload = function() {
+            URL.revokeObjectURL(cover.style.backgroundImage) // free memory
+        }
+    };
+	
+	function toggleSearch() {
+			const searchBox = document.getElementById('searchBox');
+			if (searchBox.style.display === 'none') {
+				searchBox.style.display = 'block';
+			} else {
+				searchBox.style.display = 'none';
+			}
+		}
+
+		function toggleTheme() {
+            const body = document.body;
+            const themeIcon = document.getElementById('theme-icon');
+            body.classList.toggle('night-mode');
+            themeIcon.classList.toggle('fa-sun');
+            themeIcon.classList.toggle('fa-moon');
+        }
+    
+    function validateName() {
+        var name = document.getElementById("first_name");
+        var nameError = document.getElementById("name-error");
+    
+        if (!/^[A-Za-z]+$/.test(name.value)) {
+            nameError.textContent = "First Name should only contain letters";
+            name.focus();
+            return false;
+        }
+        nameError.textContent = "";
+        return true;
+    }
+    
+    function validatelName() {
+        var lname = document.getElementById("last_name");
+        var lnameError = document.getElementById("lname-error");
+    
+        if (!/^[A-Za-z]+$/.test(lname.value)) {
+            lnameError.textContent = "Last Name should only contain letters";
+            lname.focus();
+            return false;
+        }
+        lnameError.textContent = "";
+        return true;
+    }
+
+    function validateMobileNumber() {
+        var phone = document.getElementsByName("phone_number")[0];
+        var phoneError = document.getElementById("phone-error");
+        var phonePattern = /^[6-9]\d{9,12}$/;
+
+        if (!phonePattern.test(phone.value)) {
+            phoneError.textContent = "Please enter a valid phone number starting from 6 to 9 and between 10 to 13 digits";
+            phone.focus();
+            return false;
+        }
+
+        // Check if the same digit occurs more than 4 times randomly or consecutively
+        var phoneDigits = phone.value.split('');
+        var consecutiveCount = 1;
+        for (var i = 1; i < phoneDigits.length; i++) {
+            if (phoneDigits[i] === phoneDigits[i - 1]) {
+                consecutiveCount++;
+                if (consecutiveCount > 4) {
+                    phoneError.textContent = "The same number should not occur more than 4 times consecutively";
+                    phone.focus();
+                    return false;
+                }
+            } else {
+                consecutiveCount = 1;
+            }
+        }
+
+        phoneError.textContent = "";
+        return true;
+    }
+
+    function validateForm() {
+        return (
+            validateName() &&
+            validatelName() &&
+            validateUsername() &&
+            validateEmail() &&
+            validateMobileNumber() &&
+            validatePassword() &&
+            validateConfirmPassword()
+        );
+    }
+
+
+	
+</script>
+</body>
+</html>
