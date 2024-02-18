@@ -37,10 +37,18 @@ dependencies:
   cupertino_icons: ^1.0.2
   http: ^1.2.1
   leak_tracker: ^10.0.0
+  video_player: ^2.2.14
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: "^0.13.1"
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/esf21.png"
+    
     
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -55,6 +63,9 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
+
+  assets:
+      - assets/
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

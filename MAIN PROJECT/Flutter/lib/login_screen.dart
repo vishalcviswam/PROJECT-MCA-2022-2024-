@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'user_profile_screen.dart'; // Make sure to create this file
+import 'main.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -18,37 +19,36 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> loginUser() async {
-    final uri = Uri.parse('http://10.0.2.2:8000/api/mobile/login/'); // Update to match your API
-    final headers = {'Content-Type': 'application/json'};
-    final body = jsonEncode({
-      'username': _usernameController.text,
-      'password': _passwordController.text,
-    });
+  final uri = Uri.parse('http://10.0.2.2:8000/api/mobile/login/');
+  final headers = {'Content-Type': 'application/json'};
+  final body = jsonEncode({
+    'username': _usernameController.text,
+    'password': _passwordController.text,
+  });
 
-    try {
-      final response = await http.post(uri, headers: headers, body: body);
-      if (response.statusCode == 200) {
-        // Assuming the API returns a JSON object with a token and username
-        final responseData = json.decode(response.body);
-        var username = responseData['username']; // Adjust based on your API's response structure
-        
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => UserProfileScreen(username: username)),
-        );
-      } else {
-        // If the server did not return a 200 OK response,
-        // then parse the response body if possible and log it to the console
-        final responseBody = json.decode(response.body);
-        print('Failed to login. Status Code: ${response.statusCode}');
-        print('Response body: ${responseBody}');
-        _showDialog('Error', responseBody['error'] ?? 'Failed to login. Please check your credentials.');
-      }
-
-    } catch (e) {
-      print(e.toString());
-      _showDialog('Error', 'An error occurred. Please try again later.');
+  try {
+    final response = await http.post(uri, headers: headers, body: body);
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => UserProfileScreen(
+            username: responseData['username'],
+            email: responseData['email'] ?? '', // Provide a default empty string if null
+            profilePhotoUrl: responseData['profile_photo'] ?? '', // Default empty string if null
+            coverPhotoUrl: responseData['cover_photo'] ?? '', // Default empty string if null
+          ),
+        ),
+      );
+    } else {
+      final responseBody = json.decode(response.body);
+      _showDialog('Error', responseBody['error'] ?? 'Failed to login. Please check your credentials.');
     }
+  } catch (e) {
+    _showDialog('Error', 'An error occurred. Please try again later.');
   }
+}
+
 
   void _showDialog(String title, String content) {
     showDialog(
@@ -70,51 +70,110 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Login'),
+        title: Text('Login'),
+        centerTitle: true,
+        elevation: 10,
+        shadowColor: Colors.blueGrey.withOpacity(0.5),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.deepPurple, Colors.cyan],
+              begin: Alignment.topRight,
+              end: Alignment.bottomLeft,
+            ),
+          ),
+        ),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios, color: Colors.white),
+          onPressed: () {
+            // Explicitly navigate back to the RegistrationScreen
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+            );
+          },
+        ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
+      body: Container(
+        padding: EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topRight,
+            end: Alignment.bottomLeft,
+            colors: [
+              Colors.deepPurple.shade100.withOpacity(0.2),
+              Colors.cyan.shade100.withOpacity(0.2),
+            ],
+          ),
+        ),
         child: Form(
           key: _formKey,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
-              TextFormField(
-                controller: _usernameController,
-                decoration: const InputDecoration(labelText: 'Username'),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your username';
+              buildCustomTextField(_usernameController, 'Username', Icons.person),
+              SizedBox(height: 20),
+              buildCustomTextField(_passwordController, 'Password', Icons.lock, isPassword: true),
+              SizedBox(height: 30),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  foregroundColor: Colors.white, backgroundColor: Colors.deepPurple, // Text color
+                  padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  elevation: 10,
+                  shadowColor: Colors.deepPurpleAccent,
+                ),
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    loginUser();
                   }
-                  return null;
                 },
+                child: Text('Login', style: TextStyle(fontSize: 18)),
               ),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(labelText: 'Password'),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  return null;
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (_formKey.currentState!.validate()) {
-                      loginUser();
-                    }
-                  },
-                  child: const Text('Login'),
+              SizedBox(height: 20),
+              TextButton(
+                onPressed: () => Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (context) => const RegistrationScreen()),
+                ),
+                child: Text(
+                  'New user? Register here',
+                  style: TextStyle(
+                    color: Colors.deepPurple.shade700,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget buildCustomTextField(
+      TextEditingController controller, String label, IconData icon,
+      {bool isPassword = false}) {
+    return TextFormField(
+      controller: controller,
+      obscureText: isPassword,
+      decoration: InputDecoration(
+        prefixIcon: Icon(icon, color: Colors.deepPurple),
+        labelText: label,
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.9),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(25.0),
+          borderSide: BorderSide.none,
+        ),
+        contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 15.0),
+      ),
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Please enter your $label';
+        }
+        return null;
+      },
     );
   }
 }
