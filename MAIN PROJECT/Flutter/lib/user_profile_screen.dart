@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'login_screen.dart';
+
 
 class UserProfileScreen extends StatefulWidget {
   final String username;
@@ -85,8 +87,20 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
-              onTap: () {
-                // Implement logout functionality here
+              onTap: () async {
+                // If you're using a package like shared_preferences to store auth tokens:
+                // final prefs = await SharedPreferences.getInstance();
+                // await prefs.remove('authToken');
+
+                // If you're using some kind of global state management, update it here.
+                // For example, with a provider package:
+                // Provider.of<AuthModel>(context, listen: false).logout();
+
+                // Navigate back to the login screen.
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  ModalRoute.withName('/'),
+                );
               },
             ),
           ],
