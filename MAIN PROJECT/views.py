@@ -7,9 +7,9 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import get_list_or_404, render, redirect
-from .models import AudioFile, ContentCreator, CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Post, Progress, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion ,Award, Document, Education, WorkExperience
+from .models import AudioFile, ContentCreators, CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Post, Progress, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
 
-from datetime import date, timezone
+from datetime import date, timedelta, timezone
 from django.db import IntegrityError
 from django.shortcuts import render, get_object_or_404
 from django.http import FileResponse, Http404, HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseRedirect, JsonResponse
@@ -53,7 +53,6 @@ import tempfile
 from pathlib import Path
 import traceback
 import uuid
-
 import random
 
 
@@ -96,7 +95,7 @@ def profile2(request):
 
 @login_required(login_url='loginnew')
 def creatorprofile(request):
-    content_creator = request.user.contentcreator
+    content_creator = request.user.contentcreators
 
     context = {
         'content_creator': content_creator,
@@ -183,7 +182,7 @@ def register_content_creator(request):
             #messages.info(request,"Active your account by clicking the link send to your email")
 
             
-            content_creator = ContentCreator(user=user, phone_number=phone, first_name=fname, last_name=lname)
+            content_creator = ContentCreators(user=user, phone_number=phone, first_name=fname, last_name=lname)
             content_creator.save()
 
             return redirect('loginnew')
@@ -820,17 +819,27 @@ def course_list(request):
 
 @login_required
 def course_list_college(request):
+    courses = Course.objects.none()  # Initialize with no courses
+    template_name = ''  # Initialize the template name
+
+    # Check if the user is associated with a CollegeUser
     try:
         college_user = request.user.collegeuser
-    except CollegeUser.DoesNotExist:
-        college_user = None
-    
-    if college_user:
         courses = Course.objects.filter(college=college_user)
-    else:
-        courses = Course.objects.none()
+        template_name = 'courseview.html'  # CollegeUser's template
+    except CollegeUser.DoesNotExist:
+        # If not a CollegeUser, check if the user is a ContentCreator
+        try:
+            content_creator = request.user.contentcreators  # Adjust according to your User model's related name
+            courses = Course.objects.filter(content_creator=content_creator)
+            template_name = 'courseview_creator.html'  # ContentCreator's template
+        except ContentCreators.DoesNotExist:
+            # If the user is neither, this block will be executed.
+            # Since you've mentioned no need for a default HTML, consider how you want to handle this case.
+            # For the purpose of this example, we'll assume every user must be one or the other.
+            pass
 
-    return render(request, 'courseview.html', {'courses': courses})
+    return render(request, template_name, {'courses': courses})
 
 
 def course_detail(request, course_id):
@@ -841,6 +850,16 @@ def course_detail(request, course_id):
     }
 
     return render(request, 'coursedetails.html', context)
+
+
+def course_detail_creator(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+
+    context = {
+        'course': course,
+    }
+
+    return render(request, 'coursedetailcreator.html', context)
 
 
 def course_detail_user(request, course_id):
@@ -1063,18 +1082,14 @@ def update_progress(request):
 
 @login_required
 def download_certificate(request, course_id):
-    # Get the course instance and user details
     course = get_object_or_404(Course, pk=course_id)
     user = request.user
     normal_user = request.user.normaluser
 
-    # Create a file-like buffer to receive PDF data
     buffer = BytesIO()
 
-    # Create the PDF object, using the buffer as its "file"
     p = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter  # save the dimensions of the page size
-
+    width, height = letter  
 
     # Draw a gradient background
     p.saveState()
@@ -1249,7 +1264,10 @@ def view_saved_posts(request):
 
 
 def get_trending_hashtags():
-    all_posts = Post.objects.all()
+    now = timezone.now()
+    twenty_four_hours_ago = now - timedelta(hours=24)
+
+    all_posts = Post.objects.filter(created_at__gte=twenty_four_hours_ago)
     
     hashtags_counter = Counter()
     
@@ -1261,7 +1279,7 @@ def get_trending_hashtags():
     
     trending_with_details = []
     for hashtag, count in trending_hashtags:
-        posts = Post.get_posts_by_hashtag(hashtag)
+        posts = Post.get_posts_by_hashtag(hashtag).filter(created_at__gte=twenty_four_hours_ago)
         if posts.exists():
             post = posts.first()
             trending_with_details.append({
@@ -1273,6 +1291,8 @@ def get_trending_hashtags():
     
     return trending_with_details
 
+
+
 def posts_by_hashtag(request, hashtag):
     posts = Post.get_posts_by_hashtag(hashtag)
     return render(request, 'collegehome.html', {'posts': posts, 'hashtag': hashtag})
@@ -1280,24 +1300,22 @@ def posts_by_hashtag(request, hashtag):
 
 
 def get_trending_hashtagss():
-    # Get all posts
-    all_posts = Post.objects.all()
+    now = timezone.now()
+    twenty_four_hours_ago = now - timedelta(hours=24)
+
+    all_posts = Post.objects.filter(created_at__gte=twenty_four_hours_ago)
     
-    # Create a counter to hold the hashtags and their counts
     hashtags_counter = Counter()
     
-    # Go through all posts and update the counter with hashtags from each post
     for post in all_posts:
         hashtags_in_post = post.get_hashtags()
         hashtags_counter.update(hashtags_in_post)
     
-    # Get the most common hashtags - specify the number of top trending hashtags you want
     trending_hashtags = hashtags_counter.most_common(10)
     
-    # Include college name and photo in the trending data
     trending_with_details = []
     for hashtag, count in trending_hashtags:
-        posts = Post.get_posts_by_hashtag(hashtag)
+        posts = Post.get_posts_by_hashtag(hashtag).filter(created_at__gte=twenty_four_hours_ago)
         if posts.exists():
             post = posts.first()
             trending_with_details.append({
@@ -1398,6 +1416,216 @@ def upload(request):
     return render(request, 'upload.html', {'random_content': random_sentence})
 
 
+@login_required(login_url='loginnew')
+def add_course_by_creator(request):
+    if not request.user.is_authenticated or not request.user.is_content_creator:
+        return redirect('loginnew') 
+    if request.method == 'POST':
+        course_name = request.POST['course_name']
+        course_duration = request.POST['course_duration']
+        course_fee = request.POST['course_fee']
+        course_description = request.POST['course_description']
+        selected_languages = request.POST.getlist('languages')
+        selected_exam_types = request.POST.getlist('exam_types')
+        selected_course_tags = request.POST.getlist('course_tags')
+        course_level = request.POST['course_level']
+        certificate_available = 'certificate_available' in request.POST
+        certificate_criteria = request.POST.get('certificate_criteria', '')
+        exam = 'exam' in request.POST
+        assignment = 'assignment' in request.POST
+        total_assignments_str = request.POST.get('total_assignments', '0')
+        total_assignments = int(total_assignments_str) if total_assignments_str.isdigit() else 0
+        cover_photo = request.FILES.get('cover_photo')
+
+        user = request.user
+        content_creator = ContentCreators.objects.get(user=user)
+
+        course = Course(
+            content_creator=content_creator,
+            course_name=course_name,
+            course_duration=course_duration,
+            course_fee=course_fee,
+            course_description=course_description,
+            languages=",".join(selected_languages),
+            exam_types=",".join(selected_exam_types),
+            course_tags=",".join(selected_course_tags),
+            course_level=course_level,
+            certificate_available=certificate_available,
+            certificate_criteria=certificate_criteria if certificate_available else '',
+            exam=exam,
+            assignment=assignment,
+            total_assignments=total_assignments if assignment else 0,
+            cover_photo=cover_photo,
+        )
+        course.save()
+
+
+        return redirect('add_modulesnew',course_id=course.course_id)
+    else:
+        
+        return render(request, 'add_course_creator.html')
+
+@login_required
+def add_modulesnew(request, course_id):
+    course = get_object_or_404(Course, course_id=course_id)
+    
+    if request.method == 'POST':
+        module_names = request.POST.getlist('module_names[]')
+        
+        for name in module_names:
+            Module.objects.create(course=course, module_name=name)
+        
+        return redirect('add_chaptersnew',course_id=course.course_id)  
+
+    return render(request, 'add_modules_for_creator.html', {'course': course})
+
+
+def add_chaptersnew(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    modules = course.module_set.all()  
+
+    if request.method == 'POST':
+
+        module_ids = request.POST.getlist('module_ids[]')
+        num_chapters_list = request.POST.getlist('num_chapters[]')
+
+        for index, module_id in enumerate(module_ids):
+            num_chapters = int(num_chapters_list[index])
+            chapter_names = request.POST.getlist(f'chapter_names_{module_id}[]')
+
+            if num_chapters == len(chapter_names):
+                module = get_object_or_404(Module, pk=module_id)
+                
+                for name in chapter_names:
+                    Chapter.objects.create(module=module, chapter_name=name)
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Chapter count mismatch.'})
+
+        return redirect('add_course_materialnew', course_id=course_id)
+
+    else:
+        return render(request, 'add_chapters_for_creator.html', {'course': course, 'modules': modules})
+        
+
+def add_course_materialnew(request, course_id):
+    course = get_object_or_404(Course, pk=course_id)
+    completed_modules = request.session.get('completed_modules', [])
+
+    modules = Module.objects.filter(course=course).exclude(module_id__in=completed_modules)
+
+    if request.method == 'POST':
+        print(request.POST)
+        print(request.FILES)
+
+        module_id = request.POST.get('module_id')
+        module = get_object_or_404(Module, module_id=module_id)
+        chapters = module.chapters.all()
+
+        for chapter in chapters:
+            material_type_key = f'material_type_{chapter.chapter_id}'
+            material_type = request.POST.get(material_type_key)
+            print(f"Chapter ID: {chapter.chapter_id}, Material Type: {material_type}")
+
+            if not material_type:
+                print(f"No material type provided for chapter ID {chapter.chapter_id}")
+                continue
+
+            try:
+                if material_type == 'reading':
+                    title_key = f'reading_title_{chapter.chapter_id}'
+                    text_content_key = f'reading_text_content_{chapter.chapter_id}'
+                    image_key = f'reading_images_{chapter.chapter_id}'
+
+                    title = request.POST.get(title_key)
+                    text_content = request.POST.get(text_content_key)
+                    images = request.FILES.get(image_key) if image_key in request.FILES else None
+
+                    ReadingMaterial.objects.create(
+                        chapter=chapter,
+                        title=title,
+                        text_content=text_content,
+                        images=images
+                    )
+                    print(f"Reading material created for Chapter ID: {chapter.chapter_id}")
+
+                elif material_type == 'video':
+                    video_key = f'video_video_{chapter.chapter_id}'
+                    transcript_key = f'video_transcript_{chapter.chapter_id}'
+
+                    video = request.FILES.get(video_key)
+                    transcript = request.POST.get(transcript_key)
+
+                    VideoMaterial.objects.create(
+                        chapter=chapter,
+                        video=video,
+                        transcript=transcript
+                    )
+                    print(f"Video material created for Chapter ID: {chapter.chapter_id}")
+
+                elif material_type == 'multiple_choice':
+                    # Process each multiple choice question
+                    question_keys = [key for key in request.POST if key.startswith(f'mc_question_text_{chapter.chapter_id}')]
+
+                    for question_key in question_keys:
+                        # Extracting the index using string manipulation
+                        question_index = question_key.split('[')[-1].rstrip(']')
+
+                        # Constructing the keys for choices and the correct answer
+                        choices_keys = [
+                            f'mc_choice_1_{chapter.chapter_id}[{question_index}]',
+                            f'mc_choice_2_{chapter.chapter_id}[{question_index}]',
+                            f'mc_choice_3_{chapter.chapter_id}[{question_index}]',
+                            f'mc_choice_4_{chapter.chapter_id}[{question_index}]'
+                        ]
+
+                        # Retrieving the values for choices and the correct answer
+                        choices_values = [request.POST.get(key, '') for key in choices_keys]
+                        correct_answer_key = f'mc_correct_answer_{chapter.chapter_id}[{question_index}]'
+                        correct_answer_value = request.POST.get(correct_answer_key, '')
+
+                        # Creating the MultipleChoiceQuestion object
+                        MultipleChoiceQuestion.objects.create(
+                            chapter=chapter,
+                            question_text=request.POST[question_key],
+                            choice_1=choices_values[0],
+                            choice_2=choices_values[1],
+                            choice_3=choices_values[2],
+                            choice_4=choices_values[3],
+                            correct_answer=correct_answer_value
+                        )
+                        print(f"Multiple choice question {question_index} created for Chapter ID: {chapter.chapter_id}")
+                # ... additional elif clauses for other material types ...
+
+            except ValidationError as e:
+                print(f"Validation Error for chapter {chapter.chapter_id}: {e}")
+                return HttpResponse(f"Validation error: {e}", status=400)
+            except json.JSONDecodeError:
+                print("Invalid JSON format for answers or pairs")
+                return HttpResponse("Invalid JSON format for answers or pairs", status=400)
+            
+        completed_modules.append(module_id)
+        request.session['completed_modules'] = completed_modules
+        request.session.modified = True
+            
+        next_module = modules.exclude(module_id__in=completed_modules).first()
+            
+        messages.success(request, f"Materials for module '{module.module_name}' saved successfully.")
+
+
+        if next_module:
+            messages.info(request, f"Do you want to add materials to the next module: '{next_module.module_name}'?")
+            redirect_url = f"{reverse('add_course_material', args=[course_id])}?module_id={next_module.module_id}"
+        else:
+            redirect_url = reverse('course_list_college')
+
+        return HttpResponseRedirect(redirect_url)
+    
+
+    # If the request method is GET, display the form
+    return render(request, 'add_material_for_creators.html', {'course_id': course_id, 'modules': modules})
+
+
+
 #flutter development begins here
 
 from rest_framework.decorators import api_view ,permission_classes
@@ -1406,6 +1634,8 @@ from rest_framework import status
 from .serializers import NormalUserSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
+from rest_framework.permissions import IsAuthenticated
+
 
 @api_view(['POST'])
 def register_normaluser_flutter(request):
@@ -1427,10 +1657,33 @@ def mobile_login(request):
     user = authenticate(username=username, password=password)
     if user is not None:
         token, _ = Token.objects.get_or_create(user=user)
+        try:
+            normal_user = NormalUser.objects.get(user=user)
+            normal_user_data = NormalUserSerializer(normal_user).data
+        except NormalUser.DoesNotExist:
+            normal_user_data = {}
+
         return Response({
             'token': token.key,
             'user_id': user.pk,
-            'username': username
+            'username': username,
+            'email': user.email,
+            'profile_photo': normal_user_data.get('profile_photo'),
+            'cover_photo': normal_user_data.get('cover_photo'),
         })
     else:
         return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_profile(request):
+    user = request.user
+    normal_user = NormalUser.objects.get(user=user)
+    data = {
+        'username': user.username,
+        'email': user.email,
+        'profile_photo': request.build_absolute_uri(normal_user.profile_photo.url) if normal_user.profile_photo else None,
+        'cover_photo': request.build_absolute_uri(normal_user.cover_photo.url) if normal_user.cover_photo else None,
+    }
+    return Response(data)

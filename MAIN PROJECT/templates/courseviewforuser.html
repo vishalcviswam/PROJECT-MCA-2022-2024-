@@ -170,7 +170,16 @@
                 {% endif %}
                 <div class="card-body">
                     <h5 class="card-title">{{ course.course_name }}</h5>
-                    <p class="card-text">{{ course.college.college_name }}</p> <!-- Adjust according to your CollegeUser model -->
+                    <!-- Conditional display of college name or content creator name -->
+                    <p class="card-text">
+                        {% if course.college %}
+                            {{ course.college.college_name }}
+                        {% elif course.content_creator %}
+                            {{ course.content_creator.first_name }} {{ course.content_creator.last_name }}
+                        {% else %}
+                            Unknown Creator
+                        {% endif %}
+                    </p>
                     <p class="card-text">{{ course.course_level }}</p>
                     <p class="card-text">₹{{ course.course_fee }}</p>
                     <!-- Replace 'course_detail' with the actual route to the course detail page -->

@@ -1,0 +1,416 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>Add Course Material</title>
+    <style>
+        .material-fields { display: none; }
+        .chapter-fields { display: none; }
+
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+            }
+        
+            #searchBox {
+                max-width: 200px;
+                display: none;
+            }
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
+            }
+        
+            .navbar {
+                background-color: #ff006e !important;
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
+
+            textarea {
+                resize: none;
+            }
+
+
+
+            @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+            body, html {
+                height: 100%;
+                font-family: 'Poppins', sans-serif;
+                background: #edf2f7;
+                color: #333;
+                margin: 0;
+            }
+
+            body {
+                font-family: 'Poppins', sans-serif;
+                background: #edf2f7; /* Light gray background for a clean look */
+                color: #333;
+            }
+
+
+
+            .form-container {
+                background: #ffffff;
+                border-radius: 1rem;
+                padding: 2rem;
+                box-shadow: 0 0.5rem 1.5rem rgba(18, 38, 63, 0.03);
+                max-width: 800px;
+                margin: 3rem auto;
+                border: 1px solid rgba(0, 0, 0, 0.125);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            
+            .form-container fieldset {
+                border: none;
+                margin: 1rem 0;
+                width: 100%;
+            }
+
+            .form-container legend {
+                color: #4a5568;
+                font-weight: 600;
+                text-align: center;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+
+            legend {
+                font-size: 1.2rem;
+                color: #4a5568;
+                font-weight: 600;
+                text-align: center;
+                width: 100%;
+                padding-bottom: 0.5rem;
+            }
+
+            .form-container input[type="submit"] {
+                background: linear-gradient(to right, #4e54c8, #8f94fb);
+                border: 0;
+                color: #ffffff;
+                padding: 0.75rem 1.5rem;
+                border-radius: 0.375rem;
+                transition: background 0.4s ease-in-out, transform 0.2s ease-out;
+                cursor: pointer;
+                margin-top: 1rem;
+            }
+
+            .form-container input[type="submit"]:hover {
+                transform: translateY(-0.25rem);
+                box-shadow: 0 0.5rem 1rem rgba(78, 84, 200, 0.5);
+            }
+
+            select, input, textarea {
+                border-radius: 0.375rem;
+                border: 1px solid #e2e8f0;
+                padding: 0.5rem 1rem;
+                transition: all 0.3s ease-in-out;
+            }
+
+            select:focus, input:focus, textarea:focus {
+                outline: none;
+                border-color: #4e54c8; /* Highlight color for inputs on focus */
+                box-shadow: 0 0 0 0.2rem rgba(78, 84, 200, 0.25);
+            }
+
+            .form-container input, .form-container textarea {
+                border-radius: 0.375rem;
+                border: 1px solid #e2e8f0;
+                padding: 0.75rem;
+                margin-bottom: 1rem;
+                width: calc(100% - 1.5rem); /* accounting for padding */
+            }
+
+            .form-container select:focus, .form-container input:focus, .form-container textarea:focus {
+                outline: none;
+                border-color: #4e54c8;
+                box-shadow: 0 0 0 0.2rem rgba(78, 84, 200, 0.25);
+            }
+
+            .form-container .material-fields {
+                width: 100%;
+                margin-top: 1rem;
+            }
+
+            /* Responsive design adjustments for smaller screens */
+            @media (max-width: 768px) {
+                .form-container {
+                    padding: 1rem;
+                }
+
+            }
+
+            input[type="submit"]:hover {
+                background: linear-gradient(to right, #656ede, #a0aefb);
+                box-shadow: 0 0.5rem 1rem rgba(78, 84, 200, 0.4);
+            }
+
+            
+
+            
+
+
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+            EduSphere
+        </a>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="{% url 'college_user_home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                    <i id="theme-icon" class="fas fa-sun"></i>
+                </li>
+                <li class="nav-item">
+                    <div id="searchBox" class="mr-2">
+                        <input type="text" placeholder="Search..." class="form-control">
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+                </li>
+                <li class="nav-item">
+                    <img src="{% if user.contentcreators.profile_photo %}{{ user.contentcreators.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="form-container">
+        {% if messages %}
+        <div class="alert alert-success" role="alert">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+        <form method="post" action="{% url 'add_course_materialnew' course_id=course_id %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <fieldset>
+                <legend>Select Module:</legend>
+                <div class="input-group mb-3">
+                    <label class="input-group-text" for="module_select">Module</label>
+                    <select class="form-select" name="module_id" id="module_select" required onchange="loadChapters(this)">
+                        <option value="">--Select Module--</option>
+                        {% for module in modules %}
+                        <option value="{{ module.module_id }}">{{ module.module_name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </fieldset>
+    
+            <fieldset id="chapters_fieldset" class="chapter-fields">
+                <!-- Chapters will be loaded here dynamically -->
+            </fieldset>
+    
+            <div class="text-center">
+                <input type="submit" value="Save Materials" class="btn btn-primary">
+                {% if next_module %}
+                <a href="?module_id={{ next_module.module_id }}" class="btn btn-secondary">Continue to Next Module</a>
+                {% endif %}
+            </div>
+        </form>
+        {% if saved_module %}
+        <div class="mt-3">
+            <p>Materials for "{{ saved_module.module_name }}" have been saved. Do you want to add materials to the next module?</p>
+            {% if next_module %}
+            <a href="?module_id={{ next_module.module_id }}" class="btn btn-primary">Yes, Continue</a>
+            {% endif %}
+            <a href="{% url 'course_list_college' %}" class="btn btn-secondary">No, I'm Done</a>
+        </div>
+        {% endif %}
+    </div>
+
+<script>
+    function showMaterialFields(select, chapterId) {
+        // Hide all material field divs
+        var fields = document.querySelectorAll(`.chapter_${chapterId} .material-fields`);
+        fields.forEach(field => field.style.display = 'none');
+    
+        // Get the container for the selected material fields
+        var container = document.querySelector(`#${select.value}_fields_${chapterId}`);
+        
+        // Show the container for the selected material fields
+        if (container) {
+            if (select.value === 'multiple_choice') {
+                // Prompt the user for the number of questions to add for multiple choice
+                let numQuestions = prompt("How many questions do you want to add?", "1");
+                numQuestions = parseInt(numQuestions, 10) || 1;
+                
+                // Clear any previously added fields
+                container.innerHTML = '';
+    
+                // Dynamically create fields for multiple choice questions
+                for (let i = 0; i < numQuestions; i++) {
+                    container.innerHTML +=
+                    `<div class="question-block">
+                        <h2><b><label for="mc_question_text_${chapterId}_${i}">Question ${i + 1}:</label></b></h2>
+                        <input type="text" id="mc_question_text_${chapterId}_${i}" name="mc_question_text_${chapterId}[${i}]" placeholder="Question ${i + 1}" required><br>
+                        
+                        <label for="mc_choice_1_${chapterId}_${i}">Choice 1:</label>
+                        <input type="text" id="mc_choice_1_${chapterId}_${i}" name="mc_choice_1_${chapterId}[${i}]" placeholder ="Choice 1" required><br>
+                        
+                        <label for="mc_choice_2_${chapterId}_${i}">Choice 2:</label>
+                        <input type="text" id="mc_choice_2_${chapterId}_${i}" name="mc_choice_2_${chapterId}[${i}]" placeholder ="Choice 2" required><br>
+                        
+                        <label for="mc_choice_3_${chapterId}_${i}">Choice 3:</label>
+                        <input type="text" id="mc_choice_3_${chapterId}_${i}" name="mc_choice_3_${chapterId}[${i}]" placeholder ="Choice 3" required><br>
+                        
+                        <label for="mc_choice_4_${chapterId}_${i}">Choice 4:</label>
+                        <input type="text" id="mc_choice_4_${chapterId}_${i}" name="mc_choice_4_${chapterId}[${i}]" placeholder ="Choice 4" required><br>
+                        
+                        <label for="mc_correct_answer_${chapterId}_${i}">Correct Answer:</label>
+                        <input type="text" id="mc_correct_answer_${chapterId}_${i}" name="mc_correct_answer_${chapterId}[${i}]" placeholder="correct answer should be one of the choices" required><br>
+                    </div>`;
+                }
+            }
+            // Show the container
+            container.style.display = 'block';
+        } else {
+            console.error(`Fields for the selected material type ${select.value} not found.`);
+        }
+    }
+    
+    
+    
+
+    function loadChapters(select) {
+        var module_id = select.value;
+        var chaptersFieldset = document.getElementById('chapters_fieldset');
+        chaptersFieldset.style.display = module_id ? 'block' : 'none';
+        var url = `/ajax/get_chapters_for_module/${module_id}/`;  // Ensure this URL is correct
+    
+        // Clear existing chapters
+        chaptersFieldset.innerHTML = '';
+    
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(chapters => {
+            chapters.forEach(chapter => {
+                var chapterFieldset = document.createElement('fieldset');
+                chapterFieldset.classList.add(`chapter_${chapter.chapter_id}`);
+                chapterFieldset.innerHTML = `
+                    <legend>${chapter.chapter_name}</legend>
+                    <label>Select Material Type:</label>
+                    <select name="material_type_${chapter.chapter_id}" onchange="showMaterialFields(this, '${chapter.chapter_id}')">
+                        <option value="">--Select--</option>
+                        <option value="reading">Reading Material</option>
+                        <option value="video">Video Material</option>
+                        <option value="multiple_choice">Multiple Choice Questions</option>
+                        <!-- Add other material types as needed -->
+                    </select>
+                    <div id="reading_fields_${chapter.chapter_id}" class="material-fields">
+                        <!-- Include fields for Reading Material -->
+                        <label for="reading_title_${chapter.chapter_id}">Title:</label>
+                        <input type="text" id="reading_title_${chapter.chapter_id}" name="reading_title_${chapter.chapter_id}" placeholder="Title">
+                        <label for="reading_text_content_${chapter.chapter_id}">Text Content:</label>
+                        <textarea id="reading_text_content_${chapter.chapter_id}" name="reading_text_content_${chapter.chapter_id}" placeholder="Text content"></textarea>
+                        <label for="reading_images_${chapter.chapter_id}">Images:</label>
+                        <input type="file" id="reading_images_${chapter.chapter_id}" name="reading_images_${chapter.chapter_id}" accept="image/*">
+                    </div>
+                    
+                    <div id="video_fields_${chapter.chapter_id}" class="material-fields">
+                        <!-- Include fields for Video Material -->
+                        <label for="video_video_${chapter.chapter_id}">Video:</label>
+                        <input type="file" id="video_video_${chapter.chapter_id}" name="video_video_${chapter.chapter_id}" accept="video/*">
+                        <label for="video_transcript_${chapter.chapter_id}">Transcript:</label>
+                        <textarea id="video_transcript_${chapter.chapter_id}" name="video_transcript_${chapter.chapter_id}" placeholder="Video transcript"></textarea>
+                    </div>
+                    
+                    <div id="multiple_choice_fields_${chapter.chapter_id}" class="material-fields">
+                        <!-- Fields for Multiple Choice Question Material -->
+                        <label for="mc_question_text_${chapter.chapter_id}">Question Text:</label>
+                        <textarea id="mc_question_text_${chapter.chapter_id}" name="mc_question_text_${chapter.chapter_id}" placeholder="Enter the question"></textarea>
+                        
+                        <label for="mc_choice_1_${chapter.chapter_id}">Choice 1:</label>
+                        <input type="text" id="mc_choice_1_${chapter.chapter_id}" name="mc_choice_1_${chapter.chapter_id}" placeholder="Choice 1">
+                        
+                        <label for="mc_choice_2_${chapter.chapter_id}">Choice 2:</label>
+                        <input type="text" id="mc_choice_2_${chapter.chapter_id}" name="mc_choice_2_${chapter.chapter_id}" placeholder="Choice 2">
+                        
+                        <label for="mc_choice_3_${chapter.chapter_id}">Choice 3:</label>
+                        <input type="text" id="mc_choice_3_${chapter.chapter_id}" name="mc_choice_3_${chapter.chapter_id}" placeholder="Choice 3">
+                        
+                        <label for="mc_choice_4_${chapter.chapter_id}">Choice 4:</label>
+                        <input type="text" id="mc_choice_4_${chapter.chapter_id}" name="mc_choice_4_${chapter.chapter_id}" placeholder="Choice 4">
+                        
+                        <label for="mc_correct_answer_${chapter.chapter_id}">Correct Answer:</label>
+                        <input type="text" id="mc_correct_answer_${chapter.chapter_id}" name="mc_correct_answer_${chapter.chapter_id}" placeholder="Enter the correct answer exactly as one of the choices">
+                    </div>
+                    
+                    <!-- Include other material divs as needed, with chapter ID appended to the name attributes -->
+                `;
+                chaptersFieldset.appendChild(chapterFieldset);
+            });
+        })
+        .catch(error => {
+            console.error('There has been a problem with your fetch operation:', error);
+        });
+    }
+
+    function toggleSearch() {
+        const searchBox = document.getElementById('searchBox');
+        if (searchBox.style.display === 'none') {
+            searchBox.style.display = 'block';
+        } else {
+            searchBox.style.display = 'none';
+        }
+    }
+
+    function toggleTheme() {
+        const body = document.body;
+        const themeIcon = document.getElementById('theme-icon');
+        body.classList.toggle('night-mode');
+        themeIcon.classList.toggle('fa-sun');
+        themeIcon.classList.toggle('fa-moon');
+    }
+</script>
+
+</body>
+</html>

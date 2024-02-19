@@ -282,7 +282,7 @@
                 <a class="nav-link" href="{% url 'content_creator_home' %}"><i class="fas fa-home"></i></a>
             </li>
             <li class="nav-item mx-5">
-                <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                <a class="nav-link" href="{% url 'course_list_college' %}"><i class="fas fa-book"></i></a>
             </li>
             <li class="nav-item mx-5">
                 <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
@@ -304,7 +304,7 @@
                 <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
             </li>
             <li class="nav-item">
-                <img src="{% if user.contentcreator.profile_photo %}{{ user.contentcreator.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                <img src="{% if user.contentcreators.profile_photo %}{{ user.contentcreators.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
             </li>
         </ul>
     </div>
@@ -316,10 +316,10 @@
         <div class="col-12">
             <div class="cover-photo" id="coverPhoto">
                 <!-- User's cover photo -->
-                <img src="{% if user.contentcreator.cover_photo %}{{ user.contentcreator.cover_photo.url }}{% else %}{% static 'images/img11.jpg' %}{% endif %}" alt="Cover Photo">
+                <img src="{% if user.contentcreators.cover_photo %}{{ user.contentcreators.cover_photo.url }}{% else %}{% static 'images/img11.jpg' %}{% endif %}" alt="Cover Photo">
             </div>
             <div class="profile-picture">
-                <img src="{% if user.contentcreator.profile_photo %}{{ user.contentcreator.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture">
+                <img src="{% if user.contentcreators.profile_photo %}{{ user.contentcreators.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture">
             </div>
         </div>
     </div>
@@ -334,9 +334,9 @@
     <div class="profile-layout">
         <div class="user-details card">
             <h2>Account Details</h2>
-            <p><strong>College Name:</strong> {{ college_user.college_name }}</p>
+            <p><strong>Creator Name:</strong> {{ content_creator.first_name }} {{ content_creator.last_name }}</p>
             <p><strong>Address:</strong> {{ college_user.address }}</p>
-            <p><strong>Phone:</strong> {{ college_user.contact_phone_number }}</p>
+            <p><strong>Phone:</strong> {{ content_creator.phone_number }}</p>
             <p><strong>Email:</strong> {{ user.email }}</p>
             <p><strong>College Type:</strong> {{ college_user.get_college_type_display }}</p>
             <p><strong>College Website:</strong> {{ college_user.website }}</p>

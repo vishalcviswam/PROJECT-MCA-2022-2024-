@@ -58,6 +58,65 @@ class CollegeUser(models.Model):
     def __str__(self):
         return self.user.username
 
+class ContentCreators(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
+    first_name = models.CharField(max_length=30,null=True)
+    last_name = models.CharField(max_length=30,null=True)
+    phone_number = models.CharField(max_length=15, null=True)
+    country = models.CharField(max_length=100, null=True)
+    gender = models.CharField(max_length=10, null=True)
+    profile_photo = models.ImageField(blank=True, null=True, upload_to='creators_profile_photos/')
+    cover_photo = models.ImageField(blank=True, null=True, upload_to='creators_cover_photos/')
+    about_me = models.TextField(blank=True, null=True)
+    registration_date = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return self.user.username
+
+class Awards(models.Model):
+    content_creator = models.ForeignKey(ContentCreators, on_delete=models.CASCADE, related_name='awards')
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    date_awarded = models.DateField()
+
+    def __str__(self):
+        return f"{self.title} - {self.content_creator.user.username}"
+
+class Documents(models.Model):
+    content_creator = models.ForeignKey(ContentCreators, on_delete=models.CASCADE, related_name='documents')
+    document = models.FileField(upload_to='content_creator_documents/')
+    description = models.CharField(max_length=255, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.description} - {self.content_creator.user.username}"
+
+
+class Educations(models.Model):
+    EDUCATION_LEVEL_CHOICES = [
+        ('School', 'School'),
+        ('Bachelor', 'Bachelor'),
+        ('Master', 'Master'),
+    ]
+
+    content_creator = models.ForeignKey(ContentCreators, on_delete=models.CASCADE, related_name='education')
+    level = models.CharField(max_length=100, choices=EDUCATION_LEVEL_CHOICES)
+    school_name = models.CharField(max_length=255, blank=True, null=True)
+    percentage_mark = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    stream = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.level} - {self.school_name} - {self.content_creator.user.username}"
+
+class WorkExperiences(models.Model):
+    content_creator = models.ForeignKey(ContentCreators, on_delete=models.CASCADE, related_name='work_experience')
+    organization_name = models.CharField(max_length=255)
+    years_of_experience = models.IntegerField()
+    description = models.TextField()
+
+    def __str__(self):
+        return f"{self.organization_name} - {self.years_of_experience} years - {self.content_creator.user.username}"
+
+
 class Department(models.Model):
     college = models.ForeignKey(CollegeUser, on_delete=models.CASCADE)
     name = models.CharField(max_length=255,unique=True)
@@ -84,8 +143,9 @@ class Instructor(models.Model):
 
 
 class Course(models.Model):
-    college = models.ForeignKey(CollegeUser, on_delete=models.CASCADE)
-    department = models.ForeignKey(Department, on_delete=models.CASCADE)
+    college = models.ForeignKey(CollegeUser, on_delete=models.CASCADE, null=True, blank=True)
+    content_creator = models.ForeignKey(ContentCreators, on_delete=models.CASCADE, null=True, blank=True)
+    department = models.ForeignKey(Department, on_delete=models.CASCADE, null=True, blank=True)
     course_id = models.AutoField(primary_key=True)
     course_name = models.CharField(max_length=255)
     instructors = models.ManyToManyField(Instructor)
@@ -344,60 +404,4 @@ class Payment(models.Model):
         return f"{self.normal_user.user.username} - {self.course.course_name} - {self.razorpay_payment_id}"
     
 
-class ContentCreator(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
-    first_name = models.CharField(max_length=30,null=True)
-    last_name = models.CharField(max_length=30,null=True)
-    phone_number = models.CharField(max_length=15, null=True)
-    country = models.CharField(max_length=100, null=True)
-    gender = models.CharField(max_length=10, null=True)
-    profile_photo = models.ImageField(blank=True, null=True, upload_to='creators_profile_photos/')
-    cover_photo = models.ImageField(blank=True, null=True, upload_to='creators_cover_photos/')
-    about_me = models.TextField(blank=True, null=True)
-    registration_date = models.DateTimeField(auto_now_add=True)
-    
-    def __str__(self):
-        return self.user.username
 
-class Award(models.Model):
-    content_creator = models.ForeignKey(ContentCreator, on_delete=models.CASCADE, related_name='awards')
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    date_awarded = models.DateField()
-
-    def __str__(self):
-        return f"{self.title} - {self.content_creator.user.username}"
-
-class Document(models.Model):
-    content_creator = models.ForeignKey(ContentCreator, on_delete=models.CASCADE, related_name='documents')
-    document = models.FileField(upload_to='content_creator_documents/')
-    description = models.CharField(max_length=255, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.description} - {self.content_creator.user.username}"
-
-
-class Education(models.Model):
-    EDUCATION_LEVEL_CHOICES = [
-        ('School', 'School'),
-        ('Bachelor', 'Bachelor'),
-        ('Master', 'Master'),
-    ]
-
-    content_creator = models.ForeignKey(ContentCreator, on_delete=models.CASCADE, related_name='education')
-    level = models.CharField(max_length=100, choices=EDUCATION_LEVEL_CHOICES)
-    school_name = models.CharField(max_length=255, blank=True, null=True)
-    percentage_mark = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
-    stream = models.CharField(max_length=100, blank=True, null=True)
-
-    def __str__(self):
-        return f"{self.level} - {self.school_name} - {self.content_creator.user.username}"
-
-class WorkExperience(models.Model):
-    content_creator = models.ForeignKey(ContentCreator, on_delete=models.CASCADE, related_name='work_experience')
-    organization_name = models.CharField(max_length=255)
-    years_of_experience = models.IntegerField()
-    description = models.TextField()
-
-    def __str__(self):
-        return f"{self.organization_name} - {self.years_of_experience} years - {self.content_creator.user.username}"

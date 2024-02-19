@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Certificate</title>
+    <style>
+        body {
+            width: 21cm;
+            height: 29.7cm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Helvetica', sans-serif;
+            color: #333;
+            background: linear-gradient(to bottom, #fff 0%, #f8f8f8 100%);
+            border: 5px solid #ddd;
+            margin: 0;
+        }
+        .certificate {
+            text-align: center;
+            padding: 2cm;
+        }
+        .certificate h1 {
+            font-size: 2em;
+            margin-bottom: 0.5em;
+        }
+        .certificate .content {
+            margin-bottom: 2em;
+        }
+        .signature-line {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3em;
+        }
+        .signature-line::after {
+            content: '';
+            flex-grow: 1;
+            border-bottom: 1px solid #000;
+        }
+        .signature {
+            width: 100%;
+            text-align: left;
+            padding-left: 1em;
+        }
+        .date {
+            width: 100%;
+            text-align: right;
+            padding-right: 1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate">
+        <h1>Certificate of Completion</h1>
+        <div class="content">
+            This is to certify that <strong>{{ user.get_full_name }}</strong> has successfully completed the course <strong>{{ course.course_name }}</strong>.
+        </div>
+        <div>Offered by: <strong>{{ associated_name }}</strong></div>
+        <div>Duration: <strong>{{ course_duration }}</strong></div>
+        <div>Date: <strong>{{ date }}</strong></div>
+        <div class="signature-line">
+            <span class="signature">Signature</span>
+            <span class="date">{{ date }}</span>
+        </div>
+    </div>
+</body>
+</html>
