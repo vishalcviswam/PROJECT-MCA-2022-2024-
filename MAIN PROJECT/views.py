@@ -1080,58 +1080,89 @@ def update_progress(request):
     )
     return JsonResponse({'status': 'success'})
 
+
+from reportlab.platypus import Image
+from reportlab.lib.units import inch
+from django.contrib.staticfiles import finders
+from reportlab.lib.colors import HexColor, black, blue, Color
+
 @login_required
 def download_certificate(request, course_id):
     course = get_object_or_404(Course, pk=course_id)
     user = request.user
-    normal_user = request.user.normaluser
+    normal_user = user.normaluser  # Adjust according to your User model
 
     buffer = BytesIO()
-
     p = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter  
+    width, height = letter
 
-    # Draw a gradient background
-    p.saveState()
-    p.setFillColor(HexColor('#ade8f4'))
-    p.rect(0, 0, *letter, stroke=0, fill=1)
-    p.restoreState()
+    # Colors
+    light_blue = HexColor('#DCE6F1')
+    dark_blue = HexColor('#2F5496')
+    gray = HexColor('#666666')
 
-    p.saveState()
-    p.setFillColor(HexColor('#caf0f8'))
-    p.rect(0, letter[1] * 0.5, *letter, stroke=0, fill=1)
-    p.restoreState()
+    # Header
+    p.setFillColor(light_blue)
+    p.rect(0, height - inch, width, inch, fill=True)
 
-    p.saveState()
-    p.setFillAlpha(0.2)
-    p.rect(0, letter[1] * 0.5, *letter, stroke=0, fill=1)
-    p.restoreState()
+    # Footer
+    p.setFillColor(light_blue)
+    p.rect(0, 0, width, 0.5 * inch, fill=True)
 
-    # Add a border
-    p.setStrokeColor(colors.HexColor("#000000"))
-    p.setLineWidth(3)
-    p.rect(50, 50, width-100, height-100, stroke=True, fill=False)
+    # Title
+    p.setFillColor(dark_blue)
+    p.setFont("Helvetica-Bold", 30)
+    p.drawCentredString(width / 2, height - 120, "CERTIFICATE OF COMPLETION")
 
-    # Add the EDUSPHERE FUSION logo on the top right corner
-    logo_path = finders.find('images/esf21.png')
-    p.drawInlineImage(logo_path, letter[0] - 150, letter[1] - 100, 100, 50)
+    # Horizontal Line
+    p.setStrokeColor(blue)
+    p.line(1 * inch, height - 1.8 * inch, width - 1 * inch, height - 1.8 * inch)
 
-    # Draw the title and other text
+    # User name
+    p.setFillColor(black)  # Ensure text color is set appropriately
     p.setFont("Helvetica-Bold", 24)
-    p.drawCentredString(letter[0] / 2, letter[1] / 2 + 80, course.course_name)
-    p.setFont("Helvetica", 12)
-    p.drawCentredString(letter[0] / 2, letter[1] / 2 + 60, course.college.college_name)
+    full_name = f"{normal_user.first_name} {normal_user.last_name}"  # Concatenate first and last names
+    p.drawCentredString(width / 2, height - 2.5 * inch, full_name)
 
-    # Description
-    description = f"{normal_user.first_name} {normal_user.last_name} has completed the {course.course_duration} hrs {course.course_name} online course offered by {course.college.college_name}."
-    p.setFont("Helvetica", 14)
-    p.drawCentredString(letter[0] / 2, letter[1] / 2, description)
+    # Course name
+    p.setFont("Helvetica-Oblique", 22)
+    p.setFillColor(gray)
+    p.drawCentredString(width / 2, height - 3 * inch, f"for completing the course: {course.course_name}")
 
-    # Add "EDUSPHERE FUSION" in small text
+    # Associated Name (College or Content Creator)
+    associated_name = course.college.college_name if course.college else f"{course.content_creator.first_name} {course.content_creator.last_name}"
+    p.setFont("Helvetica", 18)
+    p.drawCentredString(width / 2, height - 3.5 * inch, f"Offered by: {associated_name}")
+
+    # Course duration
+    p.setFont("Helvetica", 16)
+    p.drawCentredString(width / 2, height - 4 * inch, f"Duration: {course.course_duration} hours")
+
+    # Signature line
+    p.setStrokeColor(gray)
+    p.line(2 * inch, 1.25 * inch, width - 2 * inch, 1.25 * inch)
+    p.setFont("Helvetica-Oblique", 12)
+    p.drawString(2 * inch, 1 * inch, "Signature")
+
+    # "EDUSPHERE FUSION" text
+    p.setFillColor(black)
     p.setFont("Helvetica", 10)
-    p.drawRightString(letter[0] - 60, letter[1] - 50, "EDUSPHERE FUSION")
+    p.drawString(0.5 * inch, 0.75 * inch, "EDUSPHERE FUSION")
 
-    # Close the PDF object cleanly, and we're done
+    # Add the logo image if you have one
+    logo_path = finders.find('path/to/logo_image')  # Update this to the path of your logo image
+    if logo_path:
+        p.drawInlineImage(logo_path, width - 2.5 * inch, height - 1 * inch, 1.5 * inch, 0.75 * inch)
+
+    # Watermark text
+    p.saveState()
+    p.setFont("Helvetica-Bold", 60)
+    p.setFillColor(black)
+    p.setFillAlpha(0.1)
+    p.drawCentredString(width / 2, height / 2, "EDUSPHERE FUSION")
+    p.restoreState()
+
+    # Close the PDF object cleanly
     p.showPage()
     p.save()
 
@@ -1139,30 +1170,22 @@ def download_certificate(request, course_id):
     pdf = buffer.getvalue()
     buffer.close()
     response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="certificate.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="{course.course_name}_certificate.pdf"'
     return response
 
-# This is a mock-up function for PDF generation; you'll need to implement it according to your requirements
+
+
 def generate_certificate_pdf(user, course):
-    # Create a file-like buffer to receive PDF data
     buffer = BytesIO()
-
-    # Create the PDF object, using the buffer as its "file."
     p = canvas.Canvas(buffer)
-
-    # Draw things on the PDF
     p.drawString(100, 100, f"Certificate of Completion for {course.course_name}")
-
-    # Close the PDF object cleanly, and we're done.
     p.showPage()
     p.save()
-
-    # FileResponse sets the Content-Disposition header so that browsers
-    # present the option to save the file.
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename='certificate.pdf')
 
-# Mock-up function to serve a PDF file; you'll need to implement it according to your requirements
+
+
 def serve_pdf_file_response(file_path):
     if os.path.exists(file_path):
         return FileResponse(open(file_path, 'rb'), as_attachment=True, filename='certificate.pdf')
@@ -1659,17 +1682,19 @@ def mobile_login(request):
         token, _ = Token.objects.get_or_create(user=user)
         try:
             normal_user = NormalUser.objects.get(user=user)
-            normal_user_data = NormalUserSerializer(normal_user).data
+            profile_photo_url = request.build_absolute_uri(normal_user.profile_photo.url) if normal_user.profile_photo else ''
+            cover_photo_url = request.build_absolute_uri(normal_user.cover_photo.url) if normal_user.cover_photo else ''
         except NormalUser.DoesNotExist:
-            normal_user_data = {}
+            profile_photo_url = ''
+            cover_photo_url = ''
 
         return Response({
             'token': token.key,
             'user_id': user.pk,
             'username': username,
             'email': user.email,
-            'profile_photo': normal_user_data.get('profile_photo'),
-            'cover_photo': normal_user_data.get('cover_photo'),
+            'profile_photo': profile_photo_url,
+            'cover_photo': cover_photo_url,
         })
     else:
         return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
