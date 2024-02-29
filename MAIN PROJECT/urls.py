@@ -66,7 +66,7 @@ urlpatterns = [
     path('toggle_user_activation/<int:user_id>/', views.toggle_user_activation, name='toggle_user_activation'),
 
     path('courses/<int:course_id>/', views.course_detail_view, name='course_detail_view'),
-    path('course/enroll/<int:course_id>/', views.enroll_in_course, name='enroll_in_course'),
+    #path('course/enroll/<int:course_id>/', views.enroll_in_course, name='enroll_in_course'),
     path('get_chapter_content/<int:chapter_id>/', views.get_chapter_content, name='get_chapter_content'),
     path('courses/<int:course_id>/progress/', views.course_progress, name='course_progress'),
     path('update_progress/', views.update_progress, name='update_progress'),
@@ -84,6 +84,7 @@ urlpatterns = [
     path('upload/', views.upload, name='upload'),
 
     path('add_course_by_creator',views.add_course_by_creator,name='add_course_by_creator'),
+    path('paymenthandler/', views.paymenthandler, name='paymenthandler'),
 
     #restframework
     path('api/register/', views.register_normaluser_flutter, name='register_normaluser_flutter'),

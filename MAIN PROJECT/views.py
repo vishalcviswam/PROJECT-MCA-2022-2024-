@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import get_list_or_404, render, redirect
-from .models import AudioFile, ContentCreators, CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Post, Progress, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
+from .models import AudioFile, ContentCreators, CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Payment, Post, Progress, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
 
 from datetime import date, timedelta, timezone
 from django.db import IntegrityError
@@ -862,18 +862,115 @@ def course_detail_creator(request, course_id):
     return render(request, 'coursedetailcreator.html', context)
 
 
+
+
+razorpay_client = razorpay.Client(
+    auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
 def course_detail_user(request, course_id):
     # Retrieve the Course object by id
     course = get_object_or_404(Course, course_id=course_id)
-    # No need to separately retrieve modules or chapters, they can be accessed via the course object in the template
+    request.session['course_id'] = course.course_id
+    total_amount=course.course_fee
 
-    # Context dictionary to pass data to the template
-    context = {
-        'course': course,
-    }
+    user = request.user
+    
+    currency = 'INR'
+    amount = int(total_amount * 100)  
+    razorpay_order = razorpay_client.order.create(dict(amount=amount,
+                                                       currency=currency,
+                                                       payment_capture='0'))
+
+    razorpay_order_id = razorpay_order['id']
+    callback_url = '/paymenthandler/'
+ 
+    # we need to pass these details to frontend.
+    context = {}
+    context['razorpay_order_id'] = razorpay_order_id
+    context['razorpay_merchant_key'] = settings.RAZORPAY_KEY_ID
+    context['razorpay_amount'] = amount
+    context['currency'] = currency
+    context['callback_url'] = callback_url
+    context['total_amount'] = total_amount
+    context['course']=course
+   
+    
 
     # Render the course detail template with the course and related data
-    return render(request, 'coursedetailsforusers.html', context)
+    return render(request, 'coursedetailsforusers.html', context=context)
+
+
+
+@csrf_exempt
+def paymenthandler(request):
+ 
+    # only accept POST request.
+    if request.method == "POST":
+       
+        try:
+            print("111111111111")
+            # get the required parameters from post request.
+            payment_id = request.POST.get('razorpay_payment_id', '')
+            razorpay_order_id = request.POST.get('razorpay_order_id', '')
+            signature = request.POST.get('razorpay_signature', '')
+           
+            print(razorpay_order_id)
+            course_id = request.session.get('course_id')
+            course = Course.objects.get(course_id=course_id)
+            print(course)
+            total_amount=course.course_fee
+            print(total_amount,"www")
+
+            print("2222222")
+            print(payment_id,razorpay_order_id,signature)
+            
+            params_dict = {
+                'razorpay_order_id': razorpay_order_id,
+                'razorpay_payment_id': payment_id,
+                'razorpay_signature': signature
+            }
+
+            user = request.user.normaluser
+    
+            result = razorpay_client.utility.verify_payment_signature(
+                params_dict)
+            
+            print("55555555555555555555555")
+            print(result)
+
+           
+            if result is not None:
+                user_payment_instance = Payment.objects.create(
+                    normal_user=user,
+                    amount=total_amount,
+                    currency='INR',
+                    razorpay_order_id=razorpay_order_id,
+                    razorpay_payment_id=payment_id,
+                    course=course,
+                    razorpay_signature=signature)
+                
+                user_payment_instance.save()
+
+
+                user_enrollment= CourseEnrollment.objects.create(
+                    normal_user=user,
+                    course=course,
+                    is_active=True
+                )
+
+                user_enrollment.save()
+
+                return redirect('course_detail_view', course_id=course_id)
+               
+            else:
+            
+                return  HttpResponse("some thing went wrong !! please try again")
+        except Exception as e:
+              print(f"Error: {e}")
+              return HttpResponse("Payment failed. Please try again.")
+    else:
+      
+        return  HttpResponse("some thing went wrong !! please try again")
 
 
 def chapter_detail(request, chapter_id):
@@ -955,71 +1052,76 @@ def course_detail_view(request, course_id):
 
 
 
-@login_required
-def enroll_in_course(request, course_id):
-    course = get_object_or_404(Course, pk=course_id)
-    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+# @login_required
+# def enroll_in_course(request, course_id):
+#     course = get_object_or_404(Course, pk=course_id)
+    
+   
+    
+#     return render(request, 'coursedetailsforusers.html', context=context)
 
-    if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # AJAX POST request logic here
-        data = json.loads(request.body)
-        payment_id = data.get('razorpay_payment_id')
-        razorpay_order_id = data.get('razorpay_order_id')
-        signature = data.get('razorpay_signature')
+    # client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
-        try:
-            # Verify the payment
-            client.utility.verify_payment_signature({
-                'razorpay_order_id': razorpay_order_id,
-                'razorpay_payment_id': payment_id,
-                'razorpay_signature': signature
-            })
+    # if request.method == 'POST' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+    #     # AJAX POST request logic here
+    #     data = json.loads(request.body)
+    #     payment_id = data.get('razorpay_payment_id')
+    #     razorpay_order_id = data.get('razorpay_order_id')
+    #     signature = data.get('razorpay_signature')
 
-            # Payment verification successful
-            normal_user, _ = NormalUser.objects.get_or_create(user=request.user)
-            enrollment, created = CourseEnrollment.objects.get_or_create(
-                normal_user=normal_user, course=course
-            )
+    #     try:
+    #         # Verify the payment
+    #         client.utility.verify_payment_signature({
+    #             'razorpay_order_id': razorpay_order_id,
+    #             'razorpay_payment_id': payment_id,
+    #             'razorpay_signature': signature
+    #         })
 
-            # Prepare the message for the response
-            if created:
-                message = "You have been successfully enrolled in the course."
-            else:
-                message = "You are already enrolled in this course."
+    #         # Payment verification successful
+    #         normal_user, _ = NormalUser.objects.get_or_create(user=request.user)
+    #         enrollment, created = CourseEnrollment.objects.get_or_create(
+    #             normal_user=normal_user, course=course
+    #         )
 
-            # Return a JsonResponse with the status and message
-            return JsonResponse({'payment_verified': True, 'message': message})
+    #         # Prepare the message for the response
+    #         if created:
+    #             message = "You have been successfully enrolled in the course."
+    #         else:
+    #             message = "You are already enrolled in this course."
 
-        except razorpay.errors.SignatureVerificationError as e:
-            return JsonResponse({'payment_verified': False, 'message': "Payment verification failed."})
+    #         # Return a JsonResponse with the status and message
+    #         return JsonResponse({'payment_verified': True, 'message': message})
 
-        except Exception as e:
-            return JsonResponse({'payment_verified': False, 'message': "Error processing payment."})
+    #     except razorpay.errors.SignatureVerificationError as e:
+    #         return JsonResponse({'payment_verified': False, 'message': "Payment verification failed."})
 
-    elif request.method == 'GET':
-        # GET request logic for creating a Razorpay order
-        order_amount = int(course.course_fee * 100)  # Convert to paisa
-        order_currency = 'INR'
-        order_receipt = f'order_rcptid_{course_id}'
-        data = {
-            'amount': order_amount,
-            'currency': order_currency,
-            'receipt': order_receipt,
-            'payment_capture': '1'
-        }
+    #     except Exception as e:
+    #         return JsonResponse({'payment_verified': False, 'message': "Error processing payment."})
 
-        try:
-            razorpay_order = client.order.create(data=data)
-            context = {
-                'course': course,
-                'razorpay_order_id': razorpay_order['id'],
-                'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
-                'amount_in_paisa': order_amount
-            }
-            return render(request, 'coursedetailsforusers.html', context)
-        except Exception as e:
-            messages.error(request, "Failed to initiate payment process.")
-            return HttpResponseRedirect(reverse('course_detail_view', args=[course_id]))
+    # elif request.method == 'GET':
+    #     # GET request logic for creating a Razorpay order
+    #     order_amount = int(course.course_fee * 100)  # Convert to paisa
+    #     order_currency = 'INR'
+    #     order_receipt = f'order_rcptid_{course_id}'
+    #     data = {
+    #         'amount': order_amount,
+    #         'currency': order_currency,
+    #         'receipt': order_receipt,
+    #         'payment_capture': '1'
+    #     }
+
+    #     try:
+    #         razorpay_order = client.order.create(data=data)
+    #         context = {
+    #             'course': course,
+    #             'razorpay_order_id': razorpay_order['id'],
+    #             'razorpay_merchant_key': settings.RAZORPAY_KEY_ID,
+    #             'amount_in_paisa': order_amount
+    #         }
+    #         return render(request, 'coursedetailsforusers.html', context)
+    #     except Exception as e:
+    #         messages.error(request, "Failed to initiate payment process.")
+    #         return HttpResponseRedirect(reverse('course_detail_view', args=[course_id]))
         
 def get_chapter_content(request, chapter_id):
     chapter = get_object_or_404(Chapter, pk=chapter_id)
@@ -1682,11 +1784,14 @@ def mobile_login(request):
         token, _ = Token.objects.get_or_create(user=user)
         try:
             normal_user = NormalUser.objects.get(user=user)
+            normal_user_data = NormalUserSerializer(normal_user).data
             profile_photo_url = request.build_absolute_uri(normal_user.profile_photo.url) if normal_user.profile_photo else ''
             cover_photo_url = request.build_absolute_uri(normal_user.cover_photo.url) if normal_user.cover_photo else ''
         except NormalUser.DoesNotExist:
             profile_photo_url = ''
             cover_photo_url = ''
+            normal_user_data = {}
+
 
         return Response({
             'token': token.key,
@@ -1695,6 +1800,11 @@ def mobile_login(request):
             'email': user.email,
             'profile_photo': profile_photo_url,
             'cover_photo': cover_photo_url,
+            'first_name': normal_user_data.get('first_name', ''),
+            'last_name': normal_user_data.get('last_name', ''),
+            'phone_number': normal_user_data.get('phone_number', ''),
+            'country': normal_user_data.get('country', ''),
+            'gender': normal_user_data.get('gender', ''),
         })
     else:
         return Response({'error': 'Invalid Credentials'}, status=status.HTTP_400_BAD_REQUEST)
@@ -1712,3 +1822,7 @@ def get_user_profile(request):
         'cover_photo': request.build_absolute_uri(normal_user.cover_photo.url) if normal_user.cover_photo else None,
     }
     return Response(data)
+
+
+
+
