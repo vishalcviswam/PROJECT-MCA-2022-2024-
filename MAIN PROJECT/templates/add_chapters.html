@@ -277,7 +277,7 @@
                     <input type="hidden" name="module_ids[]" value="{{ module.pk }}">
                     <div class="form-group">
                         <label for="num_chapters_{{ module.pk }}">Number of Chapters:</label>
-                        <input type="number" class="form-control" id="num_chapters_{{ module.pk }}" name="num_chapters[]" min="1" placeholder="Number of Chapters">
+                        <input type="number" class="form-control" id="num_chapters_{{ module.pk }}" name="num_chapters[]" data-module-pk="{{ module.pk }}" min="1" placeholder="Number of Chapters">
                     </div>
                     <div id="chapters_container_{{ module.pk }}" class="form-group">
                         <!-- Chapter name inputs will be populated here -->
@@ -294,20 +294,98 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.9/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        document.querySelectorAll('input[name="num_chapters[]"]').forEach(input => {
-            input.addEventListener('change', function() {
-                const modulePk = this.id.split('_').pop();
-                const chaptersContainer = document.getElementById(`chapters_container_${modulePk}`);
-                chaptersContainer.innerHTML = ''; // Clear previous chapter inputs
-
-                for (let i = 0; i < this.value; i++) {
-                    const chapterInput = document.createElement('input');
-                    chapterInput.type = 'text';
-                    chapterInput.className = 'form-control'; // Add Bootstrap class for styling
-                    chapterInput.name = `chapter_names_${modulePk}[]`; // Dynamic name based on module PK
-                    chapterInput.placeholder = `Chapter ${i + 1} Name`;
-                    chapterInput.required = true;
-                    chaptersContainer.appendChild(chapterInput);
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('input[name="num_chapters[]"]').forEach(input => {
+                input.addEventListener('change', function() {
+                    const modulePk = this.dataset.modulePk;
+                    const chaptersContainer = document.getElementById(`chapters_container_${modulePk}`);
+                    chaptersContainer.innerHTML = '';
+        
+                    const numberOfChapters = parseInt(this.value, 10) || 0;
+                    for (let i = 0; i < numberOfChapters; i++) {
+                        const inputContainer = document.createElement('div');
+                        inputContainer.className = 'chapter-input-container';
+        
+                        const chapterInput = document.createElement('input');
+                        chapterInput.type = 'text';
+                        chapterInput.className = 'form-control mt-2 chapter-input';
+                        chapterInput.name = `chapter_names_${modulePk}[]`;
+                        chapterInput.placeholder = `Chapter ${i + 1} Name`;
+                        chapterInput.required = true;
+                        chapterInput.dataset.modulePk = modulePk;
+                        chapterInput.dataset.index = i;
+        
+                        if (i > 0) chapterInput.disabled = true;
+        
+                        const messageContainer = document.createElement('div');
+                        messageContainer.className = 'validation-message text-danger';
+        
+                        inputContainer.appendChild(chapterInput);
+                        inputContainer.appendChild(messageContainer);
+                        chaptersContainer.appendChild(inputContainer);
+        
+                        chapterInput.addEventListener('blur', function() {
+                            validateChapterName(chapterInput, messageContainer);
+                        });
+                    }
+                });
+            });
+        
+            function validateChapterName(input, messageContainer) {
+                const modulePk = input.dataset.modulePk;
+                const allChapterInputs = Array.from(document.querySelectorAll(`input[name="chapter_names_${modulePk}[]"]`));
+                const currentInputIndex = parseInt(input.dataset.index, 10);
+                const inputValue = input.value;
+                const trimmedValue = inputValue.trim();
+                const inputValues = allChapterInputs.map(inp => inp.value.trim());
+        
+                messageContainer.textContent = '';
+        
+                // Additional validation for leading or trailing whitespace
+                if (inputValue.length !== trimmedValue.length) {
+                    messageContainer.textContent = 'Chapter name cannot start or end with a whitespace.';
+                    input.classList.add('is-invalid');
+                    return false;
+                }
+        
+                if (trimmedValue.split(/\s+/).length < 4) {
+                    messageContainer.textContent = 'Chapter name must be at least four words long.';
+                    input.classList.add('is-invalid');
+                    return false;
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+        
+                if (inputValues.filter((val, idx) => val === trimmedValue && idx !== currentInputIndex).length > 0) {
+                    messageContainer.textContent = 'Duplicate chapter names are not allowed within the same module.';
+                    input.classList.add('is-invalid');
+                    return false;
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+        
+                if (currentInputIndex + 1 < allChapterInputs.length) {
+                    allChapterInputs[currentInputIndex + 1].disabled = false;
+                }
+                return true;
+            }
+        
+            document.querySelector('form').addEventListener('submit', function(event) {
+                event.preventDefault();
+                let formIsValid = true;
+        
+                const allInputs = document.querySelectorAll('.chapter-input-container input[type="text"]');
+                allInputs.forEach(input => {
+                    const messageContainer = input.nextElementSibling;
+                    if (!validateChapterName(input, messageContainer)) {
+                        formIsValid = false;
+                    }
+                });
+        
+                if (formIsValid) {
+                    this.submit();
+                } else {
+                    alert('Please correct the highlighted errors before submitting.');
                 }
             });
         });

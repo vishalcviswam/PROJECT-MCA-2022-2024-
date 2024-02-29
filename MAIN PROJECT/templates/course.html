@@ -530,7 +530,7 @@
             <div class="form-group">
                 <label for="cover_photo">Cover Photo:</label>
                 <div class="custom-file">
-                    <input type="file" class="custom-file-input" name="cover_photo" id="cover_photo" accept="image/*">
+                    <input type="file" class="custom-file-input" name="cover_photo" id="imageUpload" accept="image/*">
                     <label class="custom-file-label" for="cover_photo">Choose file</label>
                 </div>
             </div>
@@ -597,6 +597,16 @@
                 checkbox.checked = mainCheckbox.checked;
             });
         }
+
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            var file = e.target.files[0];
+            var fileType = file.type;
+            var validImageTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validImageTypes.includes(fileType)) {
+                alert('Please select an image file.');
+                this.value = ''; // Reset the input
+            }
+        });
         
     
         // Close the dropdown if the user clicks outside of it
@@ -638,8 +648,11 @@
             function validateCourseName(name) {
                 if (name.startsWith(' ')) return 'The course name should not start with a space.';
                 if (/[^a-zA-Z0-9 ]/.test(name)) return 'The course name should not include special characters.';
+                if (!/\s/.test(name)) return 'The course name must be more than one word.';
+
                 return '';
             }
+            
         
             function validateCourseDuration(duration) {
                 if (duration < 1 || duration > 4500) return 'The course duration should be between 1 to 4500.';
@@ -682,6 +695,53 @@
         
             document.querySelector('[name="total_assignments"]').addEventListener('blur', function () {
                 validateInput(this, validateTotalAssignments);
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            const departmentDropdown = document.getElementById('department');
+            const instructorsSelect = document.querySelector('[name="instructors"]');
+            const courseDescription = document.querySelector('[name="course_description"]');
+            const courseFee = document.querySelector('[name="course_fee"]');
+        
+            form.addEventListener('submit', function(e) {
+                let hasErrors = false;
+                
+                // Validate Department Dropdown
+                if(departmentDropdown.value === "") {
+                    alert('Please choose a department.');
+                    hasErrors = true;
+                }
+        
+                // Validate Instructors Selection
+                let selectedInstructors = Array.from(instructorsSelect.options).filter(option => option.selected);
+                if(selectedInstructors.length === 0) {
+                    alert('At least one instructor must be chosen.');
+                    hasErrors = true;
+                }
+
+                // Validate Course Description
+                let descriptionText = courseDescription.value.trim(); // Remove leading and trailing whitespace for validation only
+                let wordCount = descriptionText.split(/\s+/).filter(function(n) { return n != '' }).length; // Split by whitespace and filter out empty strings for accurate word count
+                if (courseDescription.value.startsWith(' ') || courseDescription.value.endsWith(' ') || wordCount < 10) {
+                    alert('Course Description must not start or end with a white space and must have at least 10 words.');
+                    hasErrors = true;
+                }
+
+                let fee = parseFloat(courseFee.value);
+                if (isNaN(fee) || fee < 0 || fee > 0 && (fee < 100 || fee > 5000)) {
+                    alert('Course Fee must be 0 or within the range of 100 to 5000.');
+                    hasErrors = true;
+                }
+
+
+                if(hasErrors) {
+                    e.preventDefault();
+                    return false;
+                }
+        
+
             });
         });
         

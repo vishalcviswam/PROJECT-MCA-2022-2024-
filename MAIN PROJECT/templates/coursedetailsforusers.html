@@ -235,10 +235,9 @@
             <div class="mt-3 d-flex align-items-center">
                 <h4 class="mr-3">Course Fee: ₹{{ course.course_fee }}</h4>
                 <!-- Enroll Now Button -->
-                <form action="{% url 'enroll_in_course' course.course_id %}" method="post">
-                    {% csrf_token %}
+                
                     <button type="submit" class="btn btn-primary" id="enrollButton">Enroll Now</button>
-                </form>
+               
             </div>
             <!-- Course Details -->
             <div class="mt-3">
@@ -329,7 +328,7 @@
         </div>
     </div>
 </div>
-
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
@@ -351,59 +350,47 @@
         themeIcon.classList.toggle('fa-moon');
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        var enrollButton = document.getElementById('enrollButton');
-        
-        enrollButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value; // Fetch the CSRF token
+
     
-            var amountInPaisa = Math.round({{ course.course_fee }} * 100); // Make sure course_fee is in the template context
+
     
-            var options = {
-                "key": "rzp_test_aL5JgMJJXFfBtM",
-                "amount": amountInPaisa.toString(),
-                "currency": "INR",
-                "name": "{{ course.course_name }}",
-                "description": "Course Enrollment Fee",
-                "handler": function(response) {
-                    fetch("{% url 'enroll_in_course' course_id=course.course_id %}", {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest',
-                            'X-CSRFToken': csrfToken,
-                        },
-                        body: JSON.stringify(response)
-                    })
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('Network response was not ok');
-                        }
-                        return response.json();
-                    })
-                    
-                    .then(data => {
-                        if(data.payment_verified) {
-                            window.location.href = "{% url 'course_detail_view' course_id=course.course_id %}";
-                        } else {
-                            window.location.href = "{% url 'course_detail_view' course_id=course.course_id %}";
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        alert("An error occurred during the payment process. Please try again.");
-                    });
-                },
-                // Prefill and theme options
-            };
-    
-            var rzp1 = new Razorpay(options);
+      var options = {
+         
+        // Enter the Key ID generated from the Dashboard
+        key: "{{ razorpay_merchant_key }}", 
+        amount: "{{ total_amount }}", 
+        currency: "{{ currency }}",
+         
+        // Your/store name.
+        name: "{{ course.course_name }}", 
+         
+        // Pass the id obtained in the response of Step 1
+        order_id: "{{ razorpay_order_id }}", 
+        callback_url: "{{ callback_url }}",
+      };
+       
+      console.log("above consoleee:", options.amount);
+      // initialise razorpay with the options.
+      var rzp1 = new Razorpay(options);
+       
+      // add event listener to the payment button.
+      document.getElementById("enrollButton").onclick = function (e) {
+        if (options.amount !== "") {
+            console.log("Amount before opening Razorpay:", options.amount);
+            console.log("Data type of options.amount:", typeof options.amount);
+            options.amount = "{{ razorpay_amount }}";
             rzp1.open();
-        });
-    });
+            
+    
+           
+          } else {
+            console.log("Razorpay amount is empty. Payment not processed.");
+          }
+          e.preventDefault();
+      };
+    
     
 </script>
+
 </body>
 </html>

@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block style %}
+<style>
+
+    
+.section-title {
+    text-align: center;
+    /* padding-bottom: 30px; */
+}
+
+.pricing .row {
+    padding-top: 0px;
+}
+
+h6 {
+    font-family: 'Cormorant Garamond', serif;
+    color: black;
+    text-align: center;
+    margin-top: 10px;
+    border-radius: 15px;
+    font-size: 22px;
+    position: relative;
+    animation-name: sign;
+    animation-duration: 3s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes sign {
+    0% {
+        top: 0px;
+        background-color: #ff4e00;
+        background-image: linear-gradient(315deg, #ff4e00 0%, #ec9f05 74%);
+    }
+    50% {
+        top: 10px;
+        background-color: #ff4e00;
+        background-image: linear-gradient(315deg, #ff4e00 0%, #ec9f05 74%);
+    }
+    100% {
+        top: 10px;
+    }
+}
+
+.card {
+    margin-top: 57px;
+    border-radius: 8px 40px 40px 8px;
+    transition: all 0.5s ease-in-out;
+    box-shadow: 1px 0px 8px 2px green;
+}
+
+label {
+    color: black;
+    margin-top: 15px;
+    font-family: 'Itim', cursive;
+}
+
+.form-group input {
+    width: 400px;
+    border: none;
+    /* border-bottom: 1px solid purple; */
+    border-bottom: 2px solid green;
+    outline: none;
+    font-size: 22px;
+    margin-bottom: 5px;
+    font-family: 'Itim', cursive;
+}
+
+textarea {
+    resize: vertical;
+    width: 400px;
+    border-bottom: 2px solid red;
+}
+
+.drop {
+    width: 400px;
+    border: none;
+    border-bottom: 2px solid red;
+    outline: none;
+    font-size: 22px;
+    margin-bottom: 5px;
+}
+
+.form-group input:hover {
+    background-color: ghostwhite;
+}
+
+#btn {
+ background-color: #00b712;
+background-image: linear-gradient(315deg, #00b712 0%, #5aff15 74%);
+    border-radius: 15px;
+    border: none;
+    color:black;
+    position: relative;
+}
+
+#btn:hover {
+    background-color: #0cbaba;
+    background-image: linear-gradient(315deg, #0cbaba 0%, #380036 74%);
+}
+</style>
+{% endblock style %}
+
+{% block body %}
+  
+<div class="alert alert-warning" role="alert">
+    Antique Treasure <a class="text-success ml-5" href="">purchase</a>
+   </div>
+   
+   
+   <div class="container">
+       <div class="col my-4">
+           <h2>Step 1 - My  Winnings Checkout - Review Your Winnings</h2>
+           <div class="my-4">
+               <ul class="list-group" id="items">
+               </ul>
+   
+               <nav aria-label="breadcrumb">
+     <ol class="breadcrumb mt-3">
+       <li class="breadcrumb-item active" aria-current="page">Your Winnings Total Is Rs. <span>{{ total_amount }}</span>. Enter your details below & place your order. Thanks for using OneStopShopify</li>
+       
+     </ol>
+   </nav>
+   
+   
+   
+               
+           </div>
+       </div>
+       <div class="col my-4">
+           <h2>Step 1 - Enter Address & Other Details:</h2>
+           <form method="post" action="">{% csrf_token %}
+               
+               <div class="form-row">
+                   <div class="form-group col-md-6">
+                       <label for="inputname">Name</label>
+                       <input type="text" class="form-control" id="name" name="name" required value="{{ address.name|default:'' }}">
+                   </div>
+                   <div class="form-group col-md-6">
+                       <label for="inputEmail4">mobile</label>
+                       <input type="text" class="form-control" id="mobile" name="mobile" required  value="{{ address.mobile|default:'' }}">
+                   </div>
+
+                   <div class="form-group col-md-6">
+                    <label for="inputEmail4">pincode</label>
+                    <input type="number" class="form-control" id="pincode" name="pincode" required value="{{ address.pincode|default:'' }}">
+                </div>
+                
+               </div>
+                <div class="form-row">
+               <div class="form-group col-md-6">
+                   <label for="inputAddress">locality</label>
+                   <input type="text" class="form-control" id="locality" name="locality" required value="{{ address.locality|default:'' }}">
+               </div>
+               <div class="form-group col-md-6">
+                   <label for="inputAddress">Address (Area and Street):</label>
+                   <input type="text" class="form-control" id="address" name="address" required value="{{ address.address|default:'' }}">
+               </div>
+               </div>
+   
+             
+             
+               <div class="form-row">
+                   <div class="form-group col-md-6">
+                       <label for="inputCity">City/District/Town:</label>
+                       <input type="text" class="form-control" id="city" name="city" required value="{{ address.city|default:'' }}">
+                   </div>
+                   <div class="form-group col-md-6">
+                       <label for="inputState">State:</label>
+                       <select class="form-control" id="state" name="state" required>
+                        <option value="" {% if not address.state %}selected{% endif %}>-Select State-</option>
+                        <option value="Andhra Pradesh" {% if address.state == 'Andhra Pradesh' %}selected{% endif %}>Andhra Pradesh</option>
+                        <option value="Arunachal Pradesh" {% if address.state == 'Arunachal Pradesh' %}selected{% endif %}>Arunachal Pradesh</option>
+                        <option value="Assam" {% if address.state == 'Assam' %}selected{% endif %}>Assam</option>
+                        <!-- Add more states here -->
+                      </select>
+                   </div>
+                   </div>
+                 
+                <div class="form-row">
+                <div class="form-group col-md-6">
+                       <label for="inputZip">Landmark (Optional):</label>
+                       <input type="text" class="form-control" id="landmark" name="landmark" value="{{ address.landmark|default:'' }}">
+                   </div>
+            
+                    
+                  
+                
+
+
+                   
+               
+               <!-- Add an ID to your payment button -->
+<button id="pay-btn" type="submit" class="btn btn-success btn-sm btn-block col-md-4">Place Order</button>
+</form>
+</div>
+</div>
+
+
+
+         
+   
+    <script src="https://code.jquery.com/jquery-3.3.1.js"
+     integrity="sha256-2Kok7MbOyxpgUVvAk/HJ2jigOSYS2auK4Pfzbm7uH60="
+     crossorigin="anonymous"></script>
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+       <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+ 
+{% endblock %}

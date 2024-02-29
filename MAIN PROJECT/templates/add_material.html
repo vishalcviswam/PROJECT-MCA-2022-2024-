@@ -410,6 +410,72 @@
         themeIcon.classList.toggle('fa-sun');
         themeIcon.classList.toggle('fa-moon');
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelector('form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent the form from auto-submitting
+
+            // Clear previous error messages
+            document.querySelectorAll('.error-message').forEach(e => e.remove());
+
+            let formIsValid = true; // Flag to track overall form validation status
+
+            // Validate Reading Material Title
+            document.querySelectorAll('input[name^="reading_title_"]').forEach(input => {
+                if (!validateReadingMaterialTitle(input.value)) {
+                    displayErrorMessage(input, 'Title must have at least four consecutive letters, at least 4 words, and should not start or end with a whitespace.');
+                    formIsValid = false;
+                }
+            });
+
+            // Validate Text Content
+            document.querySelectorAll('textarea[name^="reading_text_content_"]').forEach(textarea => {
+                if (!validateTextContent(textarea.value)) {
+                    displayErrorMessage(textarea, 'Text content should have a minimum of 30 words, and each word should have at least 1 letter.');
+                    formIsValid = false;
+                }
+            });
+
+            // Validate Image Files
+            document.querySelectorAll('input[type="file"][name^="reading_images_"]').forEach(input => {
+                if (input.files.length > 0 && !validateImageFile(input.files[0])) {
+                    displayErrorMessage(input, 'Image files must be in jpg, jpeg, or png format.');
+                    formIsValid = false;
+                }
+            });
+
+            if (formIsValid) {
+                this.submit();
+            }
+        });
+    });
+
+    function displayErrorMessage(input, message) {
+        const errorMessage = document.createElement('span');
+        errorMessage.classList.add('error-message');
+        errorMessage.style.color = 'red';
+        errorMessage.textContent = message;
+        input.parentNode.insertBefore(errorMessage, input.nextSibling);
+    }
+
+    function validateReadingMaterialTitle(title) {
+        const trimmedTitle = title.trim();
+        const wordCount = trimmedTitle.split(/\s+/).length;
+        const hasFourConsecutiveLetters = /[a-zA-Z]{4,}/.test(title);
+        return wordCount >= 4 && hasFourConsecutiveLetters && title === trimmedTitle;
+    }
+
+    function validateTextContent(content) {
+        const words = content.trim().split(/\s+/);
+        const wordCount = words.length;
+        const hasFourConsecutiveLettersInEachWord = words.every(word => /[a-zA-Z]{1,}/.test(word));
+        return wordCount >= 30 && hasFourConsecutiveLettersInEachWord;
+    }
+
+    function validateImageFile(file) {
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
+        return validTypes.includes(file.type);
+    }
 </script>
 
 </body>

@@ -3,18 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <title>Audio Recorder</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
-        #transcriptionContainer, #randomContentContainer {
-            margin-top: 20px;
-            border: 1px solid #000;
-            min-height: 50px;
-            padding: 10px;
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f7;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-           
+        .container {
+            background: #fff;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            padding: 20px;
+            width: 600px;
+        }
+
+        .button {
+            background-color: #007bff;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .content-box {
+            border: 1px solid #e1e4e8;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 20px;
+            min-height: 50px;
+        }
+
+        #transcriptionContainer, #randomContentContainer {
+            background-color: #f8f9fa;
+            color: #212529;
+        }
+
+        h2 {
+            color: #333;
         }
     </style>
-    <script>
-        // Function to get the CSRF token from the cookies
+</head>
+<body>
+
+<div class="container">
+    <h2>Audio Recorder</h2>
+
+    <div id="randomContentContainer" class="content-box">{{ random_content }}</div>
+    <button onclick="generateRandomContent()" class="button">Generate Random Content</button>
+    <button onclick="speakCurrentText()" class="button">Pronounce Text</button>
+
+    <div id="transcriptionContainer" class="content-box">Transcription will appear here...</div>
+    <div id="missingWords">Missing Words: </div>
+    <div id="extraWords">Extra Words: </div>
+
+    <button id="startButton" onclick="startRecording()" class="button">Start Recording</button>
+    <button id="stopButton" onclick="stopRecording()" disabled class="button">Stop Recording</button>
+    <button id="transcribeButton" onclick="transcribeAudio()" disabled class="button">Transcribe</button>
+</div>
+
+<script>
+     // Function to get the CSRF token from the cookies
         function getCookie(name) {
             let cookieValue = null;
             if (document.cookie && document.cookie !== '') {
@@ -141,25 +213,7 @@
             document.getElementById('extraWords').innerText = "Extra Words: " + extraWords.join(', ');
         }
         
-                
-    </script>
-</head>
-<body>
-
-<div id="randomContentContainer">{{ random_content }}</div>
-<button onclick="generateRandomContent()">Generate Random Content</button>
-<button onclick="speakCurrentText()">Pronounce Text</button>
-
-<div id="missingWords">Missing Words: </div>
-<div id="extraWords">Extra Words: </div>
-
-
-
-<button id="startButton" onclick="startRecording()">Start Recording</button>
-<button id="stopButton" onclick="stopRecording()" disabled>Stop Recording</button>
-<button id="transcribeButton" onclick="transcribeAudio()" disabled>Transcribe</button>
-
-<div id="transcriptionContainer">Transcription will appear here...</div>
+</script>
 
 </body>
 </html>

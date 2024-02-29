@@ -151,21 +151,68 @@
     </style>
 
     <script type="text/javascript">
-        // Function to create input fields for module names
-        function createModuleInputs() {
-            var numberOfModules = document.getElementById('numModules').value;
-            var container = document.getElementById('moduleContainer');
-            container.innerHTML = '';
-
-            for (var i = 0; i < numberOfModules; i++) {
-                container.innerHTML += `
-                    <div class="module-input-group">
-                        <label for="moduleName${i}">Module ${i + 1}:</label>
-                        <input type="text" class="form-control" id="moduleName${i}" name="module_names[]" required>
-                    </div>
-                `;
+        document.addEventListener('DOMContentLoaded', function () {
+            var moduleNamesSet = new Set();
+        
+            function createModuleInputs() {
+                var numberOfModules = document.getElementById('numModules').value;
+                var container = document.getElementById('moduleContainer');
+                container.innerHTML = '';
+                moduleNamesSet.clear();
+        
+                for (var i = 0; i < numberOfModules; i++) {
+                    var inputHtml = `
+                        <div class="module-input-group">
+                            <label for="moduleName${i}">Module ${i + 1}:</label>
+                            <input type="text" class="form-control" id="moduleName${i}" name="module_names[]" required>
+                        </div>
+                    `;
+                    container.innerHTML += inputHtml;
+                }
+        
+                // Add blur event listener to inputs
+                addInputEventListeners();
             }
-        }
+        
+            function addInputEventListeners() {
+                var inputs = document.querySelectorAll('[name="module_names[]"]');
+                inputs.forEach(function(input, index) {
+                    input.addEventListener('blur', function() {
+                        validateModuleName(input, index);
+                    });
+                });
+            }
+        
+            function validateModuleName(input, index) {
+                var nameWords = input.value.trim().split(/\s+/);
+                var isValid = true;
+        
+                if (nameWords.length < 4) {
+                    alert('Module name must be at least four words long.');
+                    isValid = false;
+                }
+        
+                if (moduleNamesSet.has(input.value.trim())) {
+                    alert('Duplicate module names are not allowed.');
+                    isValid = false;
+                } else {
+                    moduleNamesSet.add(input.value.trim());
+                }
+        
+                // Enable the next input only if this one is valid
+                var nextInput = document.getElementById(`moduleName${index + 1}`);
+                if (nextInput) {
+                    if (isValid) {
+                        nextInput.disabled = false;
+                    } else {
+                        nextInput.disabled = true;
+                    }
+                }
+            }
+        
+            document.getElementById('numModules').addEventListener('change', createModuleInputs);
+        });
+
 
         function toggleSearch() {
             const searchBox = document.getElementById('searchBox');
@@ -245,7 +292,7 @@
             <br>
 
             <!-- Form to submit the module names -->
-            <form method="post" action="{% url 'add_modules' course.course_id %}">
+            <form method="post" action="{% url 'add_modules' course.course_id %}" onsubmit="return validateModuleNames()">
                 {% csrf_token %}
                 <div id="moduleContainer">
                     <!-- Dynamic module input fields will be appended here -->
