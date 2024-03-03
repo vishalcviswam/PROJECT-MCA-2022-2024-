@@ -1,0 +1,354 @@
+{% load static%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Courses List</title>
+    <!-- Include Bootstrap CSS for styling the cards -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <style>
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5em;
+            }
+        
+            #searchBox {
+                max-width: 200px;
+                display: none;
+            }
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
+            }
+        
+            .navbar {
+                background-color: #ff006e !important;
+                box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
+
+
+            body {
+                background-color: #f0f2f5;
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 0;
+                overflow-x: hidden;
+            }
+    
+            .container {
+                display: flex;
+                justify-content: space-between;
+                margin-top: 20px;
+                padding-left: 0; /* Remove left padding */
+                padding-right: 0; /* Remove right padding */
+            }
+    
+            .chat-container {
+                display: flex;
+                flex-direction: column;
+                height: 100vh; /* Use full height of the viewport */
+            }
+    
+            .chat-header,
+            .chat-footer {
+                background-color: #fff;
+                padding: 15px 20px;
+                box-shadow: 0 2px 4px rgba(0,0,0,.1);
+                width: 100%; /* Span the full width of the container */
+            }
+                
+            .chat-header {
+                background: rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(10px);
+                padding: 10px 20px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                border-bottom: 1px solid #e0e0e0;
+                position: sticky;
+                top: 0; /* Stick to the top */
+                z-index: 2; /* Ensure it stays above other elements */
+            }
+    
+            .chat-messages {
+                flex-grow: 1;
+                overflow-y: auto;
+                padding: 20px;
+            }
+    
+            .chat-footer {
+                padding: 10px 20px;
+                background: rgba(255, 255, 255, 0.7);
+                backdrop-filter: blur(10px);
+                display: flex;
+                align-items: center;
+                position: sticky;
+                bottom: 0; /* Stick to the bottom */
+                z-index: ; /* Ensure it stays above other elements */
+            }
+    
+
+    
+            .send-button {
+                background-color: transparent;
+                border: none;
+                cursor: pointer;
+                color: #007bff;
+            }
+    
+            .emoji-picker {
+                cursor: pointer;
+                margin-right: 10px;
+                color: #007bff;
+            }
+    
+            /* Scrollbar */
+            ::-webkit-scrollbar {
+                width: 5px;
+            }
+    
+            ::-webkit-scrollbar-track {
+                background: #f1f1f1;
+            }
+    
+            ::-webkit-scrollbar-thumb {
+                background: #888;
+            }
+    
+            ::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+    
+            /* Timestamp */
+            .timestamp {
+                font-size: 0.75em;
+                margin-top: 5px;
+                color: #666;
+            }
+    
+            #enrolled-users,
+            #current-members,
+            #chat-box {
+                border: 1px solid #e3e3e3;
+                border-radius: 10px;
+                background-color: #ffffff;
+                
+                margin: 0 10px;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Box shadow for a subtle lift effect */
+                background-image: url('{% static 'images/abb.jpg'%}'); /* Path to your background image */
+                background-size: cover; /* Ensure the image covers the whole container */
+                background-position: center; /* Center the image in the container */
+            }
+            #enrolled-users,
+            #current-members{
+                padding: 20px;
+
+            }
+    
+            #enrolled-users h3,
+            #current-members h3 {
+                color: #007bff; /* Blue heading color */
+                border-bottom: 2px solid #007bff; /* Blue underline */
+                padding-bottom: 10px;
+                margin-bottom: 20px;
+            }
+    
+            #chat-box {
+                flex: 1;
+                overflow-y: auto;
+                max-height: calc(100vh - 90px); /* Adjusted to accommodate header and footer */
+                background-image: url('{% static 'images/abb.jpg'%}');
+                background-size: cover;
+                background-position: center;
+                position: relative;
+            }
+    
+            /* Message card styles */
+            .message-card {
+                background-color: #007bff;
+                color: #ffffff;
+                border-radius: 10px;
+                padding: 10px;
+                margin-bottom: 10px;
+                max-width: 70%;
+            }
+    
+            .received-message-card {
+                background-color: #e3e3e3; /* Light gray color for received messages */
+                color: #495057; /* Dark text color */
+                border-radius: 8px;
+                padding: 10px;
+                margin-bottom: 10px;
+                max-width: 70%; /* Limit message card width */
+            }
+    
+            /* Hover animation */
+            .message-card:hover,
+            .received-message-card:hover {
+                transform: scale(1.05); /* Enlarge on hover */
+                transition: transform 0.3s ease-in-out;
+                cursor: pointer;
+            }
+    
+            /* Add responsive styles for smaller screens */
+            @media (max-width: 768px) {
+                .container {
+                    flex-direction: column;
+                }
+    
+                #enrolled-users,
+                #current-members,
+                #chat-box {
+                    margin: 10px 0;
+                }
+            }
+
+
+            
+            
+    </style>
+    <!-- Add any additional stylesheets or scripts you need here -->
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light align-items-center">
+        <a class="navbar-brand" href="#">
+            <img src="{% static 'images/esf21.png'%}" alt="Logo" class="navbar-logo"> <!-- This is the logo -->
+            EduSphere
+        </a>
+    
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mx-auto">
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="{% url 'content_creator_home' %}"><i class="fas fa-home"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                </li>
+                <li class="nav-item mx-5">
+                    <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item mx-2 theme-toggle" onclick="toggleTheme()">
+                    <i id="theme-icon" class="fas fa-sun"></i>
+                </li>
+                <li class="nav-item">
+                    <div id="searchBox" class="mr-2">
+                        <input type="text" placeholder="Search..." class="form-control">
+                    </div>
+                </li>
+                <li class="nav-item">
+                    <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
+                </li>
+                <li class="nav-item">
+                    <img src="{% if user.contentcreators.profile_photo %}{{ user.contentcreators.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container mt-4">
+        <!-- Display Enrolled Users -->
+        <div id="enrolled-users">
+            <h3>Enrolled Users</h3>
+            {% for enrollment in enrolled_users %}
+                <div>
+                    {{ enrollment.user.username }}
+                    <form method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" name="add_member" value="{{ enrollment.user.id }}" class="btn btn-primary btn-sm">Add</button>
+                    </form>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Display Chat Messages -->
+        <div id="chat-box">            
+            <div class="chat-header">
+                <h4>Chat in {{ community.name }}</h4>
+            </div>
+            <div class="chat-messages">
+            {% for message in messages %}
+                {% if message.user == user %}
+                    <div class="message-card mb-3">
+                        <strong>{{ message.user.username }}:</strong> {{ message.message }}
+                        <div class="timestamp">{{ message.timestamp }}</div>
+                    </div>
+                {% else %}
+                    <div class="received-message-card mb-3">
+                        <strong>{{ message.user.username }}:</strong> {{ message.message }}
+                    </div>
+                {% endif %}
+            {% endfor %}
+            </div>
+            
+            <!-- Form to Post a New Message -->
+            <form method="post" class="chat-footer">
+                {% csrf_token %}
+                <i class="far fa-smile emoji-picker"></i>
+                <input type="text" name="message_content" class="form-control" placeholder="Type your message here...">
+                <button type="submit" class="send-button"><i class="fas fa-paper-plane"></i></button>
+            </form>
+            
+        </div>
+
+        <!-- Display Current Members -->
+        <div id="current-members">
+            <h3>Community Members</h3>
+            {% for member in current_members %}
+                <p>{{ member.user.user.username }}</p> <!-- Adjust based on your user model relationships -->
+            {% endfor %}
+        </div>
+    </div>
+
+<!-- Optional: Include Bootstrap JS and its dependencies if you need them -->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+    function toggleSearch() {
+        const searchBox = document.getElementById('searchBox');
+        if (searchBox.style.display === 'none') {
+            searchBox.style.display = 'block';
+        } else {
+            searchBox.style.display = 'none';
+        }
+    }
+
+    function toggleTheme() {
+        const body = document.body;
+        const themeIcon = document.getElementById('theme-icon');
+        body.classList.toggle('night-mode');
+        themeIcon.classList.toggle('fa-sun');
+        themeIcon.classList.toggle('fa-moon');
+    }
+
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>
