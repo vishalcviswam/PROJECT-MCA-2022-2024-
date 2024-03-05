@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-!-(&mpm13_#u)#**w(k$@pm5z-_fvacy@ja@c!g@xzn#$&v$c8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -46,6 +46,10 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'multiselectfield',
+    'rest_framework',
+    'corsheaders',
+    'rest_framework.authtoken',
+    
 ]
 
 MIDDLEWARE = [
@@ -57,6 +61,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 
 ROOT_URLCONF = 'edusphere.urls'
@@ -168,3 +173,5 @@ RAZORPAY_KEY_SECRET = 'xoCVK5pz9YarTfSxmN4C0SYt'
 
 CSRF_COOKIE_SECURE = False  # Set to True if you're using HTTPS
 CSRF_COOKIE_HTTPONLY = False
+
+CORS_ALLOW_ALL_ORIGINS = True
