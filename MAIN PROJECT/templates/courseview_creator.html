@@ -26,6 +26,8 @@
         
             .navbar {
                 background-color: #ff006e !important;
+                box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+
             }
         
             .navbar-logo {
@@ -116,6 +118,32 @@
             .card:hover .card-title, .card:hover .card-text {
                 color: #023e8a; /* Change text color on hover */
             }
+
+            /* Button Styling */
+            .btn-primary {
+                display: block; /* Make buttons block level for full width */
+                width: 100%; /* Full width */
+                margin-right: 10px; /* Adds space to the right of each button */
+            }
+
+            /* Last Button in a Card */
+            .card-body .btn:last-child {
+                margin-right: 0; /* Removes the margin for the last button to avoid extra spacing */
+            }
+
+            /* Modern Button Styling */
+            .btn-primary {
+                background-color: #007bff; /* Primary button color */
+                border: none; /* Removes border */
+                transition: background-color 0.3s ease, transform 0.3s ease; /* Smooth transition for hover effects */
+            }
+
+            .btn-primary:hover {
+                background-color: #0056b3; /* Darker shade on hover */
+                transform: translateY(-2px); /* Slightly lifts the button on hover */
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Adds shadow for depth */
+            }
+
             
     </style>
     <!-- Add any additional stylesheets or scripts you need here -->
@@ -133,10 +161,10 @@
                     <a class="nav-link" href="{% url 'content_creator_home' %}"><i class="fas fa-home"></i></a>
                 </li>
                 <li class="nav-item mx-5">
-                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                    <a class="nav-link" href="{% url 'course_list_college' %}"><i class="fas fa-book"></i></a>
                 </li>
                 <li class="nav-item mx-5">
-                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                    <a class="nav-link" href="{% url 'community_detail'%}"><i class="fas fa-users"></i></a>
                 </li>
                 <li class="nav-item mx-5">
                     <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
@@ -191,7 +219,10 @@
                     <p class="card-text">{{ course.course_level }}</p>
                     <p class="card-text">₹{{ course.course_fee }}</p>
                     <!-- Replace 'course_detail' with the actual route to the course detail page -->
-                    <a href="{% url 'course_detail_creator' course.course_id %}" class="btn btn-primary">More Info</a>
+                    <div class="btn-container">
+                        <a href="{% url 'course_detail_creator' course.course_id %}" class="btn btn-primary mb-2">More Info</a>
+                        <a href="{% url 'create_community' course.course_id %}" class="btn btn-primary">Create Community</a>
+                    </div>
                 </div>
             </div>
         </div>

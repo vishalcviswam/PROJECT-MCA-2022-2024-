@@ -1,0 +1,17 @@
+<!-- choose_course_for_community.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Select Course</title>
+</head>
+<body>
+    <h2>Select a Course to Create a Community For</h2>
+    <ul>
+        {% for course in courses %}
+        <li>
+            <a href="{% url 'create_community' course.id %}">{{ course.course_name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

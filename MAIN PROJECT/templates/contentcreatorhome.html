@@ -26,6 +26,7 @@
             background-color: #ffcad4;
             border-radius: 10px;
             padding: 15px;
+
         }
 
         textarea {
@@ -57,6 +58,8 @@
 				right: -300px; /* Initially hide the sidebar */
 				transition: 0.3s;
 				z-index: 9; /* Ensure this is below the close button's z-index */
+                box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+
 		}
 
         .profile-header {
@@ -110,6 +113,7 @@
         }
 		.navbar {
 			background-color: #ff006e !important;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
 		}
 		
 		.profile-menu li a {
@@ -134,6 +138,7 @@
         .trends a {
             text-decoration: none; /* This will remove the underline from links */
             color: inherit; /* This ensures that the color of the links is the same as the text around them */
+            
         }
         
         .trends a:hover {
@@ -161,7 +166,7 @@
                 <a class="nav-link" href="{% url 'course_list_college' %}"><i class="fas fa-book"></i></a>
             </li>
             <li class="nav-item mx-5">
-                <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                <a class="nav-link" href="{% url 'community_detail'%}"><i class="fas fa-users"></i></a>
             </li>
             <li class="nav-item mx-5">
                 <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
@@ -194,7 +199,6 @@
 			<li><a href="{% url 'creatorprofile' %}">View Profile</a></li>
 			<li><a href="">Edit Profile</a></li>
 			<li><a href="{% url 'course_list_college' %}">View Courses</a></li>
-			<li><a href="">Add Community</a></li>
 			<li><a href="">View Enrollment Details</a></li>
 			<li><a href="{% url 'add_course_by_creator'%}">Add Courses</a></li>
             <li><a href="{% url 'view_saved_posts' %}">Saved Posts</a></li>

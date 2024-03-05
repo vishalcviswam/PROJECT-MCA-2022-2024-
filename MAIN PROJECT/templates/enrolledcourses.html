@@ -173,7 +173,7 @@
                   <p class="card-text">{{ enrollment.course.college.college_name }}</p>
                   <p class="card-text">{{ enrollment.course.course_level }}</p>
                   <p class="card-text">₹{{ enrollment.course.course_fee }}</p>
-                  <a href="{% url 'course_detail_user' enrollment.course.course_id %}" class="btn btn-primary">More Info</a>
+                  <a href="{% url 'enrolled_course_details' enrollment.course.course_id %}" class="btn btn-primary">More Info</a>
                 </div>
               </div>
             </div>

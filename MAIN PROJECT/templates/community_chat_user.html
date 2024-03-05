@@ -26,7 +26,7 @@
             }
         
             .navbar {
-                background-color: #ff006e !important;
+                background-color: #468faf !important;
                 box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
 
             }
@@ -264,6 +264,9 @@
                 max-height: 50px;
             }
 
+            .form-control {
+                height: 50px !important;
+            }
   
     </style>
 </head>
@@ -277,13 +280,13 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav mx-auto">
                 <li class="nav-item mx-5">
-                    <a class="nav-link" href="{% url 'content_creator_home' %}"><i class="fas fa-home"></i></a>
+                    <a class="nav-link" href="{% url 'home' %}"><i class="fas fa-home"></i></a>
                 </li>
                 <li class="nav-item mx-5">
-                    <a class="nav-link" href="#"><i class="fas fa-book"></i></a>
+                    <a class="nav-link" href="{% url 'course_list' %}"><i class="fas fa-book"></i></a>
                 </li>
                 <li class="nav-item mx-5">
-                    <a class="nav-link" href="#"><i class="fas fa-users"></i></a>
+                    <a class="nav-link" href="{% url 'community_detail_user'%}"><i class="fas fa-users"></i></a>
                 </li>
                 <li class="nav-item mx-5">
                     <a class="nav-link" href="#"><i class="fas fa-bell"></i></a>
@@ -302,25 +305,13 @@
                     <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
                 </li>
                 <li class="nav-item">
-                    <img src="{% if user.contentcreators.profile_photo %}{{ user.contentcreators.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                    <img src="{% if user.normaluser.profile_photo %}{{ user.normaluser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
                 </li>
             </ul>
         </div>
     </nav>
     <div class="container mt-4">
         <!-- Display Enrolled Users -->
-        <div id="enrolled-users">
-            <h3><b>Enrolled Users</b></h3>
-            {% for enrollment in enrolled_users %}
-                <div>
-                    {{ enrollment.user.username }}
-                    <form method="post" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" name="add_member" value="{{ enrollment.user.id }}" class="btn btn-primary btn-sm">Add</button>
-                    </form>
-                </div>
-            {% endfor %}
-        </div>
 
         <!-- Display Chat Messages -->
         <div id="chat-box">
@@ -367,40 +358,40 @@
                     
                     
                     {% else %}
-                    <div class="received-message-container mb-3">
-                        <div class="received-message-card">
-                            {% if message.message %}
-                            <strong>{{ message.user.username }}:</strong> {{ message.message }}
-                            <div class="timestamp">{{ message.timestamp }}</div>
-                        {% endif %}
-                        
-                        {% if message.file_attachment %}
-                            <strong>{{ message.user.username }}:</strong>
+                        <div class="received-message-container mb-3">
+                            <div class="received-message-card">
+                                {% if message.message %}
+                                <strong>{{ message.user.username }}:</strong> {{ message.message }}
+                                <div class="timestamp">{{ message.timestamp }}</div>
+                            {% endif %}
                             
-                            {% with file_name=message.file_attachment.name|lower %}
-                                {% if file_name|slice:"-4:" == '.jpg' or file_name|slice:"-5:" == '.jpeg' or file_name|slice:"-4:" == '.png' or file_name|slice:"-4:" == '.gif' %}
-                                    <!-- Display Image -->
-                                    <img src="{{ message.file_attachment.url }}" class="card-img-top" alt="Image">
-                                    
-                                {% elif file_name|slice:"-4:" == '.mp4' or file_name|slice:"-5:" == '.webm' or file_name|slice:"-4:" == '.ogg' %}
-                                    <!-- Display Video -->
-                                    <video controls class="card-img-top">
-                                        <source src="{{ message.file_attachment.url }}" type="video/mp4">
-                                        Your browser does not support the video tag.
-                                    </video>
-                                    
-                                {% elif file_name|slice:"-4:" == '.pdf' or file_name|slice:"-4:" == '.doc' or file_name|slice:"-5:" == '.docx' %}
-                                    <!-- Display File -->
-                                    <a href="{{ message.file_attachment.url }}" target="_blank">{{ message.file_attachment.name }}</a>
-                                    
-                                {% else %}
-                                    <!-- Unknown File Type -->
-                                    <p>Unsupported file type: {{ message.file_attachment.name }}</p>
-                                {% endif %}
-                            {% endwith %}
-                        {% endif %}
+                            {% if message.file_attachment %}
+                                <strong>{{ message.user.username }}:</strong>
+                                
+                                {% with file_name=message.file_attachment.name|lower %}
+                                    {% if file_name|slice:"-4:" == '.jpg' or file_name|slice:"-5:" == '.jpeg' or file_name|slice:"-4:" == '.png' or file_name|slice:"-4:" == '.gif' %}
+                                        <!-- Display Image -->
+                                        <img src="{{ message.file_attachment.url }}" class="card-img-top" alt="Image">
+                                        
+                                    {% elif file_name|slice:"-4:" == '.mp4' or file_name|slice:"-5:" == '.webm' or file_name|slice:"-4:" == '.ogg' %}
+                                        <!-- Display Video -->
+                                        <video controls class="card-img-top">
+                                            <source src="{{ message.file_attachment.url }}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                        
+                                    {% elif file_name|slice:"-4:" == '.pdf' or file_name|slice:"-4:" == '.doc' or file_name|slice:"-5:" == '.docx' %}
+                                        <!-- Display File -->
+                                        <a href="{{ message.file_attachment.url }}" target="_blank">{{ message.file_attachment.name }}</a>
+                                        
+                                    {% else %}
+                                        <!-- Unknown File Type -->
+                                        <p>Unsupported file type: {{ message.file_attachment.name }}</p>
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                            </div>
                         </div>
-                    </div>
                     {% endif %}
                 {% endfor %}
             </div>
@@ -416,8 +407,6 @@
                 <button type="submit" class="send-button"><i class="fas fa-paper-plane"></i></button>
             </form>
             
-            
-    
         </div>
 
         <!-- Display Current Members -->
@@ -481,6 +470,8 @@
     document.getElementById('file-upload').addEventListener('change', handleFileChange);
 
     $("#message_emoji").emojioneArea()
+
+
 
 </script>
 

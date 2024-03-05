@@ -31,6 +31,7 @@
         
             .navbar {
                 background-color: #ff006e !important;
+                box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
             }
         
             .navbar-logo {
@@ -369,7 +370,7 @@
                     <button id="searchBtn" class="btn btn-outline-secondary mx-2" onclick="toggleSearch()">🔍</button>
                 </li>
                 <li class="nav-item">
-                    <img src="{% if user.collegeuser.profile_photo %}{{ user.collegeuser.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
+                    <img src="{% if user.contentcreators.profile_photo %}{{ user.contentcreators.profile_photo.url }}{% else %}{% static 'images/img2.jpg' %}{% endif %}" alt="Profile Picture" class="rounded-circle me-2" style="width: 40px; height: 40px;" onclick="toggleProfileSidebar()">
                 </li>
             </ul>
         </div>
