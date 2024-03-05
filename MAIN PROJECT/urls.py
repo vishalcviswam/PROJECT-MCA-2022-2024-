@@ -62,6 +62,8 @@ urlpatterns = [
     path('course_creator/<int:course_id>/', views.course_detail_creator, name='course_detail_creator'),
 
     path('course_detail_user/<int:course_id>/', views.course_detail_user, name='course_detail_user'),
+    path('enrolled_course_detail_user/<int:course_id>/', views.enrolled_course_details, name='enrolled_course_details'),
+
     path('chapter/<int:chapter_id>/', views.chapter_detail, name='chapter_details'),
     path('toggle_user_activation/<int:user_id>/', views.toggle_user_activation, name='toggle_user_activation'),
 
@@ -85,6 +87,11 @@ urlpatterns = [
 
     path('add_course_by_creator',views.add_course_by_creator,name='add_course_by_creator'),
     path('paymenthandler/', views.paymenthandler, name='paymenthandler'),
+    path('community/create/<int:course_id>/', views.create_community, name='create_community'),
+    path('communities/', views.community_detail, name='community_detail'),
+    path('communities/user/', views.community_detailsnew, name='community_detail_user'),
+    path('community/chat/<int:community_id>/', views.community_chat, name='community_chat'),
+    path('community/chat_user/<int:community_id>/', views.community_chat_user, name='community_chat_user'),
 
     #restframework
     path('api/register/', views.register_normaluser_flutter, name='register_normaluser_flutter'),

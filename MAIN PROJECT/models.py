@@ -405,3 +405,41 @@ class Payment(models.Model):
     
 
 
+class Community(models.Model):
+    name = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    cover_photo = models.ImageField(upload_to='community_covers/', null=True, blank=True)
+    profile_photo = models.ImageField(upload_to='community_profiles/', null=True, blank=True)
+    rules = models.TextField(blank=True, null=True)
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)
+    content_creator = models.ForeignKey('ContentCreators', on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.course.course_name}"
+
+
+class CommunityMembership(models.Model):
+    community = models.ForeignKey('Community', on_delete=models.CASCADE, related_name='memberships')
+    user = models.ForeignKey('NormalUser', on_delete=models.CASCADE)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    is_admin = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.user.user.username} in {self.community.name}"
+
+class Message(models.Model):
+    community = models.ForeignKey('Community', on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    message = models.TextField(blank=True)
+    posted_at = models.DateTimeField(auto_now_add=True)
+    file_attachment = models.FileField(upload_to='message_attachments/', null=True, blank=True)
+
+
+
+    def __str__(self):
+        return f"Message by {self.user.username} on {self.posted_at.strftime('%Y-%m-%d %H:%M')}"
+
+    
+
+

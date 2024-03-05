@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import get_list_or_404, render, redirect
-from .models import AudioFile, ContentCreators, CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Payment, Post, Progress, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
+from .models import AudioFile, Community, CommunityMembership, ContentCreators, CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Message, Payment, Post, Progress, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
 
 from datetime import date, timedelta, timezone
 from django.db import IntegrityError
@@ -54,6 +54,11 @@ from pathlib import Path
 import traceback
 import uuid
 import random
+
+from reportlab.platypus import Image
+from reportlab.lib.units import inch
+from django.contrib.staticfiles import finders
+from reportlab.lib.colors import HexColor, black, blue, Color
 
 
 @login_required(login_url='loginnew')
@@ -811,32 +816,31 @@ def get_chapters_for_module(request, module_id):
     
 
 def course_list(request):
-    # Fetch all courses from the database
-    courses = Course.objects.select_related('college').all()
+    # Fetch all courses that the user is not enrolled in
+    user = request.user.normaluser
+    enrolled_courses_ids = CourseEnrollment.objects.filter(normal_user=user).values_list('course__course_id', flat=True)
+    courses = Course.objects.exclude(course_id__in=enrolled_courses_ids).select_related('college').all()
+
     # Render the courses.html template with the courses data
     return render(request, 'courseviewforuser.html', {'courses': courses})
 
 
 @login_required
 def course_list_college(request):
-    courses = Course.objects.none()  # Initialize with no courses
-    template_name = ''  # Initialize the template name
+    courses = Course.objects.none()  
+    template_name = ''  
 
-    # Check if the user is associated with a CollegeUser
     try:
         college_user = request.user.collegeuser
         courses = Course.objects.filter(college=college_user)
-        template_name = 'courseview.html'  # CollegeUser's template
+        template_name = 'courseview.html'  
     except CollegeUser.DoesNotExist:
-        # If not a CollegeUser, check if the user is a ContentCreator
         try:
-            content_creator = request.user.contentcreators  # Adjust according to your User model's related name
+            content_creator = request.user.contentcreators  
             courses = Course.objects.filter(content_creator=content_creator)
-            template_name = 'courseview_creator.html'  # ContentCreator's template
+            template_name = 'courseview_creator.html'  
         except ContentCreators.DoesNotExist:
-            # If the user is neither, this block will be executed.
-            # Since you've mentioned no need for a default HTML, consider how you want to handle this case.
-            # For the purpose of this example, we'll assume every user must be one or the other.
+            
             pass
 
     return render(request, template_name, {'courses': courses})
@@ -1183,10 +1187,7 @@ def update_progress(request):
     return JsonResponse({'status': 'success'})
 
 
-from reportlab.platypus import Image
-from reportlab.lib.units import inch
-from django.contrib.staticfiles import finders
-from reportlab.lib.colors import HexColor, black, blue, Color
+
 
 @login_required
 def download_certificate(request, course_id):
@@ -1719,7 +1720,6 @@ def add_course_materialnew(request, course_id):
                             correct_answer=correct_answer_value
                         )
                         print(f"Multiple choice question {question_index} created for Chapter ID: {chapter.chapter_id}")
-                # ... additional elif clauses for other material types ...
 
             except ValidationError as e:
                 print(f"Validation Error for chapter {chapter.chapter_id}: {e}")
@@ -1736,7 +1736,6 @@ def add_course_materialnew(request, course_id):
             
         messages.success(request, f"Materials for module '{module.module_name}' saved successfully.")
 
-
         if next_module:
             messages.info(request, f"Do you want to add materials to the next module: '{next_module.module_name}'?")
             redirect_url = f"{reverse('add_course_material', args=[course_id])}?module_id={next_module.module_id}"
@@ -1744,10 +1743,186 @@ def add_course_materialnew(request, course_id):
             redirect_url = reverse('course_list_college')
 
         return HttpResponseRedirect(redirect_url)
-    
 
-    # If the request method is GET, display the form
     return render(request, 'add_material_for_creators.html', {'course_id': course_id, 'modules': modules})
+
+
+@login_required
+def create_community(request, course_id):
+    # Ensure the course exists and belongs to the content creator
+    course = get_object_or_404(Course, course_id=course_id, content_creator=request.user.contentcreators)
+
+    # Check if the community already exists for this course
+    existing_community = Community.objects.filter(course=course, content_creator=request.user.contentcreators).exists()
+    if existing_community:
+        messages.warning(request, 'A community already exists for this course.')
+        return redirect('community_detail')
+
+    if request.method == 'POST':
+        # Process the submitted form
+        name = request.POST.get('name')
+        description = request.POST.get('description')
+        cover_photo = request.FILES.get('cover_photo') if 'cover_photo' in request.FILES else None
+        profile_photo = request.FILES.get('profile_photo') if 'profile_photo' in request.FILES else None
+        rules = request.POST.get('rules')
+
+        # Create and save the new community
+        community = Community.objects.create(
+            name=name,
+            description=description,
+            cover_photo=cover_photo,
+            profile_photo=profile_photo,
+            rules=rules,
+            course=course,
+            content_creator=request.user.contentcreators,
+            created_at=timezone.now()
+        )
+
+        return redirect('community_detail')
+
+    return render(request, 'create_community.html', {'course': course})
+
+
+
+@login_required
+def community_detail(request):
+    communities = Community.objects.filter(content_creator=request.user.contentcreators)
+    return render(request, 'community_detail.html', {'communities': communities})
+
+
+@login_required
+def community_detailsnew(request):
+    user_communities = CommunityMembership.objects.filter(user=request.user.normaluser)
+    communities = [membership.community for membership in user_communities]
+    return render(request, 'community_detail_user.html', {'communities': communities})
+
+@login_required
+def add_member_to_community(request, community_id):
+    community = get_object_or_404(Community, pk=community_id)
+    if request.method == 'POST':
+        user_id = request.POST.get('user_id')
+        messages.success(request, 'Member added successfully.')
+        return redirect('community_detail', community_id=community.id)
+
+
+@login_required
+def community_chat(request, community_id):
+    community = get_object_or_404(Community, pk=community_id)
+
+    if request.method == 'POST':
+        if 'message_content' in request.POST:
+            content = request.POST.get('message_content')
+            file_attachment = request.FILES.get('file_attachment')
+            if content or file_attachment:
+                message = Message.objects.create(
+                    community=community,
+                    user=request.user,
+                    message=content,
+                    posted_at=timezone.now()
+                )
+
+                if file_attachment:
+                    message.file_attachment.save(file_attachment.name, ContentFile(file_attachment.read()))
+        elif 'add_member' in request.POST:
+            user_id = request.POST.get('add_member')
+            user_to_add = get_object_or_404(NormalUser, pk=user_id)
+            # Check if the user is not already a member
+            if not CommunityMembership.objects.filter(community=community, user=user_to_add).exists():
+                CommunityMembership.objects.create(
+                    community=community,
+                    user=user_to_add,
+                    joined_at=timezone.now(),
+                    is_admin=False  # Adjust as needed
+                )
+                return redirect('community_chat', community_id=community.id)
+            else:
+                return HttpResponse("User is already a member of the community.", status=400)
+
+    messages = Message.objects.filter(community=community).order_by('posted_at')
+    enrolled_users = NormalUser.objects.filter(
+        courseenrollment__course=community.course
+    ).exclude(
+        communitymembership__community=community
+    )    
+    current_members = CommunityMembership.objects.filter(community=community)
+
+    return render(request, 'community_chat.html', {
+        'community': community,
+        'messages': messages,
+        'enrolled_users': enrolled_users,
+        'current_members': current_members,
+        'user': request.user,
+    })
+
+
+@login_required
+def community_chat_user(request, community_id):
+    community = get_object_or_404(Community, pk=community_id)
+
+    if request.method == 'POST':
+        if 'message_content' in request.POST:
+            content = request.POST.get('message_content')
+            file_attachment = request.FILES.get('file_attachment')
+            if content or file_attachment:
+                message = Message.objects.create(
+                    community=community,
+                    user=request.user,
+                    message=content,
+                    posted_at=timezone.now()
+                )
+
+                if file_attachment:
+                    message.file_attachment.save(file_attachment.name, ContentFile(file_attachment.read()))
+        elif 'add_member' in request.POST:
+            user_id = request.POST.get('add_member')
+            user_to_add = get_object_or_404(NormalUser, pk=user_id)
+            # Check if the user is not already a member
+            if not CommunityMembership.objects.filter(community=community, user=user_to_add).exists():
+                CommunityMembership.objects.create(
+                    community=community,
+                    user=user_to_add,
+                    joined_at=timezone.now(),
+                    is_admin=False  # Adjust as needed
+                )
+                return redirect('community_chat', community_id=community.id)
+            else:
+                return HttpResponse("User is already a member of the community.", status=400)
+
+    messages = Message.objects.filter(community=community).order_by('posted_at')
+    enrolled_users = NormalUser.objects.filter(
+        courseenrollment__course=community.course
+    ).exclude(
+        communitymembership__community=community
+    )    
+    current_members = CommunityMembership.objects.filter(community=community)
+
+    return render(request, 'community_chat_user.html', {
+        'community': community,
+        'messages': messages,
+        'enrolled_users': enrolled_users,
+        'current_members': current_members,
+        'user': request.user,
+    })
+
+
+def enrolled_course_details(request, course_id):
+    # Retrieve the course details based on the course_id
+    course = get_object_or_404(Course, course_id=course_id)
+
+    context = {
+        'course': course,
+    }
+
+    return render(request, 'enrolled_course_details.html', context)
+
+
+
+
+
+
+
+
+
 
 
 
