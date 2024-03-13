@@ -11,6 +11,7 @@ urlpatterns = [
     path('register_normal_user/', views.register_normal_user, name='register_normal_user'),
     path('register_college_user/', views.register_college_user, name='register_college_user'),
     path('register_content_creator/', views.register_content_creator, name='register_content_creator'),
+
     path('', views.loginnew, name='loginnew'),
     path('normal_user_home/', views.normal_user_home, name='normal_user_home'),
     path('college_user_home/', views.college_user_home, name='college_user_home'),
@@ -26,6 +27,7 @@ urlpatterns = [
     path('reset/done/', PasswordResetCompleteView.as_view(), name='password_reset_complete'),
     path('update_profile/', views.update_profile, name='update_profile'),
     path('college_update_profile/', views.update_college_profile, name='update_college_profile'),
+    path('update_profile_content_creators/', views.update_profile_content_creators, name='update_profile_content_creators'),
     path('news',views.news,name='news'),
     path('profile/',views.profile,name='profile'),
     path('profile2/',views.profile2,name='profile2'),
@@ -73,6 +75,7 @@ urlpatterns = [
     path('courses/<int:course_id>/progress/', views.course_progress, name='course_progress'),
     path('update_progress/', views.update_progress, name='update_progress'),
     path('posts/', views.post_list_and_create, name='post_list_and_create'),
+    path('posts_new/', views.post_list_and_create_new, name='post_list_and_create_new'),
     path('posts/<int:post_id>/', views.post_detail, name='post_detail'),
     path('like_post/', views.like_post, name='like_post'),
     path('save_post/', views.save_post, name='save_post'),
@@ -92,11 +95,18 @@ urlpatterns = [
     path('communities/user/', views.community_detailsnew, name='community_detail_user'),
     path('community/chat/<int:community_id>/', views.community_chat, name='community_chat'),
     path('community/chat_user/<int:community_id>/', views.community_chat_user, name='community_chat_user'),
+    path('code-editor/', views.code_editor, name='code_editor'),
+
 
     #restframework
     path('api/register/', views.register_normaluser_flutter, name='register_normaluser_flutter'),
     path('api/mobile/login/', views.mobile_login, name='mobile_login'),
     path('api/user/profile/', views.get_user_profile, name='user_profile'),
+
+    path('college_dashboard/', views.college_dashboard, name='college_dashboard'),
+    path('content_creator_dashboard/', views.content_creator_dashboard, name='content_creator_dashboard'),
+    path('api/courses/', views.course_list, name='course-list'),
+
 
 
 

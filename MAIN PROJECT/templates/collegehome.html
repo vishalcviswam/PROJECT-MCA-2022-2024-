@@ -193,6 +193,7 @@
 			<li><a href="{% url 'add_instructor' %}">Add Instructors</a></li>
             <li><a href="{% url 'view_instructors' %}">View Instructors</a></li>
 			<li><a href="{% url 'add_course' %}">Add Courses</a></li>
+            <li><a href="{% url 'college_dashboard' %}">View Enrollment Details</a></li>
             <li><a href="{% url 'view_saved_posts' %}">Saved Posts</a></li>
 			<li><a href="{% url 'logoutp' %}">Log Out</a></li>
 		</ul>
@@ -239,21 +240,22 @@
                         <div class="form-group">
                             <textarea class="form-control" name="content" rows="3" placeholder="What's happening?"></textarea>
                         </div>
-                        
+            
                         <!-- Photo Upload -->
                         <div class="form-group d-inline-block mr-2">
                             <label for="photoUpload" class="btn btn-outline-secondary"><i class="fas fa-image"></i></label>
-                            <input type="file" id="photoUpload" name="image" accept="image/jpeg, image/jpg, image/png" style="display:none;" onchange="updateFileName(this, 'photo-name')">
+                            <input type="file" id="photoUpload" name="image" accept="image/jpeg, image/jpg, image/png"
+                                   style="display:none;" onchange="validateFileFormat(this, ['.jpeg', '.jpg', '.png'], 'photo-name')">
                             <span id="photo-name" class="file-name"></span>
                         </div>
-
+            
                         <!-- Video Upload -->
                         <div class="form-group d-inline-block mr-2">
                             <label for="videoUpload" class="btn btn-outline-secondary"><i class="fas fa-video"></i></label>
-                            <input type="file" id="videoUpload" name="video" accept="video/mp4" style="display:none;" onchange="updateFileName(this, 'video-name')">
+                            <input type="file" id="videoUpload" name="video" accept="video/mp4"
+                                   style="display:none;" onchange="validateFileFormat(this, ['.mp4'], 'video-name')">
                             <span id="video-name" class="file-name"></span>
                         </div>
-
             
                         <button type="submit" class="btn btn-primary">Post</button>
                     </form>
@@ -262,17 +264,26 @@
                     
                     <!-- Posts go here -->
                     {% for post in posts %}
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <img src="{{ post.college_user.profile_photo.url }}" alt="Profile Picture" class="rounded-circle" style="width: 40px; height: 40px;">
-                        <div style="display: inline-block; vertical-align: middle; margin-left: 10px;">
-                            <strong>{{ post.college_user.college_name }}</strong><br>
-                            <span>@{{ post.college_user.user.username }}</span>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            {% if post.college_user %}
+                                <img src="{{ post.college_user.profile_photo.url }}" alt="Profile Picture" class="rounded-circle" style="width: 40px; height: 40px;">
+                                <div style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+                                    <strong>{{ post.college_user.college_name }}</strong><br>
+                                    <span>@{{ post.college_user.user.username }}</span>
+                                </div>
+                            {% elif post.content_creator %}
+                                <img src="{{ post.content_creator.profile_photo.url }}" alt="Profile Picture" class="rounded-circle" style="width: 40px; height: 40px;">
+                                <div style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+                                    <strong>{{ post.content_creator.first_name }} {{ post.content_creator.last_name }}</strong><br>
+                                    <span>@{{ post.content_creator.user.username }}</span>
+                                    
+                                </div>
+                            {% endif %}
+                            <div style="margin-top: 10px;">
+                                <small class="text-muted">{{ post.created_at|date:"N j, Y" }}</small>
+                            </div>
                         </div>
-                        <div style="margin-top: 10px;">
-                            <small class="text-muted">{{ post.created_at|date:"N j, Y" }}</small>
-                        </div>
-                    </div>
                         <div class="card-body">
                             <p>{{ post.content }}</p>
                             {% if post.image %}
@@ -293,7 +304,7 @@
                                 <i class="fas fa-bookmark"></i>
                             </button>
                         </div>
-                </div>    
+                    </div>    
                 {% endfor %}
             </div>
                 
@@ -307,6 +318,21 @@
     </div>
 
     <script>
+
+        function validateFileFormat(input, allowedFormats, displayId) {
+            const fileInput = input.files[0];
+            const fileName = fileInput.name.toLowerCase();
+            const isValidFormat = allowedFormats.some(format => fileName.endsWith(format));
+    
+            if (!isValidFormat) {
+                alert(`Invalid file format. Only ${allowedFormats.join(', ')} are allowed.`);
+                input.value = ''; // Clear the file input
+                document.getElementById(displayId).textContent = ''; // Clear the displayed file name
+            } else {
+                document.getElementById(displayId).textContent = fileName; // Display the file name
+            }
+        }
+
         function toggleSearch() {
             const searchBox = document.getElementById('searchBox');
 

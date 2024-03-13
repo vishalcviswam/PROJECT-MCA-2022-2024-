@@ -6,9 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User's Profile</title>
     <!-- Bootstrap CSS -->
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap">
     <style>
 		* {
 			margin: 0;
@@ -43,6 +47,8 @@
 			background-position: center;
 			position: relative;
 			padding-top: 0;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+
 		}
 
 		.cover-photo img {
@@ -62,6 +68,8 @@
             top: -75px;
             border: 5px solid white;
             background-color: white;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+
         }
 
         .profile-picture img {
@@ -131,6 +139,8 @@
           padding: 20px;
           margin-bottom: 20px;
 		  transition: transform 0.3s ease, box-shadow 0.3s ease;
+          box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2);
+
         }
 		
 		button {
@@ -145,13 +155,6 @@
 
 		button:hover {
 		  background-color: darken(var(--primary-color), 10%);
-		}
-
-
-		
-		.card:hover {
-		  transform: translateY(-5px);
-		  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 		}
 
         .user-details {
@@ -181,7 +184,6 @@
 		}
 
 		.user-posts .post:hover {
-		  background-color: var(--primary-color);
 		  color: #fff;
 		}
 
@@ -216,44 +218,42 @@
         }
 		
 		
-		#navbar
 		.navbar-brand {
-		font-weight: bold;
-		font-size: 1.5em;
-		}
-
-		#searchBox {
-			max-width: 200px;
-            display: none;
-		}
-
-		.navbar.bg-light {  
-			background-color: #4cc9f0;
-		}
-
-		.navbar {
-			margin-bottom: 0 !important; /* Removes the bottom margin from the navbar */
-			background-color: #34a0a4 !important; /* Assuming you want to keep this color */
-			margin-bottom: 0;
-		}
-
-		.navbar-logo {
-			width: 30px; 
-			height: 30px; 
-			margin-right: 10px; 
-		}
-		body.night-mode {
-				background-color: #000000;
-				color: #ecf0f1;
-		}
-
-		body.night-mode .navbar {
-				background-color: #454d55;
-		}
-
-		body.night-mode .profile-sidebar {
-				background-color: #5c636a;
-		}
+            font-weight: bold;
+            font-size: 1.5em;
+            }
+        
+            #searchBox {
+                max-width: 200px;
+                display: none;
+            }
+        
+            .navbar.bg-light {  
+                background-color: #4cc9f0;
+            }
+        
+            .navbar {
+                background-color: #34a0a4 !important;
+                box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            }
+        
+            .navbar-logo {
+                width: 30px; 
+                height: 30px; 
+                margin-right: 10px; 
+            }
+            body.night-mode {
+                    background-color: #000000;
+                    color: #f8f9fa;
+            }
+        
+            body.night-mode .navbar {
+                    background-color: #454d55;
+            }
+        
+            body.night-mode .profile-sidebar {
+                    background-color: #5c636a;
+            }
 		
 		:root {
 		  --primary-color: #007bff; /* Bootstrap primary blue */
@@ -266,7 +266,67 @@
 		  transition: color 0.3s ease, background-color 0.3s ease;
 		}
 
-		
+
+        .user-media .media {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        
+        .course-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+    
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+        }
+    
+        .course-cover {
+            width: 100%;
+            height: 200px; /* Set a fixed height for uniform size */
+            border-radius: 8px 8px 0 0;
+            object-fit: cover;
+        }
+    
+        .course-details {
+            padding: 20px;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 0 0 8px 8px;
+        }
+    
+        .course-details h4 {
+            margin-top: 0;
+            color: #333;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+    
+        .btn-primary {
+            background-color: #34a0a4 !important;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 8px 16px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+    
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
     </style>
 </head>
 <body>
@@ -345,20 +405,41 @@
 
         <div class="user-posts card">
             <h2>Recent Posts</h2>
-            <div class="post">
-                <p>This is the first post's content...</p>
-                <!-- Add more posts here -->
-            </div>
+            {% for post in recent_posts %}
+                <div class="post card">
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="Post Image" class="card-img-top">
+                    {% endif %}
+                    
+                    {% if post.video %}
+                        <video controls class="card-img-top">
+                            <source src="{{ post.video.url }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% endif %}
+        
+                    <div class="card-body">
+                        <p class="card-text">{{ post.content }}</p>
+                        <!-- Display other post details like video, etc. -->
+                    </div>
+                </div>
+            {% endfor %}
         </div>
 
         <div class="user-media card">
-            <h2>Media</h2>
+            <h2 style="font-family: 'Roboto', sans-serif;">Courses</h2>
             <div class="media">
-                <!-- Thumbnails of images or media content -->
-                <img src="{% if user.collegeuser.cover_photo %}{{ user.collegeuser.cover_photo.url }}{% else %}{% static 'images/img11.jpg' %}{% endif %}" alt="User Media" style="width: 100%; margin-bottom: 10px;">
-                <!-- Add more media here -->
+                {% for course in courses %}
+                    <div class="course-card">
+                        <img src="{{ course.cover_photo.url }}" alt="{{ course.course_name }}" class="course-cover">
+                        <div class="course-details">
+                            <h4 style="font-family: 'Roboto', sans-serif;">{{ course.course_name }}</h4>
+                            <a href="{% url 'course_detail' course.course_id %}" class="btn btn-primary" style="font-family: 'Roboto', sans-serif;">Go to Course</a>
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
-        </div>
+        </div>        
     </div>
 </div>
 

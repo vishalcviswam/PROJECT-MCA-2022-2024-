@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import NormalUser
+from .models import Course, NormalUser
 
 User = get_user_model()
 
@@ -34,3 +34,8 @@ class NormalUserSerializer(serializers.ModelSerializer):
         user = UserSerializer.create(UserSerializer(), validated_data=user_data)
         normal_user = NormalUser.objects.create(user=user, **validated_data)
         return normal_user
+
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = '__all__'

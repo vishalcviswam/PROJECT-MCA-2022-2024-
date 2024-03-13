@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 from django.shortcuts import get_list_or_404, render, redirect
-from .models import AudioFile, Community, CommunityMembership, ContentCreators, CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Message, Payment, Post, Progress, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
+from .models import AudioFile, Community, CommunityMembership, ContentCreators, CourseCompletion, CourseEnrollment, CourseProgress, FillInTheBlankQuestion, ImageQuestion, MatchingQuestion, Message, Payment, Post, Progress, Review, SavedPost, User, NormalUser, CollegeUser , Department , Course, Instructor , Module , Chapter , ReadingMaterial, VideoMaterial, MultipleChoiceQuestion
 
 from datetime import date, timedelta, timezone
 from django.db import IntegrityError
@@ -87,12 +87,22 @@ def profile(request):
 
     return render(request, 'newprofile.html', context)
 
+
 @login_required(login_url='loginnew')
 def profile2(request):
-    college_user = request.user.collegeuser
+    # Retrieve the college user based on the logged-in user
+    college_user = get_object_or_404(CollegeUser, user=request.user)
+
+    # Retrieve recent posts by the college user
+    recent_posts = Post.objects.filter(college_user=college_user).order_by('-created_at')[:5]
+
+    # Retrieve courses of the college user
+    courses = Course.objects.filter(college=college_user)
 
     context = {
         'college_user': college_user,
+        'recent_posts': recent_posts,
+        'courses': courses,
     }
 
     return render(request, 'collegeprofile.html', context)
@@ -100,11 +110,20 @@ def profile2(request):
 
 @login_required(login_url='loginnew')
 def creatorprofile(request):
-    content_creator = request.user.contentcreators
+    content_creator = get_object_or_404(ContentCreators, user=request.user)
+
+    # Retrieve recent posts by the college user
+    recent_posts = Post.objects.filter(content_creator=content_creator).order_by('-created_at')[:5]
+
+    # Retrieve courses of the college user
+    courses = Course.objects.filter(content_creator=content_creator)
 
     context = {
-        'content_creator': content_creator,
+        'college_user': content_creator,
+        'recent_posts': recent_posts,
+        'courses': courses,
     }
+
 
     return render(request, 'creatorprofile.html', context)
 
@@ -361,9 +380,6 @@ def update_college_profile(request):
             if cover_photo:
                 college_user.cover_photo = cover_photo
 
-            
-            
-            # Save the updated profile
             college_user.save()
 
             messages.success(request, 'Profile updated successfully.')
@@ -374,6 +390,52 @@ def update_college_profile(request):
 
     return render(request, 'editcollegeprofile.html',context)
 
+
+@login_required(login_url='loginnew')
+def update_profile_content_creators(request):
+
+    content_creators = request.user.contentcreators
+
+    context = {
+                'content_creators': content_creators,
+            }
+    if request.method == 'POST':
+        # Get the currently logged-in user
+        user = request.user
+
+        # Ensure that the user is authenticated and has a related NormalUser instance
+        if user.is_authenticated and hasattr(user, 'contentcreators'):
+            content_creators = user.contentcreators  # Get the NormalUser instance associated with the user
+
+            # Update the user's profile based on form data
+            content_creators.first_name = request.POST.get('first_name')
+            content_creators.last_name = request.POST.get('last_name')
+            content_creators.phone_number = request.POST.get('phone_number')
+            content_creators.country = request.POST.get('country')
+            content_creators.gender = request.POST.get('gender')
+
+
+            # Handle profile photo and cover photo uploads
+            profile_photo = request.FILES.get('profile_photo')
+            if profile_photo:
+                content_creators.profile_photo = profile_photo
+
+            cover_photo = request.FILES.get('cover_photo')
+            if cover_photo:
+                content_creators.cover_photo = cover_photo
+
+            content_creators.about_me = request.POST.get('about_me')
+            
+            # Save the updated profile
+            content_creators.save()
+
+            messages.success(request, 'Profile updated successfully.')
+            return redirect('creatorprofile')    
+        else:
+            messages.error(request, 'User is not authenticated or does not have a related NormalUser instance.')
+            return redirect('loginnew')  
+
+    return render(request, 'editcontentcreatorprofile.html',context)
 
 
 @login_required(login_url='loginnew')
@@ -889,6 +951,12 @@ def course_detail_user(request, course_id):
     callback_url = '/paymenthandler/'
  
     # we need to pass these details to frontend.
+    reviews = course.review_set.all()
+
+    rating_counts = [reviews.filter(rating=i).count() for i in range(1, 6)]
+
+    ratings_data = [{'rating': i + 1, 'count': count} for i, count in enumerate(rating_counts)]
+
     context = {}
     context['razorpay_order_id'] = razorpay_order_id
     context['razorpay_merchant_key'] = settings.RAZORPAY_KEY_ID
@@ -897,6 +965,8 @@ def course_detail_user(request, course_id):
     context['callback_url'] = callback_url
     context['total_amount'] = total_amount
     context['course']=course
+    context['reviews']=reviews
+    context['ratings_data']=ratings_data
    
     
 
@@ -1324,6 +1394,32 @@ def post_list_and_create(request):
     return render(request, 'collegehome.html', {'posts': posts})
 
 
+@login_required
+def post_list_and_create_new(request):
+    # Handle file upload on POST
+    if request.method == 'POST':
+        content = request.POST.get('content', '')
+        image = request.FILES.get('image') if 'image' in request.FILES else None
+        video = request.FILES.get('video') if 'video' in request.FILES else None
+        
+        # Assuming the user is associated with a CollegeUser
+        content_creators = request.user.contentcreators
+        
+        # Create and save the new post instance
+        Post.objects.create(
+            content_creator=content_creators,
+            content=content,
+            image=image,
+            video=video,
+        )
+        return redirect('post_list_and_create_new')  # Redirect to the same page to display the post list
+
+    # Retrieve posts for GET request
+    posts = Post.objects.all().order_by('-created_at')  # Assuming you want to display the newest posts first
+
+    # Render the post list template with the posts context
+    return render(request, 'contentcreatorhome.html', {'posts': posts})
+
 def post_detail(request, post_id):
     # Retrieve a single post by id
     try:
@@ -1379,13 +1475,10 @@ def save_post(request):
 
 @login_required
 def view_saved_posts(request):
-    # Retrieve all instances of SavedPost for the current user
     saved_posts = SavedPost.objects.filter(user=request.user).order_by('-saved_at')
 
-    # Prepare the posts in a format that the template can easily iterate over
     posts = [saved_post.post for saved_post in saved_posts]
 
-    # Pass the posts to the template
     return render(request, 'saved_posts.html', {'saved_posts': posts})
 
 
@@ -1408,11 +1501,21 @@ def get_trending_hashtags():
         posts = Post.get_posts_by_hashtag(hashtag).filter(created_at__gte=twenty_four_hours_ago)
         if posts.exists():
             post = posts.first()
+            if post.college_user:
+                college_name = post.college_user.college_name
+                profile_photo_url = post.college_user.profile_photo.url if post.college_user.profile_photo else None
+            elif post.content_creator:
+                college_name = post.content_creator.first_name
+                profile_photo_url = post.content_creator.profile_photo.url if post.content_creator.profile_photo else None
+            else:
+                college_name = "Unknown"
+                profile_photo_url = None
+
             trending_with_details.append({
                 'hashtag': hashtag,
                 'count': count,
-                'college_name': post.college_user.college_name,
-                'profile_photo_url': post.college_user.profile_photo.url if post.college_user.profile_photo else None
+                'college_name': college_name,
+                'profile_photo_url': profile_photo_url
             })
     
     return trending_with_details
@@ -1444,14 +1547,25 @@ def get_trending_hashtagss():
         posts = Post.get_posts_by_hashtag(hashtag).filter(created_at__gte=twenty_four_hours_ago)
         if posts.exists():
             post = posts.first()
+            if post.college_user:
+                college_name = post.college_user.college_name
+                profile_photo_url = post.college_user.profile_photo.url if post.college_user.profile_photo else None
+            elif post.content_creator:
+                college_name = post.content_creator.first_name
+                profile_photo_url = post.content_creator.profile_photo.url if post.content_creator.profile_photo else None
+            else:
+                college_name = "Unknown"
+                profile_photo_url = None
+
             trending_with_details.append({
                 'hashtag': hashtag,
                 'count': count,
-                'college_name': post.college_user.college_name,
-                'profile_photo_url': post.college_user.profile_photo.url if post.college_user.profile_photo else None
+                'college_name': college_name,
+                'profile_photo_url': profile_photo_url
             })
     
     return trending_with_details
+
 
 # View for displaying posts by hashtag
 def posts_by_hashtagg(request, hashtag):
@@ -1905,17 +2019,157 @@ def community_chat_user(request, community_id):
     })
 
 
+@login_required
 def enrolled_course_details(request, course_id):
-    # Retrieve the course details based on the course_id
     course = get_object_or_404(Course, course_id=course_id)
 
-    context = {
-        'course': course,
-    }
+    normal_user = request.user.normaluser
 
+    user_has_review = Review.objects.filter(enrollment__normal_user=normal_user, course=course).exists()
+
+    if request.method == 'POST':
+        if user_has_review:
+            messages.warning(request, 'You have already submitted a review for this course.')
+        else:
+            rating = request.POST.get('rating', 0)
+            text = request.POST.get('text', '')
+
+            enrollment = CourseEnrollment.objects.get(normal_user=normal_user, course=course)
+
+            Review.objects.create(
+                course=course,
+                enrollment=enrollment,
+                rating=rating,
+                text=text,
+            )
+            messages.success(request, 'Review submitted successfully.')
+            return redirect('enrolled_course_details', course_id=course.course_id)
+
+    reviews = course.review_set.all()
+
+    rating_counts = [reviews.filter(rating=i).count() for i in range(1, 6)]
+
+    ratings_data = [{'rating': i + 1, 'count': count} for i, count in enumerate(rating_counts)]
+
+    context = {'course': course, 'reviews': reviews, 'user_has_review': user_has_review, 'ratings_data': ratings_data}
     return render(request, 'enrolled_course_details.html', context)
 
 
+from django.db.models import Count, Avg, Sum
+
+def college_dashboard(request):
+    college_user = CollegeUser.objects.get(user=request.user)
+    courses = Course.objects.filter(college=college_user)
+
+    for course in courses:
+        course.total_enrollments = CourseEnrollment.objects.filter(course=course).count()
+        course.total_reviews = Review.objects.filter(course=course).count()
+        
+        # Calculate average rating using Django's Avg function
+        average_rating = Review.objects.filter(course=course).aggregate(Avg('rating'))['rating__avg']
+        course.average_rating = round(average_rating, 2) if average_rating else 0.0
+        
+        # Calculate total payments using Django's Sum function
+        total_payments = Payment.objects.filter(course=course).aggregate(Sum('amount'))['amount__sum']
+        course.total_payments = total_payments if total_payments else 0.0
+
+    return render(request, 'college_dashboard.html', {'courses': courses})
+
+
+
+
+def content_creator_dashboard(request):
+    content_creator = ContentCreators.objects.get(user=request.user)
+    courses = Course.objects.filter(content_creator=content_creator)
+    for course in courses:
+        course.total_enrollments = CourseEnrollment.objects.filter(course=course).count()
+        course.total_reviews = Review.objects.filter(course=course).count()
+        course.average_rating = Review.objects.filter(course=course).aggregate(Avg('rating'))['rating__avg']
+        course.total_payments = Payment.objects.filter(course=course).aggregate(Sum('amount'))['amount__sum']
+    return render(request, 'content_creator_dashboard.html', {'courses': courses})
+
+
+
+
+import subprocess
+
+def code_editor(request):
+    output, error = "", ""
+
+    if request.method == 'POST':
+        language = request.POST.get('language')
+        code = request.POST.get('code')
+
+        print(f"Received code for {language}:\n{code}")  # Debugging print statement
+
+        output, error = run_code(language, code)
+        print(f"Output:\n{output}")  # Debugging print statement
+        print(f"Error:\n{error}")  # Debugging print statement
+
+    return render(request, 'code_editor.html', {'output': output, 'error': error})
+
+def run_code(language, code):
+    # Customize this function to handle compilation and execution based on the language
+    if language == 'c':
+        # Example for C
+        return run_c_code(code)
+    elif language == 'java':
+        # Example for Java
+        return run_java_code(code)
+    elif language == 'python':
+        # Example for Python
+        return run_python_code(code)
+    else:
+        return "Unsupported language", ""
+
+def run_c_code(code):
+    try:
+        # Generate unique filenames
+        source_filename = f"temp_{uuid.uuid4().hex}.c"
+        executable_filename = f"temp_{uuid.uuid4().hex}.exe"
+
+        # Write the code to the source file
+        with open(source_filename, 'w') as source_file:
+            source_file.write(code)
+
+        # Compile the code
+        compile_command = ['gcc', '-o', executable_filename, source_filename]
+        compile_result = subprocess.run(compile_command, text=True, capture_output=True)
+
+        if compile_result.returncode == 0:
+            # Run the compiled executable
+            run_command = [f'.\\{executable_filename}']
+            run_result = subprocess.run(run_command, text=True, capture_output=True)
+            
+            # Clean up the temporary files
+            os.remove(source_filename)
+            os.remove(executable_filename)
+
+            return run_result.stdout, run_result.stderr
+        else:
+            return "", compile_result.stderr
+    except Exception as e:
+        return "", str(e)
+
+def run_java_code(code):
+    # Customize this function to compile and run Java code
+    try:
+        result = subprocess.run(['javac', '-'], input=code, text=True, capture_output=True)
+        if result.returncode == 0:
+            output = subprocess.run(['java', 'Main'], text=True, capture_output=True)
+            return output.stdout, output.stderr
+        else:
+            return "", result.stderr
+    except Exception as e:
+        return "", str(e)
+
+def run_python_code(code):
+    # Customize this function to run Python code
+    try:
+        result = subprocess.run(['python3', '-c', code], text=True, capture_output=True)
+        return result.stdout, result.stderr
+    except Exception as e:
+        return "", str(e)
 
 
 
@@ -1931,7 +2185,7 @@ def enrolled_course_details(request, course_id):
 from rest_framework.decorators import api_view ,permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import NormalUserSerializer
+from .serializers import CourseSerializer, NormalUserSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
@@ -2000,4 +2254,7 @@ def get_user_profile(request):
 
 
 
-
+def course_list(request):
+    courses = Course.objects.all()
+    serializer = CourseSerializer(courses, many=True)
+    return JsonResponse(serializer.data, safe=False)

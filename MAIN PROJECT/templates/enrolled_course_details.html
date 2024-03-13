@@ -7,7 +7,7 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .cover-photo {
             position: relative;
@@ -61,6 +61,11 @@
                     background-color: #5c636a;
             }
 
+
+
+            .card-gap {
+                margin-bottom: 20px; /* Adjust the value as needed */
+            }
 
             :root {
                 --primary-color: #007bff;
@@ -175,6 +180,33 @@
                 justify-content: space-between; /* Distribute space evenly */
                 height: calc(100% - 150px); /* Subtract the height of the image from the card's total height */
             }
+
+            .star-rating {
+                font-size: 25px;
+                unicode-bidi: bidi-override;
+                color: #c5c5c5;
+                position: relative;
+                padding-left: 7px;
+                cursor: pointer;
+            }
+    
+            .star-rating::before {
+                content: '\2605'; /* Unicode character for a star */
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 0;
+                overflow: hidden;
+            }
+
+            textarea {
+                resize: none;
+            }
+    
+            .filled {
+                color: #f8ce0b; /* Color for the filled star */
+            }
+            
             
     </style>
 </head>
@@ -219,6 +251,16 @@
         </div>
     </nav>
 <div class="container mt-4">
+
+    {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+    {% endif %}
+
     <div class="row">
         <div class="col-md-8">
             <div class="cover-photo">
@@ -268,7 +310,7 @@
         </div>
         <!-- Sidebar for course attributes -->
         <div class="col-md-4">
-            <div class="card">
+            <div class="card card-gap">
                 <div class="card-body">
                     <h5 class="card-title">Course Details</h5>
                     <p class="card-text">Duration: {{ course.course_duration }} hours</p>
@@ -285,6 +327,35 @@
                     <p class="card-text">Certificate: {% if course.certificate_available %}Yes{% else %}No{% endif %}</p>
                 </div>
             </div>
+
+            <div class="card card-gap">
+                <div class="card-body">
+                    <h5 class="mt-4">Submit Review</h5>
+                    <form method="post" action="">
+                        {% csrf_token %}
+
+                        <!-- Rating Stars -->
+                        <label for="rating">Rating:</label>
+                        <div class="star-rating" id="star-rating">
+                            <span data-rating="1">☆</span><span data-rating="2">☆</span><span data-rating="3">☆</span><span data-rating="4">☆</span><span data-rating="5">☆</span>
+                        </div>
+                        <input type="hidden" name="rating" id="rating-input" value="0">
+
+                        <!-- Review Text -->
+                        <div class="form-group mt-3">
+                            <label for="text">Review:</label>
+                            <textarea class="form-control" id="text" name="text" rows="4" required></textarea>
+                        </div>
+
+                        {% if user_has_review %}
+                            <button type="button" class="btn btn-success" disabled>Already reviewed</button>
+                        {% else %}
+                            <button type="submit" class="btn btn-primary">Submit Review</button>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+            <canvas id="ratingsBarChart" width="400" height="200"></canvas>
         </div>
         <div class="mt-3">
             {% if course.instructors.exists %}
@@ -324,14 +395,114 @@
                     </div>
                 </div>
             {% endif %}
-
         </div>
+
+        <div class="mt-3">
+            <h5>Reviews:</h5>
+            <div class="row">
+                {% for review in course.review_set.all %}
+                    <div class="col-md-12 mb-3">
+                        <div class="card d-flex flex-row">
+                            <!-- User Profile Picture (rounded and small) with spacing -->
+                            <div class="p-3">
+                                <img src="{{ review.enrollment.normal_user.profile_photo.url }}" class="rounded-circle" width="70" height="70" alt="{{ review.enrollment.normal_user.user.username }}">
+                            </div>
+                            
+                            <div class="card-body ml-3">
+                                <!-- User Details (Username) -->
+                                <h6 class="card-title">{{ review.enrollment.normal_user.user.username }}</h6>
+                                
+                                <!-- Rating -->
+                                <p class="card-text">Rating: {{ review.rating }} out of 5</p>
+                                
+                                <!-- Display stars based on the rating (You can keep your star logic here) -->
+                                <div class="star-rating" id="star-rating">
+                                    {% for i in "12345" %}
+                                        {% if i|add:0 <= review.rating %}
+                                            <span data-rating="{{ i }}" style="color: gold;">☆</span>
+                                        {% else %}
+                                            <span data-rating="{{ i }}">☆</span>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+        
+                                <!-- Display Rating Text with Color -->
+                                <div class="text-right">
+                                    {% if review.rating == 1 %}
+                                        <p class="card-text" style="color: red;">Poor</p>
+                                    {% elif review.rating == 2 %}
+                                        <p class="card-text" style="color: orange;">Below Average</p>
+                                    {% elif review.rating == 3 %}
+                                        <p class="card-text" style="color: yellow;">Average</p>
+                                    {% elif review.rating == 4 %}
+                                        <p class="card-text" style="color: blue;">Good</p>
+                                    {% elif review.rating == 5 %}
+                                        <p class="card-text" style="color: green;">Excellent</p>
+                                    {% endif %}
+                                </div>
+        
+                                <!-- Review Text -->
+                                <p class="card-text">{{ review.text }}</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>        
     </div>
 </div>
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
 <script>
+
+    var ratingsData = {{ ratings_data|safe }};
+
+    // Extract the counts from the data
+    var counts = ratingsData.map(item => item.count);
+
+    // Create a Chart.js bar chart
+    var ctxBar = document.getElementById('ratingsBarChart').getContext('2d');
+    var barChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: ['1 - Poor', '2 - Below Average', '3 - Average', '4 - Good', '5 - Excellent'],
+            datasets: [{
+                label: 'Number of People',
+                data: counts,
+                backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1,
+            }],
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+
+    const stars = document.querySelectorAll('.star-rating span');
+    const ratingInput = document.getElementById('rating-input');
+
+    stars.forEach((star) => {
+        star.addEventListener('click', () => {
+            const rating = star.getAttribute('data-rating');
+            ratingInput.value = rating;
+            updateStarRating(rating);
+        });
+    });
+
+    function updateStarRating(rating) {
+        stars.forEach((star) => {
+            const starRating = star.getAttribute('data-rating');
+            star.classList.toggle('filled', starRating <= rating);
+        });
+    }
+
     function toggleSearch() {
         const searchBox = document.getElementById('searchBox');
         if (searchBox.style.display === 'none') {
@@ -351,6 +522,9 @@
 
     
 </script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/js/bootstrap.bundle.min.js"></script>
+
 
 </body>
 </html>

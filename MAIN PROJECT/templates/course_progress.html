@@ -156,7 +156,7 @@
 </nav>
 
 <div class="sub-navbar">
-    <a href="#content">Content</a>
+    <a href="{% url 'course_detail_view' course_id=course.course_id %}">Content</a>
     <a href="{% url 'course_progress' course_id=course.course_id %}">Progress</a>
 </div>
 

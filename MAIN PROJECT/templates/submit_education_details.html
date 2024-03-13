@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+{% load static %}
+
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <title>Submit Education Details</title>
+    <link rel="icon" href="{% static 'images/fav.png' %}" type="image/png" sizes="16x16"> 
+    <link rel="stylesheet" href="{% static 'css/main.min.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/color.css' %}">
+    <link rel="stylesheet" href="{% static 'css/responsive.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h2>Submit Education Details</h2>
+
+        <form method="post" action="{% url 'submit_education_details' %}">
+            {% csrf_token %}
+
+            <!-- High School Education -->
+            <h3>High School Education</h3>
+            <div class="form-group">
+                <label for="high_school_level">Level:</label>
+                <input type="text" name="high_school_level" required>
+            </div>
+            <div class="form-group">
+                <label for="high_school_name">School Name:</label>
+                <input type="text" name="high_school_name" required>
+            </div>
+            <div class="form-group">
+                <label for="high_school_percentage">Percentage:</label>
+                <input type="text" name="high_school_percentage" required>
+            </div>
+            <div class="form-group">
+                <label for="high_school_stream">Stream:</label>
+                <input type="text" name="high_school_stream" required>
+            </div>
+
+            <!-- Bachelor's Education -->
+            <!-- Add similar fields for Bachelor's Education -->
+            <!-- High School Education -->
+            <h3>Bachelor's Education</h3>
+            <div class="form-group">
+                <label for="high_school_level">Level:</label>
+                <input type="text" name="batchelor_level" required>
+            </div>
+            <div class="form-group">
+                <label for="high_school_name">School Name:</label>
+                <input type="text" name="batchelor_school_name" required>
+            </div>
+            <div class="form-group">
+                <label for="high_school_percentage">Percentage:</label>
+                <input type="text" name="batchelor_percentage" required>
+            </div>
+            <div class="form-group">
+                <label for="high_school_stream">Stream:</label>
+                <input type="text" name="batchelor_stream" required>
+            </div>
+
+            <!-- Master's Education -->
+            <!-- Add similar fields for Master's Education -->
+            <h3>Master's Education</h3>
+            <div class="form-group">
+                <label for="high_school_level">Level:</label>
+                <input type="text" name="master_level" required>
+            </div>
+            <div class="form-group">
+                <label for="high_school_name">School Name:</label>
+                <input type="text" name="batchelor_school_name" required>
+            </div>
+            <div class="form-group">
+                <label for="high_school_percentage">Percentage:</label>
+                <input type="text" name="batchelor_percentage" required>
+            </div>
+            <div class="form-group">
+                <label for="high_school_stream">Stream:</label>
+                <input type="text" name="batchelor_stream" required>
+            </div>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script src="{% static 'js/main.min.js' %}"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+</body>
+</html>

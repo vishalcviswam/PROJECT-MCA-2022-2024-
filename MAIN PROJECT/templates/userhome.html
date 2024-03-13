@@ -189,6 +189,7 @@
             <li><a href="{% url 'enrolled_courses' %}">My Courses</a></li>
             <li><a href="{% url 'view_saved_posts' %}">Saved Posts</a></li>
 			<li><a href="{% url 'loginnew' %}">Switch Account</a></li>
+            <li><a href="{% url 'code_editor' %}">Code Master</a></li>
             <li><a href="{% url 'transcribe_audio' %}">Language Buddy</a></li>
 			<li><a href="{% url 'logoutp' %}">Log Out</a></li>
 		</ul>
@@ -226,43 +227,51 @@
                 </div>
             </div>
             <div class="col-md-6">
-                <!-- Post form goes here -->
-                
-                {% for post in posts %}
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <img src="{{ post.college_user.profile_photo.url }}" alt="Profile Picture" class="rounded-circle" style="width: 40px; height: 40px;">
-                        <div style="display: inline-block; vertical-align: middle; margin-left: 10px;">
-                            <strong>{{ post.college_user.college_name }}</strong><br>
-                            <span>@{{ post.college_user.user.username }}</span>
-                        </div>
-                        <div style="margin-top: 10px;">
-                            <small class="text-muted">{{ post.created_at|date:"N j, Y" }}</small>
-                        </div>
-                    </div>
-                        <div class="card-body">
-                            <p>{{ post.content }}</p>
-                            {% if post.image %}
-                                <img src="{{ post.image.url }}" class="card-img-top" alt="Post Image">
-                            {% endif %}
-                            {% if post.video %}
-                                <video controls class="card-img-top">
-                                    <source src="{{ post.video.url }}" type="video/mp4">
-                                    Your browser does not support the video tag.
-                                </video>
-                            {% endif %}
-                        </div>
-                        <div class="card-footer">
-                            <button type="button" class="btn btn-outline-primary like-btn" data-post-id="{{ post.post_id }}">
-                                <i class="fas fa-thumbs-up"></i> <span class="like-count">{{ post.total_likes }}</span>
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary save-btn" data-post-id="{{ post.post_id }}">
-                                <i class="fas fa-bookmark"></i>
-                            </button>
-                        </div>
-                </div>    
-                {% endfor %}
-            </div>
+                 <!-- Posts go here -->
+                 {% for post in posts %}
+                 <div class="card mb-4">
+                     <div class="card-header">
+                         {% if post.college_user %}
+                             <img src="{{ post.college_user.profile_photo.url }}" alt="Profile Picture" class="rounded-circle" style="width: 40px; height: 40px;">
+                             <div style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+                                 <strong>{{ post.college_user.college_name }}</strong><br>
+                                 <span>@{{ post.college_user.user.username }}</span>
+                             </div>
+                         {% elif post.content_creator %}
+                             <img src="{{ post.content_creator.profile_photo.url }}" alt="Profile Picture" class="rounded-circle" style="width: 40px; height: 40px;">
+                             <div style="display: inline-block; vertical-align: middle; margin-left: 10px;">
+                                 <strong>{{ post.content_creator.first_name }} {{ post.content_creator.last_name }}</strong><br>
+                                 <span>@{{ post.content_creator.user.username }}</span>
+                                 
+                             </div>
+                         {% endif %}
+                         <div style="margin-top: 10px;">
+                             <small class="text-muted">{{ post.created_at|date:"N j, Y" }}</small>
+                         </div>
+                     </div>
+                     <div class="card-body">
+                         <p>{{ post.content }}</p>
+                         {% if post.image %}
+                             <img src="{{ post.image.url }}" class="card-img-top" alt="Post Image">
+                         {% endif %}
+                         {% if post.video %}
+                             <video controls class="card-img-top">
+                                 <source src="{{ post.video.url }}" type="video/mp4">
+                                 Your browser does not support the video tag.
+                             </video>
+                         {% endif %}
+                     </div>
+                     <div class="card-footer">
+                         <button type="button" class="btn btn-outline-primary like-btn" data-post-id="{{ post.post_id }}">
+                             <i class="fas fa-thumbs-up"></i> <span class="like-count">{{ post.total_likes }}</span>
+                         </button>                            
+                         <button type="button" class="btn btn-outline-secondary save-btn" data-post-id="{{ post.post_id }}">
+                             <i class="fas fa-bookmark"></i>
+                         </button>
+                     </div>
+                 </div>    
+             {% endfor %}
+         </div>
             <div class="col-md-3">
                 <div class="follow-suggestions p-3">
                     <h6>Who to follow</h6>

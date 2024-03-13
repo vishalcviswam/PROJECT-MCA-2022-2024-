@@ -1,0 +1,70 @@
+<!-- firstapp/templates/firstapp/code_editor.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Code Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.2/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.2/mode/clike/clike.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.62.2/mode/python/python.min.js"></script>
+    <style>
+        #codeContainer {
+            float: left;
+            width: 50%;
+        }
+
+        #outputContainer {
+            float: left;
+            width: 50%;
+            padding-left: 20px; /* Adjust as needed */
+        }
+    </style>
+</head>
+<body>
+    <h1>Code Editor</h1>
+
+    <form id="codeForm" method="post" action="{% url 'code_editor' %}">
+        {% csrf_token %}
+        <label for="language">Language:</label>
+        <select name="language" required>
+            <option value="c">C</option>
+            <option value="java">Java</option>
+            <option value="python">Python</option>
+        </select>
+        <br>
+        <label for="code">Code:</label>
+        <br>
+        <div id="codeContainer"></div>
+        <input type="hidden" name="code" id="hiddenCode" required>
+        <br>
+        <button type="submit">Compile and Run</button>
+    </form>
+
+    <div id="outputContainer">
+        <h2>Output:</h2>
+        <pre id="output">{{ output }}</pre>
+        <h2>Error:</h2>
+        <pre id="error">{{ error }}</pre>
+    </div>
+
+    <script>
+        var editor = CodeMirror(document.getElementById("codeContainer"), {
+            lineNumbers: true,
+            mode: "text/x-csrc",  // Default mode (C)
+            indentUnit: 4,
+        });
+
+        document.querySelector('select[name="language"]').addEventListener('change', function () {
+            var language = this.value;
+            var mode = language === 'python' ? 'python' : 'text/x-' + language;
+            editor.setOption("mode", mode);
+        });
+
+        document.getElementById('codeForm').addEventListener('submit', function (event) {
+            // Set the hidden input value before form submission
+            document.getElementById('hiddenCode').value = editor.getValue();
+        });
+    </script>
+</body>
+</html>

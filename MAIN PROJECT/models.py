@@ -307,7 +307,8 @@ class CourseCompletion(models.Model):
 
 class Post(models.Model):
     post_id = models.AutoField(primary_key=True)
-    college_user = models.ForeignKey(CollegeUser, on_delete=models.CASCADE)
+    college_user = models.ForeignKey(CollegeUser, on_delete=models.CASCADE, null=True, blank=True)
+    content_creator = models.ForeignKey(ContentCreators, on_delete=models.CASCADE, null=True, blank=True)
     content = models.TextField(blank=True, null=True)
     image = models.ImageField(upload_to='posts/images/', blank=True, null=True)
     video = models.FileField(upload_to='posts/videos/', blank=True, null=True)
@@ -318,7 +319,16 @@ class Post(models.Model):
 
 
     def __str__(self):
-        return f"Post {self.post_id} by {self.college_user.user.username}"
+        return f"Post {self.post_id} by {self.get_author_username()}"
+    
+
+    def get_author_username(self):
+        if self.college_user:
+            return self.college_user.user.username
+        elif self.content_creator:
+            return self.content_creator.user.username
+        else:
+            return "Unknown"
     
     @property
     def total_likes(self):
@@ -334,13 +344,21 @@ class Post(models.Model):
         return Post.objects.filter(content__icontains=f'#{hashtag}').distinct()
     
     def get_college_profile_photo_url(self):
-        if self.college_user.profile_photo:
+        if self.college_user and self.college_user.profile_photo:
             return self.college_user.profile_photo.url
+        elif self.content_creator and self.content_creator.profile_photo:
+            return self.content_creator.profile_photo.url
         else:
             return 'path/to/default/image'  # You can set a default image path here
 
     def get_college_name(self):
-        return self.college_user.college_name
+        if self.college_user:
+            return self.college_user.college_name
+        elif self.content_creator:
+            return self.content_creator.college_name
+        else:
+            return "Unknown"
+
     
 
 class Image(models.Model):
@@ -442,4 +460,20 @@ class Message(models.Model):
 
     
 
+class Review(models.Model):
+    RATING_CHOICES = [
+        (1, '1 - Poor'),
+        (2, '2 - Below Average'),
+        (3, '3 - Average'),
+        (4, '4 - Good'),
+        (5, '5 - Excellent'),
+    ]
 
+    course = models.ForeignKey('Course', on_delete=models.CASCADE)
+    enrollment = models.ForeignKey('CourseEnrollment', on_delete=models.CASCADE, null=True, blank=True)
+    rating = models.IntegerField(choices=RATING_CHOICES)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Review by {self.user.username} for {self.course.course_name}"

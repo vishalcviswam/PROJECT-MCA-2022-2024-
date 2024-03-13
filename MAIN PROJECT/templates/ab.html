@@ -157,19 +157,31 @@
         </div>
     </nav>
 <div class="container mt-4">
-    <h2>Audio Recorder</h2>
+    <h2>College Dashboard</h2>
 
-    <div id="randomContentContainer" class="content-box">{{ random_content }}</div>
-    <button onclick="generateRandomContent()" class="button">Generate Random Content</button>
-    <button onclick="speakCurrentText()" class="button">Pronounce Text</button>
-
-    <div id="transcriptionContainer" class="content-box">Transcription will appear here...</div>
-    <div id="missingWords">Missing Words: </div>
-    <div id="extraWords">Extra Words: </div>
-
-    <button id="startButton" onclick="startRecording()" class="button">Start Recording</button>
-    <button id="stopButton" onclick="stopRecording()" disabled class="button">Stop Recording</button>
-    <button id="transcribeButton" onclick="transcribeAudio()" disabled class="button">Transcribe</button>
+    <h3>Courses</h3>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Course Name</th>
+                    <th>Total Enrollments</th>
+                    <th>Total Reviews</th>
+                    <th>Average Rating</th>
+                    <th>Total Payments</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for course in courses %}
+                    <tr>
+                        <td>{{ course.course_name }}</td>
+                        <td>{{ course.total_enrollments }}</td>
+                        <td>{{ course.total_reviews }}</td>
+                        <td>{{ course.average_rating }}</td>
+                        <td>{{ course.total_payments }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     
 </div>
 
