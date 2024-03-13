@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_screen.dart';
+import 'view_profile_screen.dart';
+import 'course_view_screen.dart';
 
 
 class UserProfileScreen extends StatefulWidget {
@@ -7,6 +9,11 @@ class UserProfileScreen extends StatefulWidget {
   final String email;
   final String profilePhotoUrl;
   final String coverPhotoUrl;
+  final String firstName;
+  final String lastName;
+  final String phoneNumber;
+  final String gender;
+  final String country;
 
   const UserProfileScreen({
     Key? key,
@@ -14,6 +21,11 @@ class UserProfileScreen extends StatefulWidget {
     this.email = '',
     this.profilePhotoUrl = '',
     this.coverPhotoUrl = '',
+    this.firstName = '',
+    this.lastName = '',
+    this.phoneNumber = '',
+    this.gender = '',
+    this.country = '',
   }) : super(key: key);
 
   @override
@@ -41,7 +53,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
         ),
         actions: <Widget>[
           IconButton(onPressed: () {}, icon: const Icon(Icons.home)),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.book)),
+          IconButton(
+            onPressed: () {
+              // Navigate to the CourseViewScreen when book icon is clicked
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CourseViewScreen(
+                    username: widget.username,
+                    email: widget.email,
+                    profilePhotoUrl: widget.profilePhotoUrl,
+                    coverPhotoUrl: widget.coverPhotoUrl,
+                    firstName: widget.firstName,
+                    lastName: widget.lastName,
+                    phoneNumber: widget.phoneNumber,
+                    gender: widget.gender,
+                    country: widget.country,
+                  ),
+                ),
+              );
+
+            },
+            icon: const Icon(Icons.book),
+          ),
           IconButton(onPressed: () {}, icon: const Icon(Icons.people)),
           IconButton(onPressed: () {}, icon: const Icon(Icons.notifications)),
         ],
@@ -72,7 +106,22 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ListTile(
               leading: const Icon(Icons.person),
               title: const Text('Profile'),
-              onTap: () {},
+              onTap: () {
+                // Assuming you have all the required information to pass to the ViewProfileScreen
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => ViewProfileScreen(
+                    username: widget.username,
+                    email: widget.email,
+                    profilePhotoUrl: widget.profilePhotoUrl,
+                    coverPhotoUrl: widget.coverPhotoUrl,
+                    firstName: widget.firstName, // Use actual data passed to this screen
+                    lastName: widget.lastName, // Use actual data passed to this screen
+                    phoneNumber: widget.phoneNumber, // Use actual data passed to this screen
+                    gender: widget.gender, // Use actual data passed to this screen
+                    country: widget.country, // Use actual data passed to this screen
+                  ),
+                ));
+              },
             ),
             ListTile(
               leading: const Icon(Icons.book),
@@ -88,15 +137,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: () async {
-                // If you're using a package like shared_preferences to store auth tokens:
-                // final prefs = await SharedPreferences.getInstance();
-                // await prefs.remove('authToken');
-
-                // If you're using some kind of global state management, update it here.
-                // For example, with a provider package:
-                // Provider.of<AuthModel>(context, listen: false).logout();
-
-                // Navigate back to the login screen.
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => const LoginScreen()),
                   ModalRoute.withName('/'),

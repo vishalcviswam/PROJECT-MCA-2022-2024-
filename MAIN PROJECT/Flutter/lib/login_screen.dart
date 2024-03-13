@@ -1,5 +1,4 @@
 // login_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -34,9 +33,14 @@ class _LoginScreenState extends State<LoginScreen> {
         MaterialPageRoute(
           builder: (context) => UserProfileScreen(
             username: responseData['username'],
-            email: responseData['email'] ?? '', // Provide a default empty string if null
-            profilePhotoUrl: responseData['profile_photo'] ?? '', // Default empty string if null
-            coverPhotoUrl: responseData['cover_photo'] ?? '', // Default empty string if null
+            email: responseData['email'] ?? '',
+            profilePhotoUrl: responseData['profile_photo'] ?? '',
+            coverPhotoUrl: responseData['cover_photo'] ?? '',
+            firstName: responseData['first_name'] ?? '',  // Add these lines
+            lastName: responseData['last_name'] ?? '',    // Add these lines
+            phoneNumber: responseData['phone_number'] ?? '',  // Add these lines
+            gender: responseData['gender'] ?? '',  // Add these lines
+            country: responseData['country'] ?? '',  // Add these lines
           ),
         ),
       );
@@ -48,6 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _showDialog('Error', 'An error occurred. Please try again later.');
   }
 }
+
 
 
   void _showDialog(String title, String content) {
