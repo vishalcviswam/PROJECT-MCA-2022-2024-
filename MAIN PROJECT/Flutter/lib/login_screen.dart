@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'user_profile_screen.dart'; // Make sure to create this file
 import 'main.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -29,6 +31,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final response = await http.post(uri, headers: headers, body: body);
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
+      // Save the token to SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', responseData['token']);
+
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => UserProfileScreen(
@@ -52,8 +58,6 @@ class _LoginScreenState extends State<LoginScreen> {
     _showDialog('Error', 'An error occurred. Please try again later.');
   }
 }
-
-
 
   void _showDialog(String title, String content) {
     showDialog(

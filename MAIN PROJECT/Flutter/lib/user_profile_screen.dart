@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'login_screen.dart';
 import 'view_profile_screen.dart';
 import 'course_view_screen.dart';
-
+import 'CourseEnrollment.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String username;
@@ -31,7 +31,6 @@ class UserProfileScreen extends StatefulWidget {
   @override
   _UserProfileScreenState createState() => _UserProfileScreenState();
 }
-
 
 class _UserProfileScreenState extends State<UserProfileScreen> {
   @override
@@ -72,7 +71,6 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                   ),
                 ),
               );
-
             },
             icon: const Icon(Icons.book),
           ),
@@ -91,7 +89,8 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               currentAccountPicture: CircleAvatar(
                 backgroundImage: widget.profilePhotoUrl.isNotEmpty
                     ? NetworkImage(widget.profilePhotoUrl)
-                    : const AssetImage('assets/usernew.png') as ImageProvider, // Fallback to a local asset
+                    : const AssetImage('assets/usernew.png')
+                        as ImageProvider, // Fallback to a local asset
               ),
               decoration: BoxDecoration(
                 color: Colors.deepPurple,
@@ -114,11 +113,16 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     email: widget.email,
                     profilePhotoUrl: widget.profilePhotoUrl,
                     coverPhotoUrl: widget.coverPhotoUrl,
-                    firstName: widget.firstName, // Use actual data passed to this screen
-                    lastName: widget.lastName, // Use actual data passed to this screen
-                    phoneNumber: widget.phoneNumber, // Use actual data passed to this screen
-                    gender: widget.gender, // Use actual data passed to this screen
-                    country: widget.country, // Use actual data passed to this screen
+                    firstName: widget
+                        .firstName, // Use actual data passed to this screen
+                    lastName: widget
+                        .lastName, // Use actual data passed to this screen
+                    phoneNumber: widget
+                        .phoneNumber, // Use actual data passed to this screen
+                    gender:
+                        widget.gender, // Use actual data passed to this screen
+                    country:
+                        widget.country, // Use actual data passed to this screen
                   ),
                 ));
               },
@@ -126,7 +130,23 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             ListTile(
               leading: const Icon(Icons.book),
               title: const Text('My Courses'),
-              onTap: () {},
+              onTap: () {
+                // Close the drawer before navigating to the new screen
+                Navigator.pop(context); // This line closes the drawer
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => EnrolledCoursesScreen(
+                    username: widget.username,
+                    email: widget.email,
+                    profilePhotoUrl: widget.profilePhotoUrl,
+                    coverPhotoUrl: widget.coverPhotoUrl,
+                    firstName: widget.firstName, // Ensure this data is passed correctly
+                    lastName: widget.lastName,
+                    phoneNumber: widget.phoneNumber,
+                    gender: widget.gender,
+                    country: widget.country,
+                  ),
+                ));
+              },
             ),
             ListTile(
               leading: const Icon(Icons.message),

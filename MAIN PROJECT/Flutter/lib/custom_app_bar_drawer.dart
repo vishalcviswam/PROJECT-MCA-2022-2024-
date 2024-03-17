@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'view_profile_screen.dart';
 import 'user_profile_screen.dart';
+import 'login_screen.dart';
+import 'CourseEnrollment.dart';
+import 'course_view_screen.dart';
+
+
 
 class CustomAppBarDrawer extends StatelessWidget {
   final String username;
@@ -46,24 +51,43 @@ class CustomAppBarDrawer extends StatelessWidget {
           },
         ),
         actions: <Widget>[
+          IconButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => UserProfileScreen(
+                      username: username,
+                      email: email,
+                      profilePhotoUrl: profilePhotoUrl,
+                      coverPhotoUrl: coverPhotoUrl,
+                      firstName: firstName,
+                      lastName: lastName,
+                      phoneNumber: phoneNumber,
+                      gender: gender,
+                      country: country,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.home)),
           IconButton(onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => UserProfileScreen(
-                  username: username,
-                  email: email,
-                  profilePhotoUrl: profilePhotoUrl,
-                  coverPhotoUrl: coverPhotoUrl,
-                  firstName: firstName,
-                  lastName: lastName,
-                  phoneNumber: phoneNumber,
-                  gender: gender,
-                  country: country,
+            Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CourseViewScreen(
+                    username: username,
+                    email: email,
+                    profilePhotoUrl: profilePhotoUrl,
+                    coverPhotoUrl: coverPhotoUrl,
+                    firstName: firstName,
+                    lastName: lastName,
+                    phoneNumber: phoneNumber,
+                    gender: gender,
+                    country: country,
+                  ),
                 ),
-              ),
-            );
-          }, icon: const Icon(Icons.home)),
-          IconButton(onPressed: () {}, icon: const Icon(Icons.book)),
+              );
+          }, icon: const Icon(Icons.book)),
           IconButton(onPressed: () {}, icon: const Icon(Icons.people)),
           IconButton(onPressed: () {}, icon: const Icon(Icons.notifications)),
         ],
@@ -115,7 +139,20 @@ class CustomAppBarDrawer extends StatelessWidget {
               leading: const Icon(Icons.book),
               title: const Text('My Courses'),
               onTap: () {
-                // Navigate to the course screen
+                Navigator.pop(context); // This line closes the drawer
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => EnrolledCoursesScreen(
+                    username: username,
+                    email: email,
+                    profilePhotoUrl: profilePhotoUrl,
+                    coverPhotoUrl: coverPhotoUrl,
+                    firstName: firstName, // Ensure this data is passed correctly
+                    lastName: lastName,
+                    phoneNumber: phoneNumber,
+                    gender: gender,
+                    country: country,
+                  ),
+                ));
               },
             ),
             ListTile(
@@ -128,8 +165,11 @@ class CustomAppBarDrawer extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
-              onTap: () {
-                // Logout logic
+              onTap: () async {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const LoginScreen()),
+                  ModalRoute.withName('/'),
+                );
               },
             ),
           ],

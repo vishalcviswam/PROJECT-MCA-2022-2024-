@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'login_screen.dart';
 import 'startup_screen.dart'; // Import the StartupScreen
-import 'package:video_player/video_player.dart';
 import 'package:flutter/services.dart'; // For status bar customization
 import 'dart:ui' as ui; // For image filter
 

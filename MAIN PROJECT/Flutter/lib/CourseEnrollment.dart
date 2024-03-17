@@ -1,97 +1,110 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_app_bar_drawer.dart';
 
-class CourseViewScreen extends StatefulWidget {
-  final String? username;
-  final String? email;
-  final String? profilePhotoUrl;
-  final String? coverPhotoUrl;
-  final String? firstName;
-  final String? lastName;
-  final String? phoneNumber;
-  final String? gender;
-  final String? country;
+class EnrolledCoursesScreen extends StatefulWidget {
+  final String username;
+  final String email;
+  final String profilePhotoUrl;
+  final String coverPhotoUrl;
+  final String firstName;
+  final String lastName;
+  final String phoneNumber;
+  final String gender;
+  final String country;
 
-  CourseViewScreen({
-    this.username,
-    this.email,
-    this.profilePhotoUrl,
-    this.coverPhotoUrl,
-    this.firstName,
-    this.lastName,
-    this.phoneNumber = '',
-    this.gender = '',
-    this.country = '',
-  });
+  const EnrolledCoursesScreen({
+    Key? key,
+    required this.username,
+    required this.email,
+    required this.profilePhotoUrl,
+    required this.coverPhotoUrl,
+    required this.firstName,
+    required this.lastName,
+    required this.phoneNumber,
+    required this.gender,
+    required this.country,
+  }) : super(key: key);
 
   @override
-  _CourseViewScreenState createState() => _CourseViewScreenState();
+  _EnrolledCoursesScreenState createState() => _EnrolledCoursesScreenState();
 }
 
-class _CourseViewScreenState extends State<CourseViewScreen> {
-  late List<Course> courses = [];
+class _EnrolledCoursesScreenState extends State<EnrolledCoursesScreen> {
+  List<dynamic> enrolledCourses = [];
 
   @override
   void initState() {
     super.initState();
-    fetchCourses();
+    _fetchEnrolledCourses();
   }
 
-  Future<void> fetchCourses() async {
+  Future<void> _fetchEnrolledCourses() async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    final String? token = prefs.getString('token');
+
+    if (token == null) {
+      print("No token found");
+      return;
+    }
+
+    final String url = 'http://10.0.2.2:8000/api/enrollments/';
     try {
-      final response = await http.get(Uri.parse('http://10.0.2.2:8000/api/courses/'));
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Token $token",
+        },
+      );
+
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
         setState(() {
-          courses = data.map((courseJson) => Course.fromJson(courseJson)).toList();
+          enrolledCourses = data;
         });
       } else {
-        throw Exception('Failed to load courses');
+        print('Failed to load courses. Status code: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('An error occurred while fetching courses: $e');
+      print('Error fetching enrolled courses: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return CustomAppBarDrawer(
-      username: widget.username ?? '',
-      email: widget.email ?? '',
-      profilePhotoUrl: widget.profilePhotoUrl ?? '',
-      coverPhotoUrl: widget.coverPhotoUrl ?? '',
-      firstName: widget.firstName ?? '',
-      lastName: widget.lastName ?? '',
-      phoneNumber: widget.phoneNumber ?? '',
-      gender: widget.gender ?? '',
-      country: widget.country ?? '',
-      body: Builder(
-        builder: (context) => ListView.builder(
-          itemCount: courses.length,
-          itemBuilder: (context, index) {
-            final course = courses[index];
-            return CourseCard(course: course);
-          },
-        ),
-      ),
+      username: widget.username,
+      email: widget.email,
+      profilePhotoUrl: widget.profilePhotoUrl,
+      coverPhotoUrl: widget.coverPhotoUrl,
+      firstName: widget.firstName,
+      lastName: widget.lastName,
+      phoneNumber: widget.phoneNumber,
+      gender: widget.gender,
+      country: widget.country,
+      body: enrolledCourses.isNotEmpty
+          ? ListView.builder(
+              itemCount: enrolledCourses.length,
+              itemBuilder: (context, index) {
+                final course = Course.fromJson(enrolledCourses[index]['course']);
+                return _buildCourseCard(context, course);
+              },
+            )
+          : Center(child: Text('No enrolled courses found')),
     );
   }
-}
 
-class CourseCard extends StatelessWidget {
-  final Course course;
-
-  const CourseCard({Key? key, required this.course}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildCourseCard(BuildContext context, Course course) {
     return Card(
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16.0), // Rounded edges for the card
+        borderRadius: BorderRadius.circular(16.0),
       ),
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Uniform margin
+      elevation: 5.0,
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: IntrinsicHeight(
         child: Column(
           children: [
@@ -146,7 +159,6 @@ class CourseCard extends StatelessWidget {
     );
   }
 }
-
 
 class Course {
   final String courseName;
