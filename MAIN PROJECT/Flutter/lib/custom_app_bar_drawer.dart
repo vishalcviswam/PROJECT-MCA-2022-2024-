@@ -4,6 +4,7 @@ import 'user_profile_screen.dart';
 import 'login_screen.dart';
 import 'CourseEnrollment.dart';
 import 'course_view_screen.dart';
+import 'update_profile.dart';
 
 
 
@@ -17,7 +18,7 @@ class CustomAppBarDrawer extends StatelessWidget {
   final String phoneNumber;
   final String gender;
   final String country;
-  final Widget body; // Add the body parameter
+  final Widget? body; // body is optional
 
   const CustomAppBarDrawer({
     Key? key,
@@ -27,10 +28,10 @@ class CustomAppBarDrawer extends StatelessWidget {
     required this.coverPhotoUrl,
     required this.firstName,
     required this.lastName,
-    required this.body, // Update the constructor
-    this.phoneNumber = '',
+    this.phoneNumber = '',  // Defaults for optional parameters
     this.gender = '',
     this.country = '',
+    this.body,              // No 'required' keyword
   }) : super(key: key);
 
   @override
@@ -163,6 +164,27 @@ class CustomAppBarDrawer extends StatelessWidget {
               },
             ),
             ListTile(
+              leading: Icon(Icons.edit),
+              title: Text('Edit Profile'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => UpdateProfileScreen(
+                    // Pass the necessary arguments to the UpdateProfileScreen if needed
+                    username: username,
+                    email: email,
+                    profilePhotoUrl: profilePhotoUrl,
+                    coverPhotoUrl: coverPhotoUrl,
+                    firstName: firstName,
+                    lastName: lastName,
+                    phoneNumber: phoneNumber,
+                    gender: gender,
+                    country: country,
+                  ),
+                ));
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: () async {
@@ -175,7 +197,7 @@ class CustomAppBarDrawer extends StatelessWidget {
           ],
         ),
       ),
-      body: body, // Set the body content here
+      body: body ?? const SizedBox.shrink(), // Set the body content here
     );
   }
 }

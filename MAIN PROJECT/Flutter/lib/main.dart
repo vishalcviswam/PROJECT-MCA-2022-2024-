@@ -6,8 +6,6 @@ import 'startup_screen.dart'; // Import the StartupScreen
 import 'package:flutter/services.dart'; // For status bar customization
 import 'dart:ui' as ui; // For image filter
 
-
-
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(MyApp());

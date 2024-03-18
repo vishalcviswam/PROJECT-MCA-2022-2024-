@@ -3,6 +3,7 @@ import 'login_screen.dart';
 import 'view_profile_screen.dart';
 import 'course_view_screen.dart';
 import 'CourseEnrollment.dart';
+import 'update_profile.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String username;
@@ -152,6 +153,27 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
               leading: const Icon(Icons.message),
               title: const Text('Messages'),
               onTap: () {},
+            ),
+            ListTile(
+              leading: Icon(Icons.edit),
+              title: Text('Edit Profile'),
+              onTap: () {
+                Navigator.pop(context); // Close the drawer
+                Navigator.of(context).push(MaterialPageRoute(
+                  builder: (context) => UpdateProfileScreen(
+                    // Pass the necessary arguments to the UpdateProfileScreen if needed
+                    username: widget.username,
+                    email: widget.email,
+                    profilePhotoUrl: widget.profilePhotoUrl,
+                    coverPhotoUrl: widget.coverPhotoUrl,
+                    firstName: widget.firstName,
+                    lastName: widget.lastName,
+                    phoneNumber: widget.phoneNumber,
+                    gender: widget.gender,
+                    country: widget.country,
+                  ),
+                ));
+              },
             ),
             ListTile(
               leading: const Icon(Icons.logout),
