@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'custom_app_bar_drawer.dart';
+import 'CourseDetailsScreen.dart';
+
 
 class EnrolledCoursesScreen extends StatefulWidget {
   final String username;
@@ -143,7 +145,12 @@ class _EnrolledCoursesScreenState extends State<EnrolledCoursesScreen> {
                       ),
                     ),
                     onPressed: () {
-                      // Handle "More Info" button click
+                      Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CourseDetailScreen(courseId: course.courseId),
+                      ),
+                    );
                     },
                     child: Text('More Info', style: TextStyle(fontSize: 18)),
                     onHover: (isHovering) {
@@ -161,6 +168,7 @@ class _EnrolledCoursesScreenState extends State<EnrolledCoursesScreen> {
 }
 
 class Course {
+  final int courseId;
   final String courseName;
   final String providerName;
   final String courseLevel;
@@ -168,6 +176,7 @@ class Course {
   final String? coverPhoto;
 
   Course({
+    required this.courseId,
     required this.courseName,
     required this.providerName,
     required this.courseLevel,
@@ -183,6 +192,7 @@ class Course {
             : 'Unknown Provider';
 
     return Course(
+      courseId: json['course_id'],
       courseName: json['course_name'].toString(),
       providerName: providerName,
       courseLevel: json['course_level'].toString(),

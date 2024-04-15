@@ -128,10 +128,17 @@ class CourseCard extends StatelessWidget {
                   Text('Level: ${course.courseLevel}',
                       style: TextStyle(fontSize: 16)),
                   SizedBox(height: 8), // Space between level and fee
-                  Text('Fee: \$${course.courseFee.toStringAsFixed(2)}',
+                  Text('Fee: \₹${course.courseFee.toStringAsFixed(2)}',
                       style: TextStyle(fontSize: 16)),
                   SizedBox(height: 16), // Space between fee and button
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white, backgroundColor: Colors.deepPurple, // Button text color
+                      minimumSize: Size(double.infinity, 50), // Button size (full width)
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30.0),
+                      ),
+                    ),
                   onPressed: () {
                     Navigator.push(
                       context,

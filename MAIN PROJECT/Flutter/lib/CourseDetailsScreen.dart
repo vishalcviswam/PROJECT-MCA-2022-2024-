@@ -47,6 +47,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_courseDetails['course_name'] ?? 'Course Details'),
+        backgroundColor: Colors.deepPurple,
+        elevation: 10,
+        shadowColor: Colors.deepPurple.withOpacity(0.5),
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -68,40 +71,63 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    'Provider: ' + (_courseDetails['college'] != null
-                      ? _courseDetails['college']['college_name']
-                      : _courseDetails['content_creator'] != null
-                        ? '${_courseDetails['content_creator']['first_name']} ${_courseDetails['content_creator']['last_name']}'
-                        : 'Unknown Provider'),
-                    style: TextStyle(fontSize: 18),
+                      'Provider: ' + (_courseDetails['college'] != null
+                              ? _courseDetails['college']['college_name']
+                              : _courseDetails['content_creator'] != null
+                                ? '${_courseDetails['content_creator']['first_name']} ${_courseDetails['content_creator']['last_name']}'
+                                : 'Unknown Provider'),
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        Text(
+                            'Course Fee: ${_courseDetails['course_fee'] ?? 'N/A'} Rupees',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                  Card(
+                    elevation: 4,
+                    margin: EdgeInsets.symmetric(vertical: 8),
+                    child: Padding(
+                      padding: EdgeInsets.all(8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Duration: ${_courseDetails['course_duration'] ?? 'N/A'} days',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          Text(
+                            'Level: ${_courseDetails['course_level'] ?? 'N/A'}',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          Text(
+                            'Language: ${_courseDetails['languages'] ?? 'N/A'}',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          Text(
+                            'Exam: ${_courseDetails['exam'] ? 'Yes' : 'No'}',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                          Text(
+                            'Assignment: ${_courseDetails['assignment'] ? 'Yes' : 'No'}',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
+                  
                   Text(
-                    'Course Fee: ${_courseDetails ['course_fee'] ?? 'N/A'} Rupees',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    'Description:',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  Text(
-                    'Duration: ${_courseDetails['course_duration'] ?? 'N/A'} days',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    'Level: ${_courseDetails['course_level'] ?? 'N/A'}',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    'Language: ${_courseDetails['languages'] ?? 'N/A'}',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    'Exam: ${_courseDetails['exam'] ? 'Yes' : 'No'}',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    'Assignment: ${_courseDetails['assignment'] ? 'Yes' : 'No'}',
-                    style: TextStyle(fontSize: 18),
-                  ),
-                  Text(
-                    'Description: ${_courseDetails['course_description'] ?? 'No description available.'}',
-                    style: TextStyle(fontSize: 16),
+                  Container(
+                    padding: EdgeInsets.symmetric(vertical: 8),
+                    alignment: Alignment.topLeft,
+                    child: Text(
+                      _courseDetails['course_description'] ?? 'No description available.',
+                      textAlign: TextAlign.justify,
+                      style: TextStyle(fontSize: 16),
+                    ),
                   ),
                   Text(
                     'Modules:',
@@ -121,14 +147,15 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                         }).toList(),
                       )
                     : Text('No modules available', style: TextStyle(fontSize: 18)),
-                  SizedBox(height: 20),
+                  SizedBox(height: 10),
                   ElevatedButton(
                     onPressed: () {
                       // Handle enroll action
                     },
                     child: Text('Enroll Now'),
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white, backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      backgroundColor: Colors.deepPurple,
                       padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                     ),
                   ),
