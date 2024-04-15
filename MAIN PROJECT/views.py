@@ -1852,7 +1852,7 @@ def add_course_materialnew(request, course_id):
 
         if next_module:
             messages.info(request, f"Do you want to add materials to the next module: '{next_module.module_name}'?")
-            redirect_url = f"{reverse('add_course_material', args=[course_id])}?module_id={next_module.module_id}"
+            redirect_url = f"{reverse('add_course_materialnew', args=[course_id])}?module_id={next_module.module_id}"
         else:
             redirect_url = reverse('course_list_college')
 
@@ -2185,7 +2185,7 @@ def run_python_code(code):
 from rest_framework.decorators import api_view ,permission_classes
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import CourseSerializer, NormalUserSerializer
+from .serializers import CourseEnrollmentSerializer, CourseSerializer, CourseSerializerNew, NormalUserSerializer, PostSerializer
 from rest_framework.permissions import AllowAny
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
@@ -2253,8 +2253,177 @@ def get_user_profile(request):
     return Response(data)
 
 
-
-def course_list(request):
+def course_list_new(request):
     courses = Course.objects.all()
     serializer = CourseSerializer(courses, many=True)
     return JsonResponse(serializer.data, safe=False)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_user_enrollments(request):
+    user = request.user
+    enrollments = CourseEnrollment.objects.filter(normal_user__user=user, is_active=True)
+    serializer = CourseEnrollmentSerializer(enrollments, many=True)
+    return Response(serializer.data)
+
+
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def update_profile_new(request):
+    if request.method == 'PATCH':
+        try:
+            normal_user = request.user.normaluser
+            # Assuming 'NormalUserSerializer' is correctly set up to handle file uploads
+            serializer = NormalUserSerializer(normal_user, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['GET', 'POST'])
+def course_list_create(request):
+    if request.method == 'GET':
+        courses = Course.objects.all()
+        serializer = CourseSerializerNew(courses, many=True)
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        serializer = CourseSerializerNew(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+# Remove the permission classes decorator if you want the endpoint to be public
+def course_detail(request, pk):
+    try:
+        course = Course.objects.get(pk=pk)
+    except Course.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'GET':
+        serializer = CourseSerializerNew(course)
+        return Response(serializer.data)
+
+    elif request.method == 'PUT':
+        serializer = CourseSerializerNew(course, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == 'DELETE':
+        course.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['GET'])
+def list_posts(request):
+    posts = Post.objects.all()
+    serializer = PostSerializer(posts, many=True, context={'request': request})
+    return Response(serializer.data)
+
+
+
+
+
+#blockchain
+from web3 import Web3, HTTPProvider
+import json
+
+# Define a function to get a Web3 connection
+def get_web3_connection():
+    WEB3_HTTP_PROVIDER = 'http://127.0.0.1:7545'  # Adjust based on your Ethereum client HTTP provider
+    web3 = Web3(HTTPProvider(WEB3_HTTP_PROVIDER))
+    assert web3.is_connected(), "Web3 is not connected to the Ethereum client."
+    return web3
+
+# Load the contract ABI and address just once if it doesn't change often
+with open('D:/project/version9/edusphere/build/contracts/BookData.json') as f:
+    contract_info = json.load(f)
+    contract_abi = contract_info['abi']
+    contract_address = contract_info['networks']['5777']['address']  # Adjust '5777' to match your network id
+
+def add_book_to_blockchain(web3, contract, creator_id, content):
+    creator_id = int(creator_id)
+    from_account = web3.eth.accounts[0]
+    web3.eth.default_account = from_account
+
+    gwei_to_wei = 50 * 10**9  # Manually convert 50 gwei to wei
+    tx_params = {
+        'from': from_account,
+        'gasPrice': gwei_to_wei,
+    }
+
+    # Sending transaction
+    tx_hash = contract.functions.addBook(creator_id, content).transact(tx_params)
+    tx_receipt = web3.eth.wait_for_transaction_receipt(tx_hash)
+
+    print("Transaction Receipt Logs:", tx_receipt.logs)
+
+    # Attempting to find the BookAdded event in the logs
+    book_id = None
+    for log in tx_receipt.logs:
+        # Decode only if the log's address matches the contract's address
+        if log.address == contract.address:
+            print("Processing Log:", log)
+            decoded_log = contract.events.BookAdded().processLog(log)
+            print("Decoded Log:", decoded_log)
+            book_id = decoded_log.args.bookId
+            break
+
+    if book_id is None:
+        raise Exception("Failed to find the BookAdded event.")
+
+    return tx_receipt, book_id
+
+
+@login_required
+def add_book(request):
+    web3 = get_web3_connection()  # Get Web3 connection when view is called
+    contract = web3.eth.contract(address=contract_address, abi=contract_abi)  # Move this inside if dynamic
+
+    if request.method == "POST":
+        content = request.POST.get('content')
+        try:
+            creator = ContentCreators.objects.get(user=request.user)
+        except ContentCreators.DoesNotExist:
+            return HttpResponse("You are not authorized to add book content.", status=403)
+
+        try:
+            # Correctly capture both tx_receipt and book_id from the function
+            tx_receipt, book_id = add_book_to_blockchain(web3, contract, creator.user.id, content)
+        except Exception as e:
+            return HttpResponse(f"Failed to add book to blockchain: {e}", status=500)
+
+        # Now book_id is defined and can be used for redirecting
+        return redirect('view_book', book_id=book_id)
+    else:
+        return render(request, 'add_book.html')
+
+
+
+def view_book(request, book_id):
+    web3 = get_web3_connection()  # Reuse your existing connection function
+    contract = web3.eth.contract(address=contract_address, abi=contract_abi)
+
+    try:
+        # Assuming book_id is passed as a URL parameter and is an integer
+        book_id = int(book_id)
+        book_content = contract.functions.getBook(book_id).call()
+        creator_id, content = book_content[0], book_content[1]
+    except Exception as e:
+        return HttpResponse(f"Failed to retrieve book from blockchain: {e}", status=500)
+
+    context = {
+        'creator_id': creator_id,
+        'content': content,
+        'book_id': book_id
+    }
+    return render(request, 'view_book.html', context)

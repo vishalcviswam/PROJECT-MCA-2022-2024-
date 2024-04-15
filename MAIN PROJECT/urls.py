@@ -96,6 +96,8 @@ urlpatterns = [
     path('community/chat/<int:community_id>/', views.community_chat, name='community_chat'),
     path('community/chat_user/<int:community_id>/', views.community_chat_user, name='community_chat_user'),
     path('code-editor/', views.code_editor, name='code_editor'),
+    path('add-book/', views.add_book, name='add_book'),
+    path('view-book/<int:book_id>/', views.view_book, name='view_book'),
 
 
     #restframework
@@ -105,10 +107,12 @@ urlpatterns = [
 
     path('college_dashboard/', views.college_dashboard, name='college_dashboard'),
     path('content_creator_dashboard/', views.content_creator_dashboard, name='content_creator_dashboard'),
-    path('api/courses/', views.course_list, name='course-list'),
-
-
-
+    path('api/courses/', views.course_list_new, name='course-list'),
+    path('api/enrollments/', views.get_user_enrollments, name='user-enrollments'),
+    path('api/profile/update/', views.update_profile_new, name='update_profile_new'),
+    path('api/courseslist/', views.course_list_create, name='course-list-create'),
+    path('api/coursesnew/<int:pk>/', views.course_detail, name='course-detail'),
+    path('api/posts/', views.list_posts, name='list-posts'),
 
 
     
